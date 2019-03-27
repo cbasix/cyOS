@@ -23,15 +23,10 @@ public class GreenScreenDirect {
     // TODO remove duplicated code
     public static int printInt(int value, int base, int len, int cursor, int color) {return printInt(value, base, len, cursor, 0, color);}
     public static int printInt(int value, int base, int len, int x, int y, int color) {
-        int i = len;
-        while(i > 0){
-            int remainder = value % base;
-            printChar(alphabet.charAt(remainder), x+i-1, y, color);
-
-            i--;
+        for (int i = len-1; i >= 0; i--){
+            printChar(alphabet.charAt(value % base), x+i, y, color);
             value = value / base;
         }
-
         return len;
     }
 

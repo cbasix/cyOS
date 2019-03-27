@@ -11,38 +11,60 @@ public class DynamicRuntime {
   private static int firstObjAddr;
   private static int lastObjAddr;
   private static int nextFreeAddr;
+  // get some distance between the image and our new object (allows do use the hex viewer do debug offset errors, instead of just crashing)s
+  public static final int SAFETY_DISTANCE = 2048;
 
   public static class ImageInfo extends STRUCT {
-    public int start, size, classDescStart, codebyteAddr, firstObjInImageAddr, ramInitAddr;
+    public int start, size; //, classDescStart, codebyteAddr, firstObjInImageAddr, ramInitAddr;
+  }
+
+  public static int getNextFreeAddr() {
+    return nextFreeAddr;
   }
 
   public static void initializeMemoryPointers(){
     ImageInfo image = (ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
-    nextFreeAddr = image.start + image.size;
+    nextFreeAddr = image.start + image.size + SAFETY_DISTANCE;
+
+    // allign to 4 byte, (last three address bits zero)
+    nextFreeAddr = (nextFreeAddr + 0x7) &~ 0x7;
   }
   
   public static Object newInstance(int scalarSize, int relocEntries, SClassDesc type) {
     //MAGIC.inline(0xCC); //TODO remove this line
 
-    // allign to 4 byte, (last three address bits zero)
-    //nextFreeAddr = (nextFreeAddr + 0x7) &~ 0x7;
-    //GreenScreenDirect.print(nextFreeAddr, 16, 30, 0, 0, GreenScreenConst.DEFAULT_COLOR);
-    //GreenScreenDirect.print(nextFreeAddr, 2, 30, 0, 1, GreenScreenConst.DEFAULT_COLOR);
+
+    // allign scalar size to 4 byte
+    scalarSize = (scalarSize + 0x7) &~ 0x7;
+
+    int line = 15;
+    GreenScreenDirect.printStr("Last Obj", 0, line, Color.GREEN);
+    GreenScreenDirect.printStr("scalarSize", 0, ++line, Color.GREEN);
+    GreenScreenDirect.printInt(scalarSize, 10,10,15, line, Color.GREEN);
+
+    GreenScreenDirect.printStr("relocEntries", 0, ++line, Color.GREEN);
+    GreenScreenDirect.printInt(relocEntries, 10,10,15, line, Color.GREEN);
 
     // calculate memory requirements
     int objSize = HEADER_SIZE + scalarSize + relocEntries * POINTER_SIZE;
 
+    GreenScreenDirect.printStr("objSize", 0, ++line, Color.GREEN);
+    GreenScreenDirect.printInt(objSize, 10,10,15, line, Color.GREEN);
+
     // clear allocated memory
-    /*for(int i = 0; i < objSize; i++){
+    for(int i = 0; i < objSize; i++){
       MAGIC.wMem8(nextFreeAddr+i, (byte)0x00);
-    }*/
+    }
 
     // calculate object address inside allocated memory
     int objAddr = nextFreeAddr + relocEntries * POINTER_SIZE;
     // TODO check!!!!!
-    //GreenScreenDirect.printStr("ObjAddr", 2, 23, Color.CYAN);
-    //GreenScreenDirect.printInt(objAddr, 10, 10, 2, 24, Color.CYAN);
-    //Kernel.wait(5);
+
+    GreenScreenDirect.printStr("objAddr", 0, ++line, Color.GREEN);
+    GreenScreenDirect.printInt(objAddr, 10,10,15, line, Color.GREEN);
+
+    GreenScreenDirect.printStr("nextFreeAddr", 0, ++line, Color.GREEN);
+    GreenScreenDirect.printInt(nextFreeAddr, 10,10,15, line, Color.GREEN);
 
     Object newObject = MAGIC.cast2Obj(objAddr);
 
