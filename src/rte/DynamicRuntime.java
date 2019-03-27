@@ -1,12 +1,16 @@
 package rte;
 
+import io.Color;
+import io.GreenScreenDirect;
+import kernel.Kernel;
+
 public class DynamicRuntime {
 
   public static final int HEADER_SIZE = 4*4; //4 32-bit integers
   public static final int POINTER_SIZE = MAGIC.ptrSize;
-  public static int firstObjAddr;
-  public static int lastObjAddr;
-  public static int nextFreeAddr;
+  private static int firstObjAddr;
+  private static int lastObjAddr;
+  private static int nextFreeAddr;
 
   public static class ImageInfo extends STRUCT {
     public int start, size, classDescStart, codebyteAddr, firstObjInImageAddr, ramInitAddr;
@@ -21,22 +25,24 @@ public class DynamicRuntime {
     //MAGIC.inline(0xCC); //TODO remove this line
 
     // allign to 4 byte, (last three address bits zero)
-    nextFreeAddr = (nextFreeAddr + 0x7) &~ 0x7;
-    for (int i = 0; i < 4; i++) {
-      kernel.Kernel.print((char) (48 + nextFreeAddr & 0xFF << i), 43+i, 21);
-    }
+    //nextFreeAddr = (nextFreeAddr + 0x7) &~ 0x7;
+    //GreenScreenDirect.print(nextFreeAddr, 16, 30, 0, 0, GreenScreenConst.DEFAULT_COLOR);
+    //GreenScreenDirect.print(nextFreeAddr, 2, 30, 0, 1, GreenScreenConst.DEFAULT_COLOR);
 
     // calculate memory requirements
     int objSize = HEADER_SIZE + scalarSize + relocEntries * POINTER_SIZE;
 
     // clear allocated memory
-    for(int i = 0; i < objSize; i++){
+    /*for(int i = 0; i < objSize; i++){
       MAGIC.wMem8(nextFreeAddr+i, (byte)0x00);
-    }
+    }*/
 
     // calculate object address inside allocated memory
-    int objAddr = nextFreeAddr + scalarSize + (HEADER_SIZE / 2) - 1;
+    int objAddr = nextFreeAddr + relocEntries * POINTER_SIZE;
     // TODO check!!!!!
+    //GreenScreenDirect.printStr("ObjAddr", 2, 23, Color.CYAN);
+    //GreenScreenDirect.printInt(objAddr, 10, 10, 2, 24, Color.CYAN);
+    //Kernel.wait(5);
 
     Object newObject = MAGIC.cast2Obj(objAddr);
 
@@ -54,10 +60,17 @@ public class DynamicRuntime {
       // set r_next on last object
       Object lastObject = MAGIC.cast2Obj(lastObjAddr);
       MAGIC.assign(lastObject._r_next, newObject);
+
+      // print status
+      GreenScreenDirect.printStr("Setting last r_next", 2, 23, Color.CYAN);
+      GreenScreenDirect.printInt(MAGIC.addr(lastObject._r_next), 10, 10, 2, 24, Color.CYAN);
+      Kernel.wait(1);
     }
 
     // allocate requested memory
     nextFreeAddr = nextFreeAddr + objSize;
+
+    lastObjAddr = objAddr;
 
     return newObject;
   }
