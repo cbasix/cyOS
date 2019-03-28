@@ -10,8 +10,7 @@ public class DynamicRuntime {
   private static int firstObjAddr;
   private static int lastObjAddr;
   private static int nextFreeAddr;
-  // get some distance between the image and our new object (allows do use the hex viewer do debug offset errors, instead of just crashing)s
-  public static final int SAFETY_DISTANCE = 0;
+
 
   public static class ImageInfo extends STRUCT {
     public int start, size; //, classDescStart, codebyteAddr, firstObjInImageAddr, ramInitAddr;
@@ -23,18 +22,16 @@ public class DynamicRuntime {
 
   public static void initializeMemoryPointers(){
     ImageInfo image = (ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
-    nextFreeAddr = image.start + image.size + SAFETY_DISTANCE;
+    nextFreeAddr = image.start + image.size;
 
     if(image.size != MAGIC.rMem32(MAGIC.imageBase+4) || image.start != MAGIC.imageBase){
-      Kernel.debug("Something is wrong with your image info struct", Kernel.ERROR);
+      Kernel.debug("Something is wrong with my image info struct", Kernel.ERROR);
       while (true){}
     }
     // allign to 4 byte, (last two address bits zero)
-    //nextFreeAddr = (nextFreeAddr + 0x3) &~ 0x3;
+    nextFreeAddr = (nextFreeAddr + 0x3) &~ 0x3;
 
-    // allign to next sector boundary
-    nextFreeAddr = (nextFreeAddr + 0xFFF) &~ 0xFFF;
-
+    // TODO remove later
     // plant visual mines in memory for the next 1024 bytes to verify correct 0 initialisation
     Kernel.debug("before mines", Kernel.ERROR);
     for(int i = 0; i < 1024; i++){
@@ -42,11 +39,9 @@ public class DynamicRuntime {
     }
     Kernel.debug("after mines", Kernel.ERROR);
   }
-  
+
+  // Todo cleanup prints later on
   public static Object newInstance(int scalarSize, int relocEntries, SClassDesc type) {
-    //MAGIC.inline(0xCC); //TODO remove this line
-
-
     // allign scalar size to 4 byte
     scalarSize = (scalarSize + 0x3) &~ 0x3;
 
@@ -99,11 +94,11 @@ public class DynamicRuntime {
       MAGIC.assign(lastObject._r_next, newObject);
 
       // print status
-      GreenScreenDirect.printStr("Setting last r_next", 2, 23, Color.CYAN);
+      /*GreenScreenDirect.printStr("Setting last r_next", 2, 23, Color.CYAN);
       GreenScreenDirect.printInt(MAGIC.addr(lastObject._r_next), 10, 10, 2, 24, Color.CYAN);
       GreenScreenDirect.printStr(" to ", 12, 24, Color.CYAN);
       GreenScreenDirect.printInt(MAGIC.rMem32(MAGIC.addr(lastObject._r_next)), 10, 10, 16, 24, Color.CYAN);
-      Kernel.wait(1);
+      Kernel.wait(1);*/
     }
 
     // allocate requested memory
@@ -126,7 +121,7 @@ public class DynamicRuntime {
     rlE=MAGIC.getInstRelocEntries("SArray");
     if (arrDim>1 || entrySize<0) rlE+=length;
     else scS+=length*entrySize;
-    me=(SArray)newInstance(scS, rlE, MAGIC.clssDesc("SArray")); // I ADDED THE CHAST HERE !!!!!!!
+    me=(SArray)newInstance(scS, rlE, (SClassDesc) MAGIC.clssDesc("SArray")); // I ADDED THE CHAST HERE !!!!!!!
     MAGIC.assign(me.length, length);
     MAGIC.assign(me._r_dim, arrDim);
     MAGIC.assign(me._r_stdType, stdType);

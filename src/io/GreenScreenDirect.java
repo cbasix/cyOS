@@ -13,19 +13,17 @@ public class GreenScreenDirect {
             Kernel.debug("Base to big", Kernel.ERROR);
             while (true){}
         }
+
         if (value < 0){
             printChar('-', x, y, color);
+            value *= -1;
         } else {
             printChar(' ', x, y, color);
         }
+
         for (int i = len-1; i >= 1; i--){
-            int remainder = (int)(value % base);
-            int character = remainder;
-            if (remainder < 0) {
-                character = base+remainder;
-            }
-            printChar(alphabet.charAt(character), x+i, y, color);
-            value -= remainder * base;
+            printChar(alphabet.charAt((int)(value % base)), x+i, y, color);
+            value /= base;
         }
         return len;
     }

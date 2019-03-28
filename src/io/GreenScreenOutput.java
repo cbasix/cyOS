@@ -3,7 +3,7 @@ package io;
 
 
 public class GreenScreenOutput {
-    private static int virtualCursor = 0;
+    private int virtualCursor = 0;
 
     private int color = GreenScreenConst.DEFAULT_COLOR;
 
