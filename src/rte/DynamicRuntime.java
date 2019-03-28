@@ -35,10 +35,10 @@ public class DynamicRuntime {
     // allign to next sector boundary
     nextFreeAddr = (nextFreeAddr + 0xFFF) &~ 0xFFF;
 
-    // plant visual mines in memory for the next 1024 bytes
+    // plant visual mines in memory for the next 1024 bytes to verify correct 0 initialisation
     Kernel.debug("before mines", Kernel.ERROR);
     for(int i = 0; i < 1024; i++){
-      MAGIC.wMem8(nextFreeAddr+i, (byte)0x00);
+      MAGIC.wMem8(nextFreeAddr+i, (byte)0xFF);
     }
     Kernel.debug("after mines", Kernel.ERROR);
   }

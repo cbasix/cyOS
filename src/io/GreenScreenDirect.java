@@ -4,18 +4,28 @@ import kernel.Kernel;
 
 public class GreenScreenDirect {
 
-    private static final String alphabet="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ??????????????????????????";
+    private static final String alphabet="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     public static int printLong(long value, int base, int len, int cursor, int color) {return printLong(value, base, len, cursor, 0, color);}
     public static int printLong(long value, int base, int len, int x, int y, int color) {
-        int i = len;
-        while(i > 0){
-            int remainder =(int) value % base;
-            printChar(alphabet.charAt(remainder), x+i-1, y, color);
-            GreenScreenDirect.printStr("in", 3, 20, Color.GREEN);
-            Kernel.wait(5);
-            i--;
-            value = value / base;
+
+        if (base > alphabet.length()){
+            Kernel.debug("Base to big", Kernel.ERROR);
+            while (true){}
+        }
+        if (value < 0){
+            printChar('-', x, y, color);
+        } else {
+            printChar(' ', x, y, color);
+        }
+        for (int i = len-1; i >= 1; i--){
+            int remainder = (int)(value % base);
+            int character = remainder;
+            if (remainder < 0) {
+                character = base+remainder;
+            }
+            printChar(alphabet.charAt(character), x+i, y, color);
+            value -= remainder * base;
         }
         return len;
     }
@@ -23,9 +33,30 @@ public class GreenScreenDirect {
     // TODO remove duplicated code
     public static int printInt(int value, int base, int len, int cursor, int color) {return printInt(value, base, len, cursor, 0, color);}
     public static int printInt(int value, int base, int len, int x, int y, int color) {
-        for (int i = len-1; i >= 0; i--){
+        if (base > alphabet.length()){
+            Kernel.debug("Base to big", Kernel.ERROR);
+            while (true){}
+        }
+
+        if (value < 0){
+            printChar('-', x, y, color);
+            value *= -1;
+        } else {
+            printChar(' ', x, y, color);
+        }
+
+        for (int i = len-1; i >= 1; i--){
             printChar(alphabet.charAt(value % base), x+i, y, color);
-            value = value / base;
+            value /= base;
+        }
+        return len;
+    }
+
+    public static int printHex(int value, int len, int cursor, int color) {return printInt(value, len, cursor, 0, color);}
+    public static int printHex(int value, int len, int x, int y, int color) {
+        for (int i = len-1; i >= 0; i--) {
+            printChar(alphabet.charAt(value & 0xF), x + i, y, color);
+            value = value >> 4;
         }
         return len;
     }

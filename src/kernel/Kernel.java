@@ -155,11 +155,14 @@ public class Kernel {
         debug("Hexdmp B", FINER);
         GreenScreenDirect.printInt(startAddr + i, 10, 8, 39, GreenScreenConst.HEIGHT-1-i/4, GreenScreenConst.ERROR_COLOR);
         debug("Hexdmp C", FINER);
-        GreenScreenDirect.printInt((int)MAGIC.rMem32(startAddr+i), 10, 8, 70, GreenScreenConst.HEIGHT-1-i/4, GreenScreenConst.DEFAULT_COLOR);
+        int v = MAGIC.rMem32(startAddr+i);
+          debug("Hexdmp D", FINER);
+        GreenScreenDirect.printInt(v, 10, 8, 70, GreenScreenConst.HEIGHT-1-i/4, GreenScreenConst.DEFAULT_COLOR);
       }
-      debug("Hexdmp D", FINER);
+      debug("Hexdmp X", FINER);
       byte t = MAGIC.rMem8(startAddr + i);
-      GreenScreenDirect.printInt(t,16, 2, 50+(i%4)*4, GreenScreenConst.HEIGHT-1-i/4, GreenScreenConst.DEFAULT_COLOR);
+      debug("Hexdmp Y", FINER);
+      GreenScreenDirect.printHex(t, 2, 50+(i%4)*4, GreenScreenConst.HEIGHT-1-i/4, GreenScreenConst.DEFAULT_COLOR);
       //GreenScreenDirect.printInt(t,10, 3, 50, 0, GreenScreenConst.DEFAULT_COLOR);
     }
     /*DynamicRuntime.HexDump dump = (DynamicRuntime.HexDump) MAGIC.cast2Struct(startAddr);
