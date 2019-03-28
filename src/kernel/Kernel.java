@@ -132,7 +132,7 @@ public class Kernel {
       err.setColor(Color.RED, Color.BLACK);
 
       // write some stuff
-      out.print("Lorem ipsum dolor sit amet. slsdfasfeasf");
+      out.print("Lorem ipsum dolor sit amet. sl");
       //out.print("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis elit orci, porta commodo suscipit eget, aliquet quis est.");
 
       err.print(42); err.printHex(42); err.println();
