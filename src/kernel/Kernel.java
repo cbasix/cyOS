@@ -8,19 +8,20 @@ public class Kernel {
 
   private static int vidMemCursor=0xB8000;
 
-  public static class Test{
-    private int data;
-    public void setData(int data){
-      this.data = data;
-    }
-    public int getData(){
-      return data;
-    }
-  }
+  public static final int FINER = 2;
+  public static final int FINE = 3;
+  public static final int INFO = 4;
+  public static final int ERROR = 5;
+
+  private static int startAddr = 0;
+
+  private static final int DEBUG_LEVEL = INFO;
 
   public static void main() {
-    MAGIC.doStaticInit();
     DynamicRuntime.initializeMemoryPointers();
+    MAGIC.doStaticInit();
+
+    startAddr = DynamicRuntime.getNextFreeAddr();
 
     GreenScreenDirect.printInt(MAGIC.rMem32(MAGIC.imageBase), 10, 10, 0, Color.RED);
     GreenScreenDirect.printInt(MAGIC.rMem32(MAGIC.imageBase+4), 10, 10, 80, Color.RED);
@@ -32,7 +33,7 @@ public class Kernel {
 
     // remind myself that i forgot to uncomment the run method above...
     while (true){
-      debug("YOU SHALL NEVER GET HERE");
+      debug("YOU SHALL NEVER GET HERE", ERROR);
     }
   }
 
@@ -44,12 +45,12 @@ public class Kernel {
     GreenScreenDirect.printChar('%', 22, 6, GreenScreenConst.DEFAULT_COLOR);
 
 
-    int i = 0;
+    int tick = 0;
     while(true){
 
       // update percent number
-      GreenScreenDirect.printInt(i, 10, 2, 20, 6, GreenScreenConst.DEFAULT_COLOR);
-      GreenScreenDirect.printInt(i, 16, 2, 20, 7, GreenScreenConst.DEFAULT_COLOR);
+      GreenScreenDirect.printInt(tick, 10, 2, 20, 6, GreenScreenConst.DEFAULT_COLOR);
+      GreenScreenDirect.printInt(tick, 16, 2, 20, 7, GreenScreenConst.DEFAULT_COLOR);
 
       //update seconds
       GreenScreenDirect.printStr("Sec", 27, 0, GreenScreenConst.DEFAULT_COLOR);
@@ -59,28 +60,29 @@ public class Kernel {
       GreenScreenDirect.printStr("Next Free",  0, 1, GreenScreenConst.DEFAULT_COLOR);
       GreenScreenDirect.printInt(DynamicRuntime.getNextFreeAddr(), 10, 9, 10, 1, GreenScreenConst.DEFAULT_COLOR);
 
-      debug("Kernel A");
+      debug("Kernel A", FINE);
 
 
-      Test t1 = null;
+      Test t1 = new Test();
+      Test t2 = null;
 
       // after four ticks start doing something usefull
-      if (i % 100 == 4) {
+      if (tick  == 4) {
 
         /*GreenScreenOutput out = new GreenScreenOutput();
         out.setColor(Color.GREEN, Color.GREY);
         out.setCursor(0, 10);
         GreenScreenOutput err = new GreenScreenOutput();
         err.setColor(Color.RED, Color.BLACK);*/
-        debug("Kernel X");
+        debug("Kernel X", FINE);
         wait(1);
 
-        t1 = new Test();
-        //Test t2 = new Test();
+        //t1 = ;
+        t2 = new Test();
 
 
         // print status
-        debug("Kernel Y");
+        debug("Kernel Y", FINE);
 
         /*out.printHex(i);
         out.print("It is done. 42 Reached. ");
@@ -97,27 +99,35 @@ public class Kernel {
 
 
       }
-      if (i > 4){
-        t1.setData(i);
+      if (tick >= 0){
+        debug("Ticking T1", INFO);
+        t1.setData(tick);
+        GreenScreenDirect.printStr("T1 addr", 0, 13, Color.PINK);
+        GreenScreenDirect.printInt(MAGIC.addr(t1), 10, 10, 15, 13, Color.PINK);
+        GreenScreenDirect.printInt(MAGIC.rMem32(MAGIC.addr(t1)), 10, 10, 15, 13, Color.PINK);
+
+        GreenScreenDirect.printStr("T2 addr", 0, 14, Color.PINK);
+        GreenScreenDirect.printInt(MAGIC.addr(t2), 10, 10, 15, 14, Color.PINK);
+        GreenScreenDirect.printInt(MAGIC.rMem32(MAGIC.addr(t2)), 10, 10, 15, 14, Color.PINK);
       }
 
 
 
-      debug("Kernel E");
+      debug("Kernel E", FINE);
       //continue;
       printHexdump();
 
-      if (i % 100 == 5) {
+      if (tick == 2) {
         // stop here to inspect hexdump
-        debug("Stopped for inspection");
+        debug("Stopped for inspection", INFO);
         while (true){}
       }
 
       //while (true){};
-      debug("Kernel F");
+      debug("Kernel F", FINE);
       wait(1);
 
-      i++;
+      tick++;
     }
 
   }
@@ -138,21 +148,16 @@ public class Kernel {
   }
 
   private static void printHexdump() {
-    //GreenScreenDirect.print("Starting hexdump", 2, 23, Color.CYAN); Kernel.wait(3);
 
-    DynamicRuntime.ImageInfo image = (DynamicRuntime.ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
-    int startAddr = image.start + image.size + DynamicRuntime.SAFETY_DISTANCE;
-    // allign to 4 byte, (last three address bits zero)
-    startAddr = ((startAddr + 0x7) &~ 0x7) - 8; // show the last 8 bits before start too
-    debug("Hexdmp A");
+    debug("Hexdmp A", FINER);
     for (int i = 0; i < GreenScreenConst.HEIGHT*4; i++){
       if (i % 4 == 0){
-        debug("Hexdmp B");
+        debug("Hexdmp B", FINER);
         GreenScreenDirect.printInt(startAddr + i, 10, 8, 39, GreenScreenConst.HEIGHT-1-i/4, GreenScreenConst.ERROR_COLOR);
-        debug("Hexdmp C");
+        debug("Hexdmp C", FINER);
         GreenScreenDirect.printInt((int)MAGIC.rMem32(startAddr+i), 10, 8, 70, GreenScreenConst.HEIGHT-1-i/4, GreenScreenConst.DEFAULT_COLOR);
       }
-      debug("Hexdmp D");
+      debug("Hexdmp D", FINER);
       byte t = MAGIC.rMem8(startAddr + i);
       GreenScreenDirect.printInt(t,16, 2, 50+(i%4)*4, GreenScreenConst.HEIGHT-1-i/4, GreenScreenConst.DEFAULT_COLOR);
       //GreenScreenDirect.printInt(t,10, 3, 50, 0, GreenScreenConst.DEFAULT_COLOR);
@@ -172,9 +177,11 @@ public class Kernel {
       GreenScreenDirect.printInt(dump.expl[d],16, 2, 50+(d%8)*3, d/8, GreenScreenConst.DEFAULT_COLOR);
     }*/
   }
-  public static void debug(String str) {
-    GreenScreenDirect.printStr(str, 0, 0, GreenScreenConst.DEFAULT_COLOR);
-    //wait(1);
+  public static void debug(String str, int lvl) {
+    if (lvl >= DEBUG_LEVEL) {
+      GreenScreenDirect.printStr(str, 0, 0, GreenScreenConst.DEFAULT_COLOR);
+      wait(1);
+    }
   }
 
 }
