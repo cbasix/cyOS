@@ -8,8 +8,8 @@ public class RTC {
     public static final byte MONTH = 8;
     public static final byte YEAR = 9;
 
-    public static int read(byte type){
+    public static int read(byte type) {
         MAGIC.wIOs8(0x70, type); //Register with addr auswählen
-        return (int)MAGIC.rIOs8(0x71)&0xFF; //Wert auslesen
+        return ((int)MAGIC.rIOs8(0x71)) & 0xFF; //Wert auslesen und den unsigned byte wert als signed int konvertieren
     }
 }

@@ -1,12 +1,14 @@
-package kernel;
+package tests;
 
-public class Test{
+public class TestObject {
     private int data;
     public String s = "tablularasa";
-    public void setData(int data){
+
+    public void setData(int data) {
         this.data = data;
     }
-    public int getData(){
+
+    public int getData() {
         return data;
     }
 }
