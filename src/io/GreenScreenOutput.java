@@ -143,9 +143,8 @@ public class GreenScreenOutput {
 
         boolean isNegative = value < 0L;
         if (isNegative) {
-            // 2er komplement positiv machen
-            value -= 1;
-            value = ~value;
+            // positiv machen
+            value = -value;
         }
 
         int remainder;

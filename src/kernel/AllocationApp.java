@@ -47,7 +47,7 @@ public class AllocationApp {
             LowlevelLogging.debug("Kernel A", LowlevelLogging.FINE);
 
 
-            TestObject t1 = new TestObject();
+            //TestObject t1 = new TestObject();
 
 
             // after one tick start doing something usefull
@@ -74,17 +74,17 @@ public class AllocationApp {
                     LowlevelLogging.debug("Something is seriously wrong with this object instance ", LowlevelLogging.ERROR);
                 }
 
-                LowlevelOutput.printStr("T1 addr", 0, 13, Color.PINK);
+                /*LowlevelOutput.printStr("T1 addr", 0, 13, Color.PINK);
                 LowlevelOutput.printInt(MAGIC.addr(t1), 10, 10, 15, 13, Color.PINK);
                 LowlevelOutput.printInt(MAGIC.rMem32(MAGIC.addr(t1)), 10, 10, 15, 13, Color.PINK);
 
                 LowlevelOutput.printStr("T2 addr", 0, 14, Color.PINK);
                 LowlevelOutput.printInt(MAGIC.addr(t2), 10, 10, 15, 14, Color.PINK);
-                LowlevelOutput.printInt(MAGIC.rMem32(MAGIC.addr(t2)), 10, 10, 15, 14, Color.PINK);
+                LowlevelOutput.printInt(MAGIC.rMem32(MAGIC.addr(t2)), 10, 10, 15, 14, Color.PINK);*/
             }
 
             LowlevelLogging.debug("Kernel E", LowlevelLogging.FINE);
-            LowlevelLogging.printHexdump(dumpStartAddr);
+            LowlevelLogging.printHexdump(rte.DynamicRuntime.interuptDescriptorTableAddr+ Interrupts.idtEntryCount*MAGIC.ptrSize*2 - 16);
 
             if (tick == 4) {
                 // stop here to inspect hexdump

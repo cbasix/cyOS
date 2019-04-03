@@ -19,20 +19,21 @@ public class LowlevelLogging {
             if (i % 4 == 0) {
                 debug("Hexdmp B", FINER);
 
-                LowlevelOutput.printInt(dumpStartAddr + i, 10, 8, 39, GreenScreenConst.HEIGHT - 1 - i / 4, GreenScreenConst.ERROR_COLOR);
+                //LowlevelOutput.printInt(dumpStartAddr + i, 10, 10, 39, GreenScreenConst.HEIGHT - 1 - i / 4, GreenScreenConst.ERROR_COLOR);
+                LowlevelOutput.printHex(dumpStartAddr + i,10, 39, GreenScreenConst.HEIGHT - 1 - i / 4, GreenScreenConst.ERROR_COLOR);
                 debug("Hexdmp C", FINER);
 
                 int v = MAGIC.rMem32(dumpStartAddr + i);
                 debug("Hexdmp D", FINER);
 
-                LowlevelOutput.printInt(v, 10, 8, 70, GreenScreenConst.HEIGHT - 1 - i / 4, GreenScreenConst.DEFAULT_COLOR);
+                LowlevelOutput.printInt(v, 10, 10, 70, GreenScreenConst.HEIGHT - 1 - i / 4, GreenScreenConst.DEFAULT_COLOR);
             }
             debug("Hexdmp X", FINER);
 
             byte t = MAGIC.rMem8(dumpStartAddr + i);
             debug("Hexdmp Y", FINER);
 
-            LowlevelOutput.printHex(t, 2, 50 + (i % 4) * 4, GreenScreenConst.HEIGHT - 1 - i / 4, GreenScreenConst.DEFAULT_COLOR);
+            LowlevelOutput.printHex(t, 2, 58 + 4-(i % 4) * 4, GreenScreenConst.HEIGHT - 1 - i / 4, GreenScreenConst.DEFAULT_COLOR);
             //LowlevelOutputTest.printInt(t,10, 3, 50, 0, GreenScreenConst.DEFAULT_COLOR);
         }
     }

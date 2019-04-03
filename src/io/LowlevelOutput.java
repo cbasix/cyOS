@@ -20,8 +20,7 @@ public class LowlevelOutput {
         if (value < 0) {
             printChar('-', x, y, color);
             // negative number convert 2er complement to positive
-            value -= 1;
-            value = ~value;
+            value = -value;
         } else {
             printChar(' ', x, y, color);
         }
@@ -48,9 +47,8 @@ public class LowlevelOutput {
 
         if (value < 0) {
             printChar('-', x, y, color);
-            // negative number convert 2er complement to positive
-            value -= 1;
-            value = ~value;
+            // negative number convert positive
+            value = -value;
         } else {
             printChar(' ', x, y, color);
         }

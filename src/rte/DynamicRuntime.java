@@ -3,6 +3,7 @@ package rte;
 import io.Color;
 import io.LowlevelOutput;
 import io.LowlevelLogging;
+import kernel.Interrupts;
 
 public class DynamicRuntime {
 
@@ -10,6 +11,7 @@ public class DynamicRuntime {
     private static int firstObjAddr;
     private static int lastObjAddr;
     private static int nextFreeAddr;
+    public static int interuptDescriptorTableAddr;
 
 
     public static class ImageInfo extends STRUCT {
@@ -22,15 +24,25 @@ public class DynamicRuntime {
 
     public static void initializeMemoryPointers() {
         ImageInfo image = (ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
-        nextFreeAddr = image.start + image.size;
+        // make room for interrupt table after image
+        // allign to 4 byte, (last two address bits zero)
+        interuptDescriptorTableAddr =  (image.start + image.size + 0x3) & ~0x3;
+
+        // write marker into mem
+        MAGIC.wMem32(interuptDescriptorTableAddr, 0xA1A1A1A1);
+        interuptDescriptorTableAddr += MAGIC.ptrSize;
+
+        nextFreeAddr = interuptDescriptorTableAddr + Interrupts.idtEntryCount*MAGIC.ptrSize*2 ;
+
+        // write marker into mem
+        MAGIC.wMem32(nextFreeAddr, 0xB2B2B2B2);
+        nextFreeAddr += MAGIC.ptrSize;
 
         if (image.size != MAGIC.rMem32(MAGIC.imageBase + 4) || image.start != MAGIC.imageBase) {
             LowlevelLogging.debug("Something is wrong with my image info struct", LowlevelLogging.ERROR);
             while (true) {
             }
         }
-        // allign to 4 byte, (last two address bits zero)
-        nextFreeAddr = (nextFreeAddr + 0x3) & ~0x3;
     }
 
     // Todo cleanup prints later on
@@ -52,13 +64,12 @@ public class DynamicRuntime {
         LowlevelOutput.printStr("objSize", 0, ++line, Color.GREEN);
         LowlevelOutput.printInt(objSize, 10, 10, 15, line, Color.GREEN);
 
-        // TODO do it in 32 bit steps
+
         // clear allocated memory
-        for (int i = 0; i < objSize; i++) {
-            MAGIC.wMem8(nextFreeAddr + i, (byte) 0x00);
+        for (int i = 0; i < objSize/4; i++) {
+            MAGIC.wMem32(nextFreeAddr + i*4, 0x00000000);
         }
 
-        // TODO check!!!!!
         // calculate object address inside allocated memory
         int objAddr = nextFreeAddr + relocEntries * POINTER_SIZE;
 
@@ -83,6 +94,7 @@ public class DynamicRuntime {
 
         } else {
             // set r_next on last object
+            // TODO cast nicht nötig gleich objekt merken
             Object lastObject = MAGIC.cast2Obj(lastObjAddr);
             MAGIC.assign(lastObject._r_next, newObject);
 
@@ -95,6 +107,8 @@ public class DynamicRuntime {
         }
 
         // allocate requested memory
+        // this is automatically alligned because scalar size was aligned at the beginning of this method
+        // and all the reloc entrys are always 4 bytes on ia32
         nextFreeAddr = nextFreeAddr + objSize;
 
         lastObjAddr = objAddr;

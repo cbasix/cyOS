@@ -10,9 +10,8 @@ public class GreenScreenConst {
     public static class VidChar extends STRUCT {
         public byte ascii, color;
     }
-
     public static class VidMem extends STRUCT {
-        @SJC(offset = 0, count = 2000)
+        @SJC(offset=0,count=2000)
         public VidChar[] chars;
         //@SJC(offset=0,count=2000)
         //public short[] chars;
