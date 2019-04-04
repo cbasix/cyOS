@@ -16,6 +16,7 @@ public class TestRunner {
         LowlevelOutput.clearScreen(GreenScreenConst.DEFAULT_COLOR);
         LowlevelOutput.printStr("Tests OK. All systems GO;", 25, 12, GreenScreenConst.DEFAULT_COLOR);
         Kernel.wait(seconds);
+
     }
 
     public static void check(int returnCode){

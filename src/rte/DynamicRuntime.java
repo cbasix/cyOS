@@ -1,17 +1,15 @@
 package rte;
 
-import io.Color;
-import io.LowlevelOutput;
 import io.LowlevelLogging;
 import kernel.Interrupts;
 
 public class DynamicRuntime {
 
     public static final int POINTER_SIZE = MAGIC.ptrSize;
-    private static int firstObjAddr;
-    private static int lastObjAddr;
+    private static Object firstObj;
+    private static Object lastObj;
     private static int nextFreeAddr;
-    public static int interuptDescriptorTableAddr;
+    public static int interruptDescriptorTableAddr, interruptJumpTableAddr;
 
 
     public static class ImageInfo extends STRUCT {
@@ -26,13 +24,22 @@ public class DynamicRuntime {
         ImageInfo image = (ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
         // make room for interrupt table after image
         // allign to 4 byte, (last two address bits zero)
-        interuptDescriptorTableAddr =  (image.start + image.size + 0x3) & ~0x3;
+        interruptDescriptorTableAddr =  (image.start + image.size + 0x3) & ~0x3;
 
         // write marker into mem
-        MAGIC.wMem32(interuptDescriptorTableAddr, 0xA1A1A1A1);
-        interuptDescriptorTableAddr += MAGIC.ptrSize;
+        MAGIC.wMem32(interruptDescriptorTableAddr, 0xA1A1A1A1);
+        interruptDescriptorTableAddr += MAGIC.ptrSize;
 
-        nextFreeAddr = interuptDescriptorTableAddr + Interrupts.idtEntryCount*MAGIC.ptrSize*2 ;
+        int idtSize = Interrupts.idtEntryCount*MAGIC.ptrSize*2;
+        int ijtSize = Interrupts.idtEntryCount*Interrupts.interruptJumpTableEntrySize + Interrupts.interruptJumpTableScalarSize;
+
+        interruptJumpTableAddr = interruptDescriptorTableAddr + idtSize;
+
+        MAGIC.wMem32(interruptJumpTableAddr, 0xA6A6A6A6);
+        interruptJumpTableAddr += MAGIC.ptrSize;
+
+        nextFreeAddr = interruptJumpTableAddr + ijtSize;
+
 
         // write marker into mem
         MAGIC.wMem32(nextFreeAddr, 0xB2B2B2B2);
@@ -50,19 +57,19 @@ public class DynamicRuntime {
         // allign scalar size to 4 byte
         scalarSize = (scalarSize + 0x3) & ~0x3;
 
-        int line = 15;
+        /*int line = 15;
         LowlevelOutput.printStr("Last Obj", 0, line, Color.GREEN);
         LowlevelOutput.printStr("scalarSize", 0, ++line, Color.GREEN);
         LowlevelOutput.printInt(scalarSize, 10, 10, 15, line, Color.GREEN);
 
         LowlevelOutput.printStr("relocEntries", 0, ++line, Color.GREEN);
-        LowlevelOutput.printInt(relocEntries, 10, 10, 15, line, Color.GREEN);
+        LowlevelOutput.printInt(relocEntries, 10, 10, 15, line, Color.GREEN);*/
 
         // calculate memory requirements
         int objSize = scalarSize + relocEntries * POINTER_SIZE;
 
-        LowlevelOutput.printStr("objSize", 0, ++line, Color.GREEN);
-        LowlevelOutput.printInt(objSize, 10, 10, 15, line, Color.GREEN);
+        /*LowlevelOutput.printStr("objSize", 0, ++line, Color.GREEN);
+        LowlevelOutput.printInt(objSize, 10, 10, 15, line, Color.GREEN);*/
 
 
         // clear allocated memory
@@ -74,11 +81,11 @@ public class DynamicRuntime {
         int objAddr = nextFreeAddr + relocEntries * POINTER_SIZE;
 
 
-        LowlevelOutput.printStr("objAddr", 0, ++line, Color.GREEN);
+        /*LowlevelOutput.printStr("objAddr", 0, ++line, Color.GREEN);
         LowlevelOutput.printInt(objAddr, 10, 10, 15, line, Color.GREEN);
 
         LowlevelOutput.printStr("nextFreeAddr", 0, ++line, Color.GREEN);
-        LowlevelOutput.printInt(nextFreeAddr, 10, 10, 15, line, Color.GREEN);
+        LowlevelOutput.printInt(nextFreeAddr, 10, 10, 15, line, Color.GREEN);*/
 
         Object newObject = MAGIC.cast2Obj(objAddr);
 
@@ -88,14 +95,14 @@ public class DynamicRuntime {
         MAGIC.assign(newObject._r_scalarSize, scalarSize);
 
 
-        if (lastObjAddr == 0) {
+        if (lastObj == null) {
             // first object ever, save it for having a startpoint for _r_next iteration GC (later on)
-            firstObjAddr = objAddr;
+            firstObj = newObject;
 
         } else {
             // set r_next on last object
             // TODO cast nicht nötig gleich objekt merken
-            Object lastObject = MAGIC.cast2Obj(lastObjAddr);
+            Object lastObject = lastObj;
             MAGIC.assign(lastObject._r_next, newObject);
 
             // print status
@@ -111,7 +118,7 @@ public class DynamicRuntime {
         // and all the reloc entrys are always 4 bytes on ia32
         nextFreeAddr = nextFreeAddr + objSize;
 
-        lastObjAddr = objAddr;
+        lastObj = newObject;
 
         return newObject;
     }
