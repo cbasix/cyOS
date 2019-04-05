@@ -83,6 +83,12 @@ public class AllocationApp {
                 LowlevelOutput.printInt(MAGIC.rMem32(MAGIC.addr(t2)), 10, 10, 15, 14, Color.PINK);
             }
 
+            if (tick == 5){
+                MAGIC.inline(0xcc);
+                //int i = 0;
+                //int f = 5 / i;
+            }
+
             LowlevelLogging.debug("Kernel E", LowlevelLogging.FINE);
             LowlevelLogging.printHexdump(rte.DynamicRuntime.interruptDescriptorTableAddr + Interrupts.idtEntryCount*MAGIC.ptrSize*2 - 16);
 

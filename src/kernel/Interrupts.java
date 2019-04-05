@@ -10,7 +10,7 @@ public class Interrupts {
 
     public static final int idtEntryCount = 0x30; // 48
 
-    public static int handleInterruptAddr, handleInterruptWithParamAddr;
+    public static int handleInterruptAddr, handleInterruptWithParamAddr, handleDoubleFaultAddr;
     public static class InterruptDescriptorTable extends STRUCT {
         @SJC(count = idtEntryCount)
         public InterruptDescriptorTableEntry[] entries;
@@ -26,30 +26,25 @@ public class Interrupts {
 
     public static class InterruptJumpTableEntry extends STRUCT {
         /*
-            DISABLE_INT
-            00000000: 50                               PUSH EAX              ; sichere register
-            00000001: 53                               PUSH EBX              ; schreibe den festen wert B in adresse A
-            00000002: b8a3a2a1a0                       MOV EAX, 0xa0a1a2a3   ; B ist die InterruptNummer, A zeigt auf
-            00000007: bbb3b2b1b0                       MOV EBX, 0xb0b1b2b3   ; das "Last interrupt" Feld der Interrupt Jump Table
-            0000000c: 8918                             MOV [EAX], EBX
-            0000000e: 5b                               POP EBX               ; restore register
-            0000000f: 58                               POP EAX
-            00000010: ff25c3c2c1c0                     JMP DWORD [0xc0c1c2c3] ; sprige zu Adresse C einem der beiden globalen int handler
+            00000000: 53                               PUSH EBX
+            00000001: bbb3b2b1b0                       MOV EBX, 0xb0b1b2b3
+            00000006: 891da3a2a1a0                     MOV [0xa0a1a2a3], EBX
+            0000000c: 5b                               POP EBX
+            0000000d: eacf00ffff0800                   JMP FAR 0x8:0xffff00cf
          */
 
-        private byte DISABLE_INT, PUSH_EAX,
-                PUSH_EBX,
-                MOVE_EAX_writeToAddr;
-        public int writeToAddr;
+        private byte PUSH_EBX;
         private byte MOVE_EBX_interruptNo;
         public int interruptNo;
-        private byte MOVE_IND_EAX_EBX_commandpart1,
-                MOVE_IND_EAX_EBX_commandpart2,
-                POP_EBX,
-                POP_EAX,
-                JMP_addr_commandpart1, JMP_addr_commandpart2;
-        public int addrOfGlobalHandlerAddr;
-        private byte UNUSED_FILLUP_TO_24_BYTES;
+        private byte MOVE_MEM_EBX_commandpart1,
+                MOVE_MEM_EBX_commandpart2;
+        public int writeToAddr;
+        private byte POP_EBX,
+                JMP_FAR;
+        public int addrOfGlobalHandler;
+        public short segmentOfGlobalHandler;
+        private int UNUSED_FILLUP_TO_24_BYTES;
+        private short UNUSED_FILLUP_TO_24_BYTES2;
     }
     public static final int interruptJumpTableEntrySize = 24;
 
@@ -80,8 +75,9 @@ public class Interrupts {
         // sollte passen war ja so vorgegeben
         //MAGIC.inline(0xCC);
 
-        writeIdt(idtBase, ijtBase);
         writeInterruptJumpTable(ijtBase);
+        writeIdt(idtBase, ijtBase);
+
         loadIDT(idtBase, 8*idtEntryCount);
         // idt enthällt richtigen wert, tabelle enhällt erwartete werte. Denke ich falsch / erwarte ich falsche?
         // (qemu) info registers -> IDT=     001039bc 000000c0
@@ -92,30 +88,57 @@ public class Interrupts {
         enable(); // 102bf5
         //disable();
 
-        while(true){}
+        //while(true){}
 
     }
 
+    public static int c = 0;
     @SJC.Interrupt
     public static void defaultHandler(){
-        enable();
-        LowlevelOutput.printStr("WE GOT AN INTERRUPT h", 0, 25, Color.RED);
+        //enable();
+        LowlevelOutput.printStr("WE GOT AN INTERRUPT h", 0, 0, Color.RED);
+        LowlevelOutput.printInt(c, 10, 12, 25, 0, Color.RED);
+
+        int interruptNo = MAGIC.rMem32(DynamicRuntime.interruptJumpTableAddr);
+        LowlevelOutput.printInt(interruptNo, 10, 12, 25, 1, Color.GREEN);
+
         //while (true){}
         // acknowledge
 
         MAGIC.wIOs8(SLAVE, (byte)0x20);
         MAGIC.wIOs8(MASTER, (byte)0x20);
+        c++;
     }
 
     @SJC.Interrupt
     public static void defaultHandlerWithParam(int param){
-        enable();
-        LowlevelOutput.printStr("WE GOT AN INTERRUPT hP", 0, 25, Color.RED);
+        int interruptNo = MAGIC.rMem32(DynamicRuntime.interruptJumpTableAddr);
+        //enable();
+        //LowlevelOutput.printStr("WE GOT AN INTERRUPT hP", 0, 0, Color.BLUE);
+        LowlevelOutput.printInt(c, 10, 12, 25, 2, Color.RED);
+        LowlevelOutput.printInt(interruptNo, 10, 12, 25, 1, Color.GREEN);
 
         //MAGIC.inline(0xCC);
         //while(true){}
         MAGIC.wIOs8(SLAVE, (byte)0x20);
         MAGIC.wIOs8(MASTER, (byte)0x20);
+
+        c++;
+    }
+
+    @SJC.Interrupt
+    public static void doubleFaultHandler(int param){
+        int interruptNo = MAGIC.rMem32(DynamicRuntime.interruptJumpTableAddr);
+        //enable();
+        LowlevelOutput.printStr("DOUBLE FAULT", 0, 0, Color.BLUE);
+        //LowlevelOutput.printInt(interruptNo, 10, 12, 25, 0, Color.BLUE);
+
+        //MAGIC.inline(0xCC);
+        //while(true){}
+        MAGIC.wIOs8(SLAVE, (byte)0x20);
+        MAGIC.wIOs8(MASTER, (byte)0x20);
+
+        c++;
     }
 
     @SJC.Inline
@@ -158,58 +181,86 @@ public class Interrupts {
 
         int mthdOffParam = MAGIC.mthdOff("Interrupts", "defaultHandlerWithParam");
         handleInterruptWithParamAddr = MAGIC.rMem32(MAGIC.cast2Ref(interruptClassDesc)+mthdOffParam )+MAGIC.getCodeOff();
+
+        int mthdOffDoubleFault = MAGIC.mthdOff("Interrupts", "doubleFaultHandler");
+        handleDoubleFaultAddr = MAGIC.rMem32(MAGIC.cast2Ref(interruptClassDesc)+mthdOffDoubleFault )+MAGIC.getCodeOff();
+
+        int mthdOffIsr = MAGIC.mthdOff("Interrupts", "isr");
+        int isr = MAGIC.rMem32(MAGIC.cast2Ref(interruptClassDesc)+mthdOffIsr )+MAGIC.getCodeOff();
     }
 
     private static void writeInterruptJumpTable(int ijtBase){
         InterruptJumpTable ijt = (InterruptJumpTable) MAGIC.cast2Struct(ijtBase);
+        ijt.receivedInterruptNo = 0xFFFFFFFF;
 
         for (int i = 0; i < idtEntryCount; i++){
-            int relativeJump;
-            int ownAddr = ijtBase + interruptJumpTableScalarSize + interruptJumpTableEntrySize*i;
-            // CURRENT_RVA: jmp (DESTINATION_RVA - CURRENT_RVA - 5 [sizeof(E9 xx xx xx xx)])
+            int target;
             if (i >= 0x08 && i <=0x0E) {
-                relativeJump = handleInterruptWithParamAddr - ownAddr - 26; // = globalHandlerWithoutParamAddr field
+                target = handleInterruptWithParamAddr; // = globalHandlerWithoutParamAddr field
             } else {
-                relativeJump = handleInterruptAddr - ownAddr - 26; // = globalHandlerWithParamAddr field
+                target = handleInterruptAddr; // = globalHandlerWithParamAddr field
             }
             // todo interrupts wieder auf die alten handler schalten und per inline asm direkt anspringen zum debuggen
-            LowlevelOutput.printHex(relativeJump,12, 0, 5, Color.BLUE);
-            LowlevelOutput.printInt(relativeJump, 10, 12, 0, 6, Color.RED);
+            //LowlevelOutput.printHex(relativeJump,12, 0, 5, Color.GREEN);
+            //LowlevelOutput.printInt(relativeJump, 10, 12, 0, 6, Color.RED);
 
-            while (true);
 
-            ijt.entries[i].interruptNo = i;
-            ijt.entries[i].addrOfGlobalHandlerAddr = relativeJump;
-            ijt.entries[i].writeToAddr = ijtBase; // = received interruptNo field
+
+
 
             // machine codes
-            ijt.entries[i].DISABLE_INT = (byte)0xFA;
-            ijt.entries[i].PUSH_EAX = (byte)0x50;
             ijt.entries[i].PUSH_EBX = (byte)0x53;
-            ijt.entries[i].MOVE_EAX_writeToAddr = (byte)0xB8;
+
             ijt.entries[i].MOVE_EBX_interruptNo = (byte)0xBB;
-            ijt.entries[i].MOVE_IND_EAX_EBX_commandpart1 = (byte)0x89;
-            ijt.entries[i].MOVE_IND_EAX_EBX_commandpart2 = (byte)0x18;
+            ijt.entries[i].interruptNo = i;
+
+            ijt.entries[i].MOVE_MEM_EBX_commandpart1 = (byte)0x89;
+            ijt.entries[i].MOVE_MEM_EBX_commandpart2 = (byte)0x1d;
+            ijt.entries[i].writeToAddr = ijtBase; // = received interruptNo field
+
             ijt.entries[i].POP_EBX = (byte)0x5B;
-            ijt.entries[i].POP_EAX = (byte)0x58;
-            ijt.entries[i].JMP_addr_commandpart1 = (byte)0xff;
-            ijt.entries[i].JMP_addr_commandpart2 = (byte)0x25;
+
+            ijt.entries[i].JMP_FAR = (byte)0xEA;
+            ijt.entries[i].addrOfGlobalHandler = target;
+            ijt.entries[i].segmentOfGlobalHandler = (byte)0x08;
+
 
         }
+
+        //while (true);
     }
 
 
     private static void writeIdt(int idtBase, int ijtBase){
         InterruptDescriptorTable idt = (InterruptDescriptorTable) MAGIC.cast2Struct(idtBase);
+
         int target;
         for (int i = 0; i < idtEntryCount; i++){
 
             target = interruptJumpTableEntrySize*i + ijtBase + interruptJumpTableScalarSize; // begin of ijt entrys array
             // todo remove set old
-            if (i >= 0x08 && i <=0x0E) {
-                target = handleInterruptAddr - ownAddr - 26; // = globalHandlerWithoutParamAddr field
-            } else {
-                target = handleInterruptWithParamAddr - ownAddr - 26; // = globalHandlerWithParamAddr field
+            if (i == 2) {
+                LowlevelOutput.printHex(target, 12, 0, i, Color.BLUE);
+            }
+            /* sprungliste
+                104CC8
+             */
+
+
+            boolean old = false;
+            if (old) {
+                if (i > 0x08) {
+                    if (i >= 0x08 && i <= 0x0E) {
+                        target = handleInterruptWithParamAddr; //- ownAddr - 26; // = globalHandlerWithoutParamAddr field
+                    } else {
+                        target = handleInterruptAddr; //- ownAddr - 26; // = globalHandlerWithParamAddr field
+                    }
+                }
+            }
+
+            // double fault handler -> simplest possible
+            if (i == 0x08){
+                target = handleDoubleFaultAddr;
             }
 
             idt.entries[i].segmentSelector = (short)(1 << 3);
@@ -221,8 +272,12 @@ public class Interrupts {
             /*MAGIC.wMem32(idtBase+i*8, (handleInterruptAddr&0x0000FFFF)|(1<<19));
             MAGIC.wMem32(idtBase+i*8+4, (handleInterruptAddr&0xFFFF0000)|0x00008E00);*/
         }
+        //while (true);
+    }
 
-
+    @SJC.Interrupt
+    private static void isr(){
+        MAGIC.wMem32(0xA1A2A3A4, 0x01234567);
     }
 
 }
