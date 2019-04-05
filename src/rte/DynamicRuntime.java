@@ -45,12 +45,6 @@ public class DynamicRuntime {
         // write marker into mem
         MAGIC.wMem32(nextFreeAddr, 0xB2B2B2B2);
         nextFreeAddr += MAGIC.ptrSize;
-
-        if (image.size != MAGIC.rMem32(MAGIC.imageBase + 4) || image.start != MAGIC.imageBase) {
-            LowlevelLogging.debug("Something is wrong with my image info struct", LowlevelLogging.ERROR);
-            while (true) {
-            }
-        }
     }
 
     // Todo cleanup prints later on
@@ -58,20 +52,8 @@ public class DynamicRuntime {
         // allign scalar size to 4 byte
         scalarSize = (scalarSize + 0x3) & ~0x3;
 
-        /*int line = 15;
-        LowlevelOutput.printStr("Last Obj", 0, line, Color.GREEN);
-        LowlevelOutput.printStr("scalarSize", 0, ++line, Color.GREEN);
-        LowlevelOutput.printInt(scalarSize, 10, 10, 15, line, Color.GREEN);
-
-        LowlevelOutput.printStr("relocEntries", 0, ++line, Color.GREEN);
-        LowlevelOutput.printInt(relocEntries, 10, 10, 15, line, Color.GREEN);*/
-
         // calculate memory requirements
         int objSize = scalarSize + relocEntries * POINTER_SIZE;
-
-        /*LowlevelOutput.printStr("objSize", 0, ++line, Color.GREEN);
-        LowlevelOutput.printInt(objSize, 10, 10, 15, line, Color.GREEN);*/
-
 
         // clear allocated memory
         for (int i = 0; i < objSize/4; i++) {
@@ -80,13 +62,6 @@ public class DynamicRuntime {
 
         // calculate object address inside allocated memory
         int objAddr = nextFreeAddr + relocEntries * POINTER_SIZE;
-
-
-        /*LowlevelOutput.printStr("objAddr", 0, ++line, Color.GREEN);
-        LowlevelOutput.printInt(objAddr, 10, 10, 15, line, Color.GREEN);
-
-        LowlevelOutput.printStr("nextFreeAddr", 0, ++line, Color.GREEN);
-        LowlevelOutput.printInt(nextFreeAddr, 10, 10, 15, line, Color.GREEN);*/
 
         Object newObject = MAGIC.cast2Obj(objAddr);
 
@@ -102,16 +77,7 @@ public class DynamicRuntime {
 
         } else {
             // set r_next on last object
-            // TODO cast nicht nötig gleich objekt merken
-            Object lastObject = lastObj;
-            MAGIC.assign(lastObject._r_next, newObject);
-
-            // print status
-      /*LowlevelOutputTest.printStr("Setting last r_next", 2, 23, Color.CYAN);
-      LowlevelOutputTest.printInt(MAGIC.addr(lastObject._r_next), 10, 10, 2, 24, Color.CYAN);
-      LowlevelOutputTest.printStr(" to ", 12, 24, Color.CYAN);
-      LowlevelOutputTest.printInt(MAGIC.rMem32(MAGIC.addr(lastObject._r_next)), 10, 10, 16, 24, Color.CYAN);
-      Kernel.wait(1);*/
+            MAGIC.assign(lastObj._r_next, newObject);
         }
 
         // allocate requested memory

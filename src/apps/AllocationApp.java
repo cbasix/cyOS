@@ -1,6 +1,7 @@
-package kernel;
+package apps;
 
 import io.*;
+import kernel.Kernel;
 import kernel.interrupts.DescriptorTable;
 import kernel.interrupts.Interrupts;
 import rte.DynamicRuntime;
@@ -8,7 +9,7 @@ import tests.TestObject;
 
 
 /**
- *  This app tries to do some allocations and shows data regarding to it in form of parameters and a hexdump of
+ *  This app tries to do some allocations and shows data regarding to it and a hexdump of
  *  the memory containing the new objects
  */
 
@@ -86,13 +87,13 @@ public class AllocationApp {
             }
 
             if (tick == 5){
-                MAGIC.inline(0xcc);
+                //MAGIC.inline(0xcc);
                 //int i = 0;
                 //int f = 5 / i;
             }
 
             LowlevelLogging.debug("Kernel E", LowlevelLogging.FINE);
-            LowlevelLogging.printHexdump(rte.DynamicRuntime.interruptDescriptorTableAddr + DescriptorTable.entryCount*MAGIC.ptrSize*2 - 16);
+            //LowlevelLogging.printHexdump(rte.DynamicRuntime.interruptDescriptorTableAddr + DescriptorTable.entryCount*MAGIC.ptrSize*2 - 16);
 
             if (tick == 4) {
                 // stop here to inspect hexdump

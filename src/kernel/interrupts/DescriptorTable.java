@@ -25,6 +25,11 @@ public class DescriptorTable {
 
             target = JumpTable.entrySize *i + ijtBase + JumpTable.scalarSize; // begin of ijt entrys array
 
+            // handle double fault outside of the system
+            if (i == 0x08) {
+                target = Interrupts.handleDoubleFaultAddr;
+            }
+
             idt.entries[i].segmentSelector = (short)(1 << 3);
             idt.entries[i].offsetLowBytes = (short)(target & 0xFFFF);
             idt.entries[i].offsetHighBytes = (short)(((long) target >> 16) & 0xFFFF);

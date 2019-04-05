@@ -4,7 +4,7 @@ public class JumpTable {
     public static class InterruptJumpTableEntry extends STRUCT {
         /*
             Each table entry contains the following machine code instructions.
-            For each entry the following values are replaced:
+            For each entry the  values are replaced:
              - 0xb0b1b2b3: with the current entry no (=INT no)
              - 0xa0a1a2a3: the memory adress of the "receivedInterruptNo" field of the InterruptJumpTable
              - 0xffffffff: the global handlers address (with or without param)

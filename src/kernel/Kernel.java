@@ -1,14 +1,17 @@
 package kernel;
 
 
+import apps.AllocationApp;
+import apps.InterruptApp;
+import apps.OutputApp;
 import io.*;
-import kernel.interrupts.Interrupts;
+import kernel.interrupts.*;
 import rte.DynamicRuntime;
 import tests.TestRunner;
 
 public class Kernel {
 
-    private static int vidMemCursor = 0xB8000;
+
 
     public static void init() {
         DynamicRuntime.initializeMemoryPointers();
@@ -21,11 +24,26 @@ public class Kernel {
         init();
 
         Interrupts.init();
+        Interrupts.enable();
+
+        InterruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_INTERRUPTS);
+        InterruptHub.addObserver(new AliveIndicator(), 0x20);
+
+
+        /*InterruptHub.forwardInterrupt(8, 0);
+
+        InterruptReceiver t = intScreenOutput;
+
+        wait(1);
+        intScreenOutput.handleInterrupt(6, 5);
+        wait(1);
+        t.handleInterrupt(7, 6);*/
 
         //String[] args = null;
         //LongHexAlgorithmTest.main(args);
 
         TestRunner.run(2); // run test suite and show result, then wait for 2 secs
+        InterruptApp.run();
 
         OutputApp.run(2); // run output app for 10 seconds
         AllocationApp.run();  // run allocation app (which runs forever)

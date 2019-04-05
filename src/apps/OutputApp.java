@@ -1,6 +1,7 @@
-package kernel;
+package apps;
 
 import io.*;
+import kernel.Kernel;
 
 /**
  * This app just uses the GreenScreenOutput classes to have some fun and show their capabilities.
