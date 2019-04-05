@@ -2,6 +2,7 @@ package kernel;
 
 
 import io.*;
+import kernel.interrupts.Interrupts;
 import rte.DynamicRuntime;
 import tests.TestRunner;
 

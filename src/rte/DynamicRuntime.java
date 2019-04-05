@@ -1,7 +1,8 @@
 package rte;
 
 import io.LowlevelLogging;
-import kernel.Interrupts;
+import kernel.interrupts.DescriptorTable;
+import kernel.interrupts.JumpTable;
 
 public class DynamicRuntime {
 
@@ -30,8 +31,8 @@ public class DynamicRuntime {
         MAGIC.wMem32(interruptDescriptorTableAddr, 0xA1A1A1A1);
         interruptDescriptorTableAddr += MAGIC.ptrSize;
 
-        int idtSize = Interrupts.idtEntryCount*MAGIC.ptrSize*2;
-        int ijtSize = Interrupts.idtEntryCount*Interrupts.interruptJumpTableEntrySize + Interrupts.interruptJumpTableScalarSize;
+        int idtSize = DescriptorTable.entryCount * DescriptorTable.entrySize;
+        int ijtSize = DescriptorTable.entryCount * JumpTable.entrySize + JumpTable.scalarSize;
 
         interruptJumpTableAddr = interruptDescriptorTableAddr + idtSize;
 
