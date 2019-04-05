@@ -33,7 +33,7 @@ public class AllocationApp {
 
         TestObject t2 = null;
 
-        while (true) {
+        while (Kernel.mode == Kernel.ALLOCATION_APP) {
 
             // update percent number
             LowlevelOutput.printInt(tick, 10, 3, 31, 6, GreenScreenConst.DEFAULT_COLOR);

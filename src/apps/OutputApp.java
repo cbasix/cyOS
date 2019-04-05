@@ -7,7 +7,7 @@ import kernel.Kernel;
  * This app just uses the GreenScreenOutput classes to have some fun and show their capabilities.
  */
 public class OutputApp {
-    public static void run(int seconds) {
+    public static void run() {
         LowlevelOutput.clearScreen(GreenScreenConst.DEFAULT_COLOR);
 
         GreenScreenOutput out = new GreenScreenOutput();
@@ -36,7 +36,7 @@ public class OutputApp {
         err.print("Blubber Blubb. The solution is "); err.print(42); err.print(" Hello "); err.printHex(42); err.print(' ');err.printHex(0x24242424242424L); err.println();
         err.print("~"); err.print("NegInt: "); err.print(-42, 8); err.print(" Long: "); err.print(42424242424242424L); err.println('*');
 
-        for (int i = 0; i < seconds; i++) {
+        while (Kernel.mode == Kernel.OUTPUT_APP){
             // clock, something is wrong with how i expect the rtc data... but who cares. at least seconds change every second and minutes every minute.
             err.setCursor(70, 24);
             err.print(RTC.read(RTC.HOUR), 2);

@@ -45,9 +45,9 @@ public class Interrupts {
         // TODO let assebmler disable interrupts and enable again here after reading the no (possible? isr preambel?)
 
         //if (interruptNo!= 0x20) {
-        LowlevelOutput.printHex(interruptNo, 2, 78, 15, Color.RED);
+        //LowlevelOutput.printHex(interruptNo, 2, 78, 15, Color.RED);
         //}
-        //InterruptHub.forwardInterrupt(interruptNo, param);
+        InterruptHub.forwardInterrupt(interruptNo, param);
 
         ack(interruptNo);
     }
