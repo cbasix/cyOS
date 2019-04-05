@@ -43,7 +43,8 @@ public class Interrupts {
         public int writeToAddr;
         private byte MOVE_EBX_interruptNo;
         public int interruptNo;
-        private byte MOVE_IND_EAX_EBX_commandpart1, MOVE_IND_EAX_EBX_commandpart2,
+        private byte MOVE_IND_EAX_EBX_commandpart1,
+                MOVE_IND_EAX_EBX_commandpart2,
                 POP_EBX,
                 POP_EAX,
                 JMP_addr_commandpart1, JMP_addr_commandpart2;
@@ -54,14 +55,12 @@ public class Interrupts {
 
 
     public static class InterruptJumpTable extends STRUCT {
-        public int globalHandlerWithoutParamAddr;
-        public int globalHandlerWithParamAddr;
         public int receivedInterruptNo;
 
         @SJC(count = idtEntryCount)
         public InterruptJumpTableEntry entries[];
     }
-    public static final int interruptJumpTableScalarSize = 12;
+    public static final int interruptJumpTableScalarSize = 8;
 
 
     public static void init(){
@@ -163,22 +162,25 @@ public class Interrupts {
 
     private static void writeInterruptJumpTable(int ijtBase){
         InterruptJumpTable ijt = (InterruptJumpTable) MAGIC.cast2Struct(ijtBase);
-        ijt.globalHandlerWithoutParamAddr = handleInterruptAddr;
-        ijt.globalHandlerWithParamAddr = handleInterruptWithParamAddr;
-
 
         for (int i = 0; i < idtEntryCount; i++){
-            // todo verify that the jump is absolute
-            int target;
+            int relativeJump;
+            int ownAddr = ijtBase + interruptJumpTableScalarSize + interruptJumpTableEntrySize*i;
+            // CURRENT_RVA: jmp (DESTINATION_RVA - CURRENT_RVA - 5 [sizeof(E9 xx xx xx xx)])
             if (i >= 0x08 && i <=0x0E) {
-                target = ijtBase; // = globalHandlerWithoutParamAddr field
+                relativeJump = handleInterruptWithParamAddr - ownAddr - 26; // = globalHandlerWithoutParamAddr field
             } else {
-                target = ijtBase + 4; // = globalHandlerWithParamAddr field
+                relativeJump = handleInterruptAddr - ownAddr - 26; // = globalHandlerWithParamAddr field
             }
+            // todo interrupts wieder auf die alten handler schalten und per inline asm direkt anspringen zum debuggen
+            LowlevelOutput.printHex(relativeJump,12, 0, 5, Color.BLUE);
+            LowlevelOutput.printInt(relativeJump, 10, 12, 0, 6, Color.RED);
+
+            while (true);
 
             ijt.entries[i].interruptNo = i;
-            ijt.entries[i].addrOfGlobalHandlerAddr = target;
-            ijt.entries[i].writeToAddr = ijtBase + 8; // = received interruptNo field
+            ijt.entries[i].addrOfGlobalHandlerAddr = relativeJump;
+            ijt.entries[i].writeToAddr = ijtBase; // = received interruptNo field
 
             // machine codes
             ijt.entries[i].DISABLE_INT = (byte)0xFA;
@@ -203,6 +205,12 @@ public class Interrupts {
         for (int i = 0; i < idtEntryCount; i++){
 
             target = interruptJumpTableEntrySize*i + ijtBase + interruptJumpTableScalarSize; // begin of ijt entrys array
+            // todo remove set old
+            if (i >= 0x08 && i <=0x0E) {
+                target = handleInterruptAddr - ownAddr - 26; // = globalHandlerWithoutParamAddr field
+            } else {
+                target = handleInterruptWithParamAddr - ownAddr - 26; // = globalHandlerWithParamAddr field
+            }
 
             idt.entries[i].segmentSelector = (short)(1 << 3);
             idt.entries[i].offsetLowBytes = (short)(target & 0xFFFF);
