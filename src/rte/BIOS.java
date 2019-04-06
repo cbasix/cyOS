@@ -1,5 +1,7 @@
 package rte;
 
+import kernel.interrupts.core.Interrupts;
+
 public class BIOS {
     private final static int BIOS_MEMORY = 0x60000;
     private final static int BIOS_STKEND = BIOS_MEMORY + 0x1000;
@@ -164,6 +166,7 @@ public class BIOS {
         MAGIC.inline(0x9C); //pushf
         MAGIC.inline(0xFA); //cli
         //TODO lidtRM(); //load idt with real mode interrupt table
+        Interrupts.loadRealModeIDT();
         //call 16 bit code
         MAGIC.inline(0x56); //push e/rsi
         MAGIC.inline(0x57); //push e/rdi
@@ -185,6 +188,7 @@ public class BIOS {
         MAGIC.inline(0x5F); //pop e/rdi
         MAGIC.inline(0x5E); //pop e/rsi
         //TODO lidt(); //load idt with protected/long mode interrupt table
+        Interrupts.loadProtectedModeIDT();
         MAGIC.inline(0x9D); //popf
     }
 }

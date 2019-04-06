@@ -125,6 +125,16 @@ public class Interrupts {
         MAGIC.inline(0x0F, 0x01, 0x5D); MAGIC.inlineOffset(1, tmp); // lidt [ebp-0x08/tmp]
     }
 
+    @SJC.Inline
+    public static void loadProtectedModeIDT(){
+        loadIDT(DynamicRuntime.interruptDescriptorTableAddr, DescriptorTable.entrySize*DescriptorTable.entryCount);
+    }
+
+    @SJC.Inline
+    public static void loadRealModeIDT(){
+        loadIDT(0, 1023);
+    }
+
     private static void initDefaultHandlerAddresses(){
         SClassDesc interruptClassDesc = (SClassDesc) MAGIC.clssDesc("Interrupts");
 
