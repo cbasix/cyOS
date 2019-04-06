@@ -1,4 +1,4 @@
-package kernel.interrupts;
+package kernel.interrupts.core;
 
 public class JumpTable {
     public static class InterruptJumpTableEntry extends STRUCT {
@@ -16,18 +16,19 @@ public class JumpTable {
             0000000d: eaffffffff0800                   JMP FAR 0x8:0xffffff      ; jump to global handler
          */
 
-        private byte PUSH_EBX;
-        private byte MOVE_EBX_interruptNo;
-        public int interruptNo;
+        private byte DISABLE_INT;                  // 1
+        private byte PUSH_EBX,
+                MOVE_EBX_interruptNo;              // 3
+        public int interruptNo;                    // 7
         private byte MOVE_MEM_EBX_commandpart1,
-                MOVE_MEM_EBX_commandpart2;
-        public int writeToAddr;
+                MOVE_MEM_EBX_commandpart2;         // 9
+        public int writeToAddr;                    // 13
         private byte POP_EBX,
-                JMP_FAR;
-        public int addrOfGlobalHandler;
-        public short segmentOfGlobalHandler;
-        private int UNUSED_FILLUP_TO_24_BYTES;
-        private short UNUSED_FILLUP_TO_24_BYTES2;
+                JMP_FAR;                           // 15
+        public int addrOfGlobalHandler;            // 19
+        public short segmentOfGlobalHandler;       // 21
+        private short UNUSED_FILLUP_TO_24_BYTES;   // 23
+        private byte UNUSED_FILLUP_TO_24_BYTES2;   // 24
     }
     public static final int entrySize = 24;
 
@@ -39,21 +40,24 @@ public class JumpTable {
         @SJC(count = DescriptorTable.entryCount)
         public InterruptJumpTableEntry entries[];
     }
-    public static final int scalarSize = 8;
+    public static final int scalarSize = 4;
 
 
     static void write(int ijtBase){
         InterruptJumpTable ijt = (InterruptJumpTable) MAGIC.cast2Struct(ijtBase);
 
         for (int i = 0; i < DescriptorTable.entryCount; i++){
+
             int target;
-            if (i >= 0x08 && i <=0x0E) {
-                target = Interrupts.handleInterruptWithParamAddr; // = globalHandlerWithoutParamAddr field
+            if (i >= Interrupts.DOUBLE_FAULT && i <= Interrupts.PAGE_FAULT) {
+                // these interrupts have a parameter, see Phase 3 exercise
+                target = Interrupts.handleInterruptWithParamAddr;
             } else {
-                target = Interrupts.handleInterruptAddr; // = globalHandlerWithParamAddr field
+                target = Interrupts.handleInterruptAddr;
             }
 
             // fill machine code with correct parameters for this entry
+            ijt.entries[i].DISABLE_INT = (byte)0xFA;
             ijt.entries[i].PUSH_EBX = (byte)0x53;
 
             ijt.entries[i].MOVE_EBX_interruptNo = (byte)0xBB;

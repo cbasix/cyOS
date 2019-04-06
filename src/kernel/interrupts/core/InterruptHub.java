@@ -1,8 +1,4 @@
-package kernel.interrupts;
-
-import io.Color;
-import io.LowlevelLogging;
-import io.LowlevelOutput;
+package kernel.interrupts.core;
 
 public class InterruptHub {
     public static final int ALL_INTERRUPTS = 0x00FFFFFF;

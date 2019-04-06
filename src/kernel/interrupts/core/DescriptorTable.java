@@ -1,8 +1,9 @@
-package kernel.interrupts;
+package kernel.interrupts.core;
 
 public class DescriptorTable {
     public static final int entryCount = 0x30; // 48
     public static final int entrySize = 8;
+    public static final boolean DIRECT_MODE = false;
 
     public static class InterruptDescriptorTable extends STRUCT {
         @SJC(count = entryCount)
@@ -23,10 +24,20 @@ public class DescriptorTable {
         int target;
         for (int i = 0; i < entryCount; i++){
 
+            // Handle via jump table
             target = JumpTable.entrySize *i + ijtBase + JumpTable.scalarSize; // begin of ijt entrys array
 
+            // for testing direct jump to global handler (looses interruptNo)
+            if (DIRECT_MODE){
+                if (i >= 0x08 && i <=0x0E) {
+                    target = Interrupts.handleInterruptWithParamAddr; // = globalHandlerWithoutParamAddr field
+                } else {
+                    target = Interrupts.handleInterruptAddr; // = globalHandlerWithParamAddr field
+                }
+            }
+
             // handle double fault outside of the system
-            if (i == 0x08) {
+            if (i == 0x08 || i == 0x1E || i == 0x01) {
                 target = Interrupts.handleDoubleFaultAddr;
             }
 

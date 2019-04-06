@@ -1,8 +1,7 @@
 package rte;
 
-import io.LowlevelLogging;
-import kernel.interrupts.DescriptorTable;
-import kernel.interrupts.JumpTable;
+import kernel.interrupts.core.DescriptorTable;
+import kernel.interrupts.core.JumpTable;
 
 public class DynamicRuntime {
 

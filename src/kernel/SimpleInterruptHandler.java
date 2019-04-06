@@ -1,7 +1,7 @@
 package kernel;
 
 
-import kernel.interrupts.InterruptReceiver;
+import kernel.interrupts.core.InterruptReceiver;
 
 public class SimpleInterruptHandler {
     public static final int MAX_HANDLERS = 100;

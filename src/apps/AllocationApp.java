@@ -2,8 +2,7 @@ package apps;
 
 import io.*;
 import kernel.Kernel;
-import kernel.interrupts.DescriptorTable;
-import kernel.interrupts.Interrupts;
+import kernel.interrupts.core.DescriptorTable;
 import rte.DynamicRuntime;
 import tests.TestObject;
 
@@ -93,7 +92,7 @@ public class AllocationApp {
             }
 
             LowlevelLogging.debug("Kernel E", LowlevelLogging.FINE);
-            //LowlevelLogging.printHexdump(rte.DynamicRuntime.interruptDescriptorTableAddr + DescriptorTable.entryCount*MAGIC.ptrSize*2 - 16);
+            LowlevelLogging.printHexdump(rte.DynamicRuntime.interruptDescriptorTableAddr + DescriptorTable.entryCount*MAGIC.ptrSize*2 - 16);
 
             if (tick == 4) {
                 // stop here to inspect hexdump

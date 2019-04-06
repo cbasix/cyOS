@@ -7,6 +7,7 @@ public class GreenScreenConst {
     public static final int HEIGHT = 25;
     public static final int ERROR_COLOR = Color.BLACK << 4 | Color.RED;  // red on black background
 
+
     public static class VidChar extends STRUCT {
         public byte ascii, color;
     }
