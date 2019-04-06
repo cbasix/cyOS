@@ -53,10 +53,9 @@ public class Kernel {
         Interrupts.init();
 
         InterruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_INTERRUPTS);
-        InterruptHub.addObserver(new AliveIndicator(), 0x20);
-
-        InterruptHub.addObserver(new ModeSwitcher(), 0x02);
-        InterruptHub.addObserver(new Bluescreen(), 0x00);
+        InterruptHub.addObserver(new AliveIndicator(), Interrupts.TIMER);
+        InterruptHub.addObserver(new ModeSwitcher(), Interrupts.NMI);
+        InterruptHub.addObserver(new Bluescreen(), InterruptHub.ALL_EXCEPTIONS);
         Interrupts.enable();
 
         // Show Welcome screen

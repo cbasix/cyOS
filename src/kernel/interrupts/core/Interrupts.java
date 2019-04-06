@@ -70,7 +70,7 @@ public class Interrupts {
 
     @SJC.Inline
     public static void handleInterrupt(int param){
-        // TODO checkout  if this may result in problems with nested interrupts. Does the compiler dis/enable interrupts in premabel?
+        // TODO checkout  if this may result in problems with nested interrupts. Does the compiler dis/enable interrupts in premable?
         int interruptNo = MAGIC.rMem32(DynamicRuntime.interruptJumpTableAddr);
         Interrupts.enable();
 

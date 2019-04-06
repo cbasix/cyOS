@@ -2,6 +2,9 @@ package kernel.interrupts.core;
 
 public class InterruptHub {
     public static final int ALL_INTERRUPTS = 0x00FFFFFF;
+    public static final int ALL_EXCEPTIONS = 0x01FFFFFF;
+    public static final int ALL_EXTERNAL = 0x02FFFFFF;
+
     public static ObserverBinding[] observerBindings = {};
 
     private static class ObserverBinding {
@@ -17,7 +20,9 @@ public class InterruptHub {
     @SJC.Inline
     public static void forwardInterrupt(int interruptNo, int param){
         for (int i = 0; i < observerBindings.length; i++){
-            if (observerBindings[i].interruptNo == interruptNo || observerBindings[i].interruptNo == ALL_INTERRUPTS){
+            if (observerBindings[i].interruptNo == interruptNo
+                    || observerBindings[i].interruptNo == ALL_INTERRUPTS
+                    || (interruptNo <= Interrupts.PAGE_FAULT && observerBindings[i].interruptNo == ALL_EXCEPTIONS)){
                 observerBindings[i].observer.handleInterrupt(interruptNo, param);
             }
         }
