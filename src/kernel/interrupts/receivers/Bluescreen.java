@@ -22,18 +22,18 @@ public class Bluescreen extends InterruptReceiver {
 
             case Interrupts.DEBUG_EXCEPTION:
                 LowlevelOutput.printStr("DEBUG EXCEPTION", 30, 12, BLUESCREEN_COLOR);
-                Kernel.wait(1);
+                Kernel.wait(3);
                 break;
 
             case Interrupts.NMI:
-                // is currently missused for switching between apps
+                // is currently missused for switching between tasks
                 // todo uncomment later on
-                //LowlevelOutput.printStr("NON MASKABLE INTERRUPT (NMI)", 30, 12, BLUESCREEN_COLOR);
+                //LowlevelOutput.printChar("NON MASKABLE INTERRUPT (NMI)", 30, 12, BLUESCREEN_COLOR);
                 //while (true) ;
 
             case Interrupts.BREAKPOINT:
                 LowlevelOutput.printStr("BREAKPOINT", 30, 12, BLUESCREEN_COLOR);
-                Kernel.wait(1);
+                Kernel.wait(3);
                 break;
 
             case Interrupts.INTO_OVERFLOW:

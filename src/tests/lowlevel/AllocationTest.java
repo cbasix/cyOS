@@ -40,7 +40,7 @@ public class AllocationTest {
         // data of scalar (int) must be initialized with zero
         if ( tos1._r_scalarData != 0){ return 30;}
         // rnext must point to the relocEntrys field of the next obj
-        /*LowlevelOutputTest.printStr("DEBUG ", 25, 13, Color.RED);
+        /*LowlevelOutputTest.printChar("DEBUG ", 25, 13, Color.RED);
         LowlevelOutputTest.printInt(MAGIC.addr(tos2._r_scalarSize), 10, 10, 25, 14, Color.RED);
         LowlevelOutputTest.printInt(tos1._r_next, 10, 10, 25, 15, Color.RED);
         LowlevelLogging.printHexdump(startAddr);
@@ -57,7 +57,7 @@ public class AllocationTest {
         if (tos1._r_scalarData != 5){ return 45;}
 
         // check if the area of the to come object 3 is still untouched (check fist and last)
-        /*LowlevelOutputTest.printStr("DEBUG ", 25, 13, Color.RED);
+        /*LowlevelOutputTest.printChar("DEBUG ", 25, 13, Color.RED);
         LowlevelOutputTest.printHex(tos3._r_referenceToStr, 10, 25, 14, Color.RED);
         LowlevelOutputTest.printHex(tos3._r_scalarData,10, 25, 15, Color.RED);
         LowlevelLogging.printHexdump(startAddr);

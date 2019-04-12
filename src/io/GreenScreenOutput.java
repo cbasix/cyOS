@@ -15,6 +15,9 @@ public class GreenScreenOutput {
     public void setCursor(int x, int y) {
         virtualCursor = y * GreenScreenConst.WIDTH + x;
     }
+    public void setCursor(int cursor) {
+        virtualCursor = cursor;
+    }
 
     public int getCursor() {
         return virtualCursor;
@@ -38,6 +41,12 @@ public class GreenScreenOutput {
     public void print(String str) {
         for (int i = 0; i < str.length(); i++) {
             print(str.charAt(i));
+        }
+    }
+
+    public void print(char[] str) {
+        for (int i = 0; i < str.length; i++) {
+            print(str[i]);
         }
     }
 
@@ -72,6 +81,15 @@ public class GreenScreenOutput {
     public void printHex(long value) {
         printHex(value, 16);
         //printHex((int) value >> );
+    }
+
+    //-------- boolean -----------
+    public void print(boolean b) {
+        if (b){
+            print("True");
+        } else {
+            print("False");
+        }
     }
 
     // ---------- INT /LONG ---------------
@@ -196,6 +214,16 @@ public class GreenScreenOutput {
 
     public void println(String str) {
         print(str);
+        println();
+    }
+
+    public void println(char[] str) {
+        print(str);
+        println();
+    }
+
+    public void println(boolean b) {
+        print(b);
         println();
     }
 

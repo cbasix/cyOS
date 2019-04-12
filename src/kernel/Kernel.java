@@ -1,10 +1,9 @@
 package kernel;
 
 
-import apps.AllocationApp;
-import apps.InterruptApp;
-import apps.OutputApp;
-import apps.WelcomeApp;
+import drivers.keyboard.Keyboard;
+import drivers.keyboard.KeyboardInterruptReceiver;
+import drivers.keyboard.layout.KeyboardLayoutDE;
 import io.*;
 import kernel.interrupts.core.InterruptHub;
 import kernel.interrupts.core.InterruptReceiver;
@@ -13,6 +12,7 @@ import kernel.interrupts.receivers.AliveIndicator;
 import kernel.interrupts.receivers.Bluescreen;
 import kernel.interrupts.receivers.ScreenOutput;
 import rte.DynamicRuntime;
+import tasks.shell.Shell;
 import tests.TestRunner;
 
 public class Kernel {
@@ -30,7 +30,7 @@ public class Kernel {
         LowlevelOutput.clearScreen(GreenScreenConst.DEFAULT_COLOR);
     }
 
-    // temporary: use nmis to switch between apps
+    // temporary: use nmis to switch between tasks
     // misuse of the nmi interrupt command from qemu monitor ;)
     private static class ModeSwitcher extends InterruptReceiver {
         int cnt = 0;
@@ -50,29 +50,46 @@ public class Kernel {
     public static void main() {
         init();
 
+        Keyboard keyboard = new Keyboard(new KeyboardLayoutDE());
+
         Interrupts.init();
 
         InterruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_INTERRUPTS);
         InterruptHub.addObserver(new AliveIndicator(), Interrupts.TIMER);
         InterruptHub.addObserver(new ModeSwitcher(), Interrupts.NMI);
         InterruptHub.addObserver(new Bluescreen(), InterruptHub.ALL_EXCEPTIONS);
+        InterruptHub.addObserver(new KeyboardInterruptReceiver(), Interrupts.KEYBOARD);
+
         Interrupts.enable();
 
         // Show Welcome screen
-        WelcomeApp.run();
+        //Welcome.run();
 
         // Run Tests
-        TestRunner.run(1); // run test suite and show result, then wait for 2 secs
+        TestRunner.run(0); // run test suite and show result, then wait for 2 secs
 
-        // Start apps
+        LowlevelOutput.clearScreen(GreenScreenConst.DEFAULT_COLOR);
+
+        //Editor e = new Editor();
+
+        Shell s = new Shell();
+
+        // Start tasks
+        s.onStart();
+
         while (true){
-            if (mode == ALLOCATION_APP){
+            keyboard.readInto(s.stdin);
+            s.onTick();
+
+
+            /*if (mode == ALLOCATION_APP){
                 AllocationApp.run();  // run allocation app
             } else if (mode == OUTPUT_APP){
                 OutputApp.run(); // run output app
             } else {
-                InterruptApp.run();
-            }
+                Interrupt.run();
+            }*/
+            //wait(1);
         }
 
 

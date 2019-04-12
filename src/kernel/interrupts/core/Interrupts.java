@@ -49,7 +49,7 @@ public class Interrupts {
         JumpTable.write(ijtBase);
         DescriptorTable.write(idtBase, ijtBase);
 
-        loadIDT(idtBase, DescriptorTable.entrySize*DescriptorTable.entryCount);
+        loadIDT(idtBase, DescriptorTable.entrySize*DescriptorTable.entryCount-1);
     }
 
     @SJC.Interrupt
@@ -127,7 +127,7 @@ public class Interrupts {
 
     @SJC.Inline
     public static void loadProtectedModeIDT(){
-        loadIDT(DynamicRuntime.interruptDescriptorTableAddr, DescriptorTable.entrySize*DescriptorTable.entryCount);
+        loadIDT(DynamicRuntime.interruptDescriptorTableAddr, DescriptorTable.entrySize*DescriptorTable.entryCount-1);
     }
 
     @SJC.Inline

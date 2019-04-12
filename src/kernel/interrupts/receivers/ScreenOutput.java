@@ -12,7 +12,7 @@ public class ScreenOutput extends InterruptReceiver {
     @Override
     public void handleInterrupt(int interruptNo, int param) {
         if (interruptNo!= Interrupts.TIMER) {
-            LowlevelOutput.printHex(interruptNo, 2, 76, 24, Color.GREEN);
+            LowlevelOutput.printHex(interruptNo, 2, 76, 0, Color.CYAN << 4 | Color.BLACK);
             //LowlevelOutput.printHex(cnt, 10, 70, 6, Color.GREEN);
         }
         //cnt++;

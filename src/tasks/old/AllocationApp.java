@@ -1,4 +1,4 @@
-package apps;
+package tasks.old;
 
 import io.*;
 import kernel.Kernel;
@@ -43,7 +43,7 @@ public class AllocationApp {
             LowlevelOutput.printInt(RTC.read(RTC.SECOND), 2, 8, 31, 0, GreenScreenConst.DEFAULT_COLOR);
 
             // update next free addr
-            //LowlevelOutputTest.printStr("Next Free",  0, 1, GreenScreenConst.DEFAULT_COLOR);
+            //LowlevelOutputTest.printChar("Next Free",  0, 1, GreenScreenConst.DEFAULT_COLOR);
             //LowlevelOutputTest.printInt(DynamicRuntime.getNextFreeAddr(), 10, 9, 10, 1, GreenScreenConst.DEFAULT_COLOR);
 
             LowlevelLogging.debug("Kernel A", LowlevelLogging.FINE);

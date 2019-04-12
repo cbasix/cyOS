@@ -16,7 +16,7 @@ public class AliveIndicator extends InterruptReceiver {
     public void handleInterrupt(int interruptNo, int param) {
         if (cnt % divider == 0) {
             char c = indicators.charAt(subCnt);
-            LowlevelOutput.printChar(c, 79, 24, Color.GREEN);
+            LowlevelOutput.printChar(c, 79, 0, Color.CYAN << 4 | Color.BLACK);
             subCnt = (++subCnt) % indicators.length();
         }
         cnt++;

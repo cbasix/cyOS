@@ -74,9 +74,18 @@ public class LowlevelOutput {
 
     }
 
+    //-------- boolean -----------
+    public static void printBool(boolean b, int x, int y, int color) {
+        if (b){
+            printStr("True", x, y, color);
+        } else {
+            printStr("False", x, y, color);
+        }
+    }
+
     /*@SJC.Inline
-    public static void printStr(String str, int cursor, int color) {
-        return printStr(str, cursor, 0, color);
+    public static void printChar(String str, int cursor, int color) {
+        return printChar(str, cursor, 0, color);
     }*/
 
     public static void printStr(String str, int x, int y, int color) {

@@ -4,6 +4,8 @@ import io.Color;
 import io.GreenScreenConst;
 import io.LowlevelOutput;
 import kernel.Kernel;
+import tests.highlevel.RingBufferTest;
+import tests.highlevel.StringTest;
 import tests.lowlevel.AllocationTest;
 import tests.lowlevel.LowlevelOutputTest;
 
@@ -12,6 +14,8 @@ public class TestRunner {
         LowlevelOutput.clearScreen(GreenScreenConst.DEFAULT_COLOR);
         check(AllocationTest.test());
         check(LowlevelOutputTest.test());
+        check(StringTest.test());
+        check(RingBufferTest.test());
 
         LowlevelOutput.clearScreen(GreenScreenConst.DEFAULT_COLOR);
         LowlevelOutput.printStr("Tests OK. All systems GO;", 25, 12, GreenScreenConst.DEFAULT_COLOR);

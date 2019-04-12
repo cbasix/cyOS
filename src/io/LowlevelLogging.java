@@ -41,7 +41,7 @@ public class LowlevelLogging {
     public static void debug(String str, int lvl) {
         if (lvl >= DEBUG_LEVEL) {
             LowlevelOutput.printStr(str, 0, 0, GreenScreenConst.DEFAULT_COLOR);
-            Kernel.wait(1);
+            Kernel.wait(3);
         }
     }
 }
