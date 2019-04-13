@@ -17,7 +17,7 @@ public class GreenScreenOutput {
     }
 
     public static class VidMem extends STRUCT {
-        @SJC(offset=0,count=2000)
+        @SJC(count=WIDTH*HEIGHT)
         public VidChar[] chars;
         //@SJC(offset=0,count=2000)
         //public short[] chars;
@@ -27,7 +27,7 @@ public class GreenScreenOutput {
     public void setColor(int fg, int bg) {
         color = bg << 4 | fg;
     }
-    public int getColorIState() {
+    public int getColorState() {
         return color;
     }
     public void setColorState(int c){
@@ -55,8 +55,8 @@ public class GreenScreenOutput {
         virtualCursor++;
 
         // If at end of screen jump to top left
-        if (virtualCursor >= WIDTH * HEIGHT){
-            virtualCursor = 0;
+        if (virtualCursor >= ((WIDTH * HEIGHT) -1)){
+            virtualCursor = ((WIDTH * HEIGHT) -1);
         }
     }
 
@@ -224,7 +224,7 @@ public class GreenScreenOutput {
 
     public void println() {
         print((char) 0);
-        while ((virtualCursor % WIDTH) != 0) {
+        while ((virtualCursor % WIDTH ) != 0 && virtualCursor < WIDTH*HEIGHT-1) {
             print((char) 0);
         }
     }

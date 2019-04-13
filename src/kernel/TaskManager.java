@@ -39,8 +39,6 @@ public class TaskManager {
     private void stopTask(Task task){
         task.onStop();
         runningTasks.remove(task);
-
-
     }
 
     public void requestFocus(Task task){
@@ -55,6 +53,7 @@ public class TaskManager {
         tasksToStop.add(task);
     }
 
+    // todo prettify
     public void loop() {
         while (true){
             // read input into currently focused task
@@ -74,14 +73,6 @@ public class TaskManager {
                 }
             }
 
-            // start pending new tasks  (backwards to allow deletion ;)
-            for (int i = tasksToStart.size()-1; i >= 0 ; i--) {
-                Task t = tasksToStart.get(i);
-                t.onStart();
-                runningTasks.add(t);
-                tasksToStart.remove(t);
-            }
-
             // stop pending toStop Tasks  (backwards to allow deletion ;)
             for (int i = tasksToStop.size()-1; i >= 0 ; i--) {
                 Task t = tasksToStop.get(i);
@@ -95,6 +86,14 @@ public class TaskManager {
 
                 runningTasks.remove(t);
                 tasksToStop.remove(t);
+            }
+
+            // start pending new tasks  (backwards to allow deletion ;)
+            for (int i = tasksToStart.size()-1; i >= 0 ; i--) {
+                Task t = tasksToStart.get(i);
+                t.onStart();
+                runningTasks.add(t);
+                tasksToStart.remove(t);
             }
 
             // focus pending toFocus Tasks  (backwards to allow deletion ;)

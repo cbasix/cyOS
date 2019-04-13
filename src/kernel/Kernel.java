@@ -43,6 +43,7 @@ public class Kernel {
 
         Interrupts.init();
 
+
         InterruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_INTERRUPTS);
         InterruptHub.addObserver(new AliveIndicator(), Interrupts.TIMER);
         InterruptHub.addObserver(new Bluescreen(), InterruptHub.ALL_EXCEPTIONS);
@@ -50,9 +51,11 @@ public class Kernel {
 
         Interrupts.enable();
 
+
         // Run Tests
         TestRunner.run(2); // run test suite and show result, then wait for 2 secs
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
+
 
         taskManager.addInputDevice(keyboard);
         taskManager.requestStart(new Shell());

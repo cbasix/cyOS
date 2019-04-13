@@ -2,9 +2,7 @@ package tasks.shell;
 
 import drivers.keyboard.Keyboard;
 import drivers.keyboard.KeyboardEvent;
-import io.Color;
-import io.GreenScreenOutput;
-import io.LowlevelOutput;
+import io.*;
 import kernel.Kernel;
 import kernel.datastructs.RingBuffer;
 import kernel.datastructs.subtypes.CommandArrayList;
@@ -12,13 +10,17 @@ import tasks.LogEvent;
 import tasks.Task;
 import tasks.shell.commands.*;
 
+
 /**
  * Quick and dirty shell application
  */
 public class Shell extends Task {
     public static final int OUTPUT_AREA_LINES = 22;
+    public static final int COLOR_HIGHLIGHTED =  Color.BLACK << 4 | Color.CYAN;
+    public static final int COLOR_NORMAL = Color.BLACK << 4 | Color.GREY;
+
     RingBuffer outputBuffer = new RingBuffer(100);
-    char[] currentCommand = new char[79];
+    char[] currentCommand = new char[GreenScreenOutput.WIDTH-1];
     int currentPos = 1;
     CommandArrayList registeredCommands;
 
@@ -37,7 +39,7 @@ public class Shell extends Task {
         registeredCommands.add(new ExecuteTask());
 
         inputArea.setColor(Color.BLACK, Color.GREY);
-        outputArea.setColor(Color.GREY, Color.BLACK);
+        outputArea.setColorState(COLOR_NORMAL);
         statusArea.setCursor(Color.BLACK, Color.CYAN);
     }
 
@@ -56,10 +58,13 @@ public class Shell extends Task {
     }
 
     public void draw(){
+
         LowlevelOutput.disableCursor();
+        LowlevelOutput.clearScreen(COLOR_NORMAL);
         drawOutputArea();
         drawStatusArea();
         drawCommandArea();
+
     }
 
     public void onStop(){
@@ -129,9 +134,17 @@ public class Shell extends Task {
                  oldest_cmd++;
              }
         } while (lines < OUTPUT_AREA_LINES && cmd != null);
-
         for (int i = oldest_cmd; i >= 0; i--){
-            outputArea.println((String) outputBuffer.peekPushed(i));
+            cmd = (String) outputBuffer.peekPushed(i);
+            if (cmd != null) {
+
+                if (cmd.charAt(0) == '>') {
+                    outputArea.setColorState(COLOR_HIGHLIGHTED);
+                } else {
+                    outputArea.setColorState(COLOR_NORMAL);
+                }
+                outputArea.println(cmd);
+            }
         }
 
         while (lines < OUTPUT_AREA_LINES){
@@ -148,9 +161,9 @@ public class Shell extends Task {
 
         // blinking cursor
         inputArea.setCursor(currentPos, 24);
-        inputArea.setColorState(inputArea.getColorIState() | Color.MOD_BLINK);
+        inputArea.setColorState(inputArea.getColorState() | Color.MOD_BLINK);
         inputArea.print(' ');
-        inputArea.setColorState(inputArea.getColorIState() & ~Color.MOD_BLINK);
+        inputArea.setColorState(inputArea.getColorState() & ~Color.MOD_BLINK);
     }
 
     private void drawStatusArea(){

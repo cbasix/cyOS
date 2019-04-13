@@ -51,6 +51,15 @@ public class Bluescreen extends InterruptReceiver {
             case Interrupts.PAGE_FAULT:
                 LowlevelOutput.printStr("PAGE FAULT", 30, 12, BLUESCREEN_COLOR);
                 while (true) ;
+
+            case Interrupts.INDEX_OUT_OF_RANGE:
+                LowlevelOutput.printStr("INDEX OUT OF RANGE", 30, 12, BLUESCREEN_COLOR);
+                while (true) ;
+
+            default:
+                LowlevelOutput.printStr("UNKNOWN EXCEPTION", 30, 12, BLUESCREEN_COLOR);
+                LowlevelOutput.printInt(interruptNo, 10, 10, 33, 13, BLUESCREEN_COLOR);
+                while (true) ;
         }
 
         Interrupts.enable();

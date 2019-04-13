@@ -2,6 +2,7 @@ package tests;
 
 import drivers.keyboard.layout.KeyboardLayout;
 import io.Color;
+import io.LowlevelLogging;
 import io.LowlevelOutput;
 import kernel.Kernel;
 import tests.highlevel.ArrayListTest;
