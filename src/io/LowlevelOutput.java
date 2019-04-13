@@ -104,17 +104,22 @@ public class LowlevelOutput {
     public static void printChar(char c, int x, int y, int color) {
         // TODO find a way not to cast struct for every printed char (is it cheap or not???).
         // TODO Can not be static. Rember: new / object stuff not wanted here, because this here is uses from within newInstance!
-        GreenScreenConst.VidMem vidMem =(GreenScreenConst.VidMem) MAGIC.cast2Struct(GreenScreenConst.VID_MEM_BASE);
+        GreenScreenOutput.VidMem vidMem =(GreenScreenOutput.VidMem) MAGIC.cast2Struct(GreenScreenOutput.VID_MEM_BASE);
         //if pos is after end of screen, start up top again
-        GreenScreenConst.VidChar vidChar = vidMem.chars[(y * GreenScreenConst.WIDTH + x) % (GreenScreenConst.WIDTH * GreenScreenConst.HEIGHT)];
+        GreenScreenOutput.VidChar vidChar = vidMem.chars[(y * GreenScreenOutput.WIDTH + x) % (GreenScreenOutput.WIDTH * GreenScreenOutput.HEIGHT)];
         vidChar.ascii = (byte) c;
         vidChar.color = (byte) color;
 
     }
 
     public static void clearScreen(int color) {
-        for (int i = 0; i < GreenScreenConst.WIDTH * GreenScreenConst.HEIGHT; i++) {
+        for (int i = 0; i < GreenScreenOutput.WIDTH * GreenScreenOutput.HEIGHT; i++) {
             printChar((char) 0, i, 0, color);
         }
+    }
+
+    public static void disableCursor(){
+        MAGIC.wIOs8(0x3D4, (byte)0x0A);
+        MAGIC.wIOs8(0x3D5, (byte)0x20);
     }
 }

@@ -1,15 +1,16 @@
 package tasks.shell;
 
+import drivers.keyboard.Keyboard;
 import drivers.keyboard.KeyboardEvent;
 import io.Color;
 import io.GreenScreenOutput;
+import io.LowlevelOutput;
+import kernel.Kernel;
 import kernel.datastructs.RingBuffer;
+import kernel.datastructs.subtypes.CommandArrayList;
 import tasks.LogEvent;
 import tasks.Task;
-import tasks.shell.commands.Command;
-import tasks.shell.commands.Echo;
-import tasks.shell.commands.Interrupt;
-import tasks.shell.commands.Welcome;
+import tasks.shell.commands.*;
 
 /**
  * Quick and dirty shell application
@@ -19,7 +20,7 @@ public class Shell extends Task {
     RingBuffer outputBuffer = new RingBuffer(100);
     char[] currentCommand = new char[79];
     int currentPos = 1;
-    Command[] registeredCommands;
+    CommandArrayList registeredCommands;
 
     GreenScreenOutput outputArea = new GreenScreenOutput();
     GreenScreenOutput inputArea = new GreenScreenOutput();
@@ -27,11 +28,13 @@ public class Shell extends Task {
 
     public Shell(){
         // register default commands
-        registeredCommands = new Command[3];
-        registeredCommands[0] = new Echo();
-        registeredCommands[1] = new Welcome();
-        registeredCommands[2] = new Interrupt();
-
+        int i = 0;
+        registeredCommands = new CommandArrayList();
+        registeredCommands.add(new Echo());
+        registeredCommands.add(new Welcome());
+        registeredCommands.add(new Interrupt());
+        registeredCommands.add(new CatFileTest());
+        registeredCommands.add(new ExecuteTask());
 
         inputArea.setColor(Color.BLACK, Color.GREY);
         outputArea.setColor(Color.GREY, Color.BLACK);
@@ -49,13 +52,23 @@ public class Shell extends Task {
             currentCommand[i] = ' ';
         }
 
+        Kernel.taskManager.requestFocus(this);
+    }
+
+    public void draw(){
+        LowlevelOutput.disableCursor();
         drawOutputArea();
-        drawCommandArea();
         drawStatusArea();
+        drawCommandArea();
     }
 
     public void onStop(){
 
+    }
+
+    @Override
+    public void onFocus() {
+        draw();
     }
 
     public void onTick() {
@@ -72,7 +85,7 @@ public class Shell extends Task {
                     }
                     drawCommandArea();
                 }
-                if (k.key == 28) {
+                if (k.key == Keyboard.ENTER) {
                     execute(currentCommand);
                     currentPos = 1;
                     for (int i = 1; i < currentCommand.length; i++) {
@@ -80,7 +93,7 @@ public class Shell extends Task {
                     }
                     drawCommandArea();
                 }
-                if (k.key == 14) {
+                if (k.key == Keyboard.BACKSP) {
                     if (currentPos > 1) {
                         currentPos--;
                         currentCommand[currentPos] = ' ';
@@ -96,16 +109,23 @@ public class Shell extends Task {
         }
     }
 
+    @Override
+    public void onBackgroundTick() {
+
+    }
+
     private void drawOutputArea() {
         outputArea.setCursor(0, 1);
         int lines = 0;
         int oldest_cmd = 0;
         // find out how many cmds fit into output area
+        // todo fix overflow if one single command has to much lines
         String cmd = null;
         do {
              cmd = (String) outputBuffer.peekPushed(oldest_cmd);
              if (cmd != null) {
                  lines += (cmd.length() / 80) + 1;
+                 lines += cmd.countOccurences('\n');
                  oldest_cmd++;
              }
         } while (lines < OUTPUT_AREA_LINES && cmd != null);
@@ -125,6 +145,12 @@ public class Shell extends Task {
     private void drawCommandArea() {
         inputArea.setCursor(0, 24);
         inputArea.println(currentCommand);
+
+        // blinking cursor
+        inputArea.setCursor(currentPos, 24);
+        inputArea.setColorState(inputArea.getColorIState() | Color.MOD_BLINK);
+        inputArea.print(' ');
+        inputArea.setColorState(inputArea.getColorIState() & ~Color.MOD_BLINK);
     }
 
     private void drawStatusArea(){
@@ -140,7 +166,8 @@ public class Shell extends Task {
         String[] cmd = s.substring(1).trim().split(' ');
 
         boolean handled = false;
-        for(Command c: registeredCommands){
+        for(int i = 0; i < registeredCommands.size(); i++){
+            Command c = registeredCommands.get(i);
             if (cmd[0].equals(c.getCmd())){
 
                 c.execute(this.stdin, cmd);
@@ -152,10 +179,7 @@ public class Shell extends Task {
             outputBuffer.push("Unknown command");
         }
 
-
-        drawOutputArea();
-        drawCommandArea();
-        drawStatusArea();
+        draw();
     }
 
 }

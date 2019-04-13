@@ -9,5 +9,9 @@ public abstract class Task {
 
     public abstract void onStop();
 
+    public abstract void onFocus();
+
     public abstract void onTick();
+
+    public abstract void onBackgroundTick();
 }

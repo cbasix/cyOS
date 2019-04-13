@@ -1,41 +1,58 @@
 package tasks;
 
+import drivers.keyboard.Keyboard;
 import drivers.keyboard.KeyboardEvent;
+import io.Color;
 import io.GreenScreenOutput;
+import io.LowlevelLogging;
+import io.LowlevelOutput;
+import kernel.Kernel;
+import tasks.Task;
 
-public class Editor extends Task{
+/* simplistic editor that loses state on losing focus
+* */
+public class Editor extends Task {
     GreenScreenOutput out = new GreenScreenOutput();
 
     public void onTick() {
         KeyboardEvent k = (KeyboardEvent) stdin.get();
         if (k != null && k.pressed){
             if (k.isPrintable()) {
-                /*out.print(" <Key: ");
-                out.printHex(k.key);
-                out.print(" Pressed: ");
-                out.print(k.pressed);
-                out.print(" PrintStr: ");*/
                 out.print(k.getPrintChar());
-                /*out.print(" Modifier: ");
-                out.print(k.modifiers);
-                out.println(">");*/
             }
-            if (k.key == 14){
+            if (k.key == Keyboard.BACKSP){
                 out.setCursor(out.getCursor()-1);
                 out.print(' ');
                 out.setCursor(out.getCursor()-1);
+
+            } else if (k.key == Keyboard.ESC){
+                Kernel.taskManager.requestStop(this);
+
+            } else if (k.key == Keyboard.ENTER){
+                out.println();
             }
         }
     }
 
     @Override
-    public void onStart() {
+    public void onBackgroundTick() {
 
+    }
+
+    @Override
+    public void onStart() {
+        Kernel.taskManager.requestFocus(this);
     }
 
     @Override
     public void onStop() {
 
+    }
+
+    @Override
+    public void onFocus() {
+        LowlevelOutput.clearScreen(Color.RED);
+        out.setCursor(0);
     }
 
 }

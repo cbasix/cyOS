@@ -1,5 +1,6 @@
 package rte;
 
+import io.LowlevelLogging;
 import kernel.interrupts.core.DescriptorTable;
 import kernel.interrupts.core.JumpTable;
 
@@ -139,7 +140,10 @@ public class DynamicRuntime {
             if (check == dest) return true;
             check = check.parent;
         }
-        if (asCast) MAGIC.inline(0xCC);
+        if (asCast) {
+            LowlevelLogging.debug("isInstance");
+            MAGIC.inline(0xCC);
+        }
         return false;
     }
 
@@ -152,7 +156,10 @@ public class DynamicRuntime {
             if (check.owner == dest) return check;
             check = check.next;
         }
-        if (asCast) MAGIC.inline(0xCC);
+        if (asCast) {
+            LowlevelLogging.debug("isImplementation");
+            MAGIC.inline(0xCC);
+        }
         return null;
     }
 
@@ -165,24 +172,36 @@ public class DynamicRuntime {
             return false; //null is not an instance
         }
         if (o._r_type != MAGIC.clssDesc("SArray")) { //will never match independently of arrDim
-            if (asCast) MAGIC.inline(0xCC);
+            if (asCast) {
+                LowlevelLogging.debug("isArray");
+                MAGIC.inline(0xCC);
+            }
             return false;
         }
         if (clssType == MAGIC.clssDesc("SArray")) { //special test for arrays
             if (o._r_unitType == MAGIC.clssDesc("SArray"))
                 arrDim--; //an array of SArrays, make next test to ">=" instead of ">"
             if (o._r_dim > arrDim) return true; //at least one level has to be left to have an object of type SArray
-            if (asCast) MAGIC.inline(0xCC);
+            if (asCast) {
+                LowlevelLogging.debug("isArray");
+                MAGIC.inline(0xCC);
+            }
             return false;
         }
         //no specials, check arrDim and check for standard type
         if (o._r_stdType != stdType || o._r_dim < arrDim) { //check standard types and array dimension
-            if (asCast) MAGIC.inline(0xCC);
+            if (asCast) {
+                LowlevelLogging.debug("isArray");
+                MAGIC.inline(0xCC);
+            }
             return false;
         }
         if (stdType != 0) {
             if (o._r_dim == arrDim) return true; //array of standard-type matching
-            if (asCast) MAGIC.inline(0xCC);
+            if (asCast) {
+                LowlevelLogging.debug("isArray");
+                MAGIC.inline(0xCC);
+            }
             return false;
         }
         //array of objects, make deep-check for class type (PicOS does not support interface arrays)
@@ -192,13 +211,19 @@ public class DynamicRuntime {
             if (clss == clssType) return true;
             clss = clss.parent;
         }
-        if (asCast) MAGIC.inline(0xCC);
+        if (asCast) {
+            LowlevelLogging.debug("isArray");
+            MAGIC.inline(0xCC);
+        }
         return false;
     }
 
     public static void checkArrayStore(SArray dest, SArray newEntry) {
         if (dest._r_dim > 1) isArray(newEntry, dest._r_stdType, dest._r_unitType, dest._r_dim - 1, true);
-        else if (dest._r_unitType == null) MAGIC.inline(0xCC);
+        else if (dest._r_unitType == null) {
+            LowlevelLogging.debug("checkArrayStore");
+            MAGIC.inline(0xCC);
+        }
         else isInstance(newEntry, dest._r_unitType, true);
     }
 }

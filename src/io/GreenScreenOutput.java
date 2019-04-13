@@ -3,17 +3,39 @@ package io;
 
 public class GreenScreenOutput {
     public static final String alphabet = "0123456789ABCDEF";
+    public static final int WIDTH = 80;
+    public static final int HEIGHT = 25;
     private int virtualCursor = 0;
-    private GreenScreenConst.VidMem vidMem =(GreenScreenConst.VidMem) MAGIC.cast2Struct(GreenScreenConst.VID_MEM_BASE);
-    private int color = GreenScreenConst.DEFAULT_COLOR;
+    public static final int VID_MEM_BASE = 0xB8000;
+    private VidMem vidMem =(VidMem) MAGIC.cast2Struct(VID_MEM_BASE);
+    private int color = Color.DEFAULT_COLOR;
     char[] stringBuffer = new char[20];
+
+
+    public static class VidChar extends STRUCT {
+        public byte ascii, color;
+    }
+
+    public static class VidMem extends STRUCT {
+        @SJC(offset=0,count=2000)
+        public VidChar[] chars;
+        //@SJC(offset=0,count=2000)
+        //public short[] chars;
+    }
+
 
     public void setColor(int fg, int bg) {
         color = bg << 4 | fg;
     }
+    public int getColorIState() {
+        return color;
+    }
+    public void setColorState(int c){
+        color = c;
+    }
 
     public void setCursor(int x, int y) {
-        virtualCursor = y * GreenScreenConst.WIDTH + x;
+        virtualCursor = y * WIDTH + x;
     }
     public void setCursor(int cursor) {
         virtualCursor = cursor;
@@ -26,24 +48,35 @@ public class GreenScreenOutput {
      // ---------- STRING / CHAR ---------------
     @SJC.Inline
     public void print(char c) {
-        GreenScreenConst.VidChar vidChar = vidMem.chars[virtualCursor];
+        VidChar vidChar = vidMem.chars[virtualCursor];
         vidChar.ascii = (byte) c;
         vidChar.color = (byte) color;
 
         virtualCursor++;
 
         // If at end of screen jump to top left
-        if (virtualCursor >= GreenScreenConst.WIDTH * GreenScreenConst.HEIGHT){
+        if (virtualCursor >= WIDTH * HEIGHT){
             virtualCursor = 0;
         }
     }
 
+    /* print string with linebreaks
+
+     */
     public void print(String str) {
         for (int i = 0; i < str.length(); i++) {
-            print(str.charAt(i));
+            char c = str.charAt(i);
+            switch (c){
+                case '\n': println(); break;
+                case '\t': print("    "); break;
+                default: print(str.charAt(i));
+            }
         }
     }
 
+    /* print char array in ONE line
+
+     */
     public void print(char[] str) {
         for (int i = 0; i < str.length; i++) {
             print(str[i]);
@@ -126,7 +159,7 @@ public class GreenScreenOutput {
             pos--;
         } while ((value > 0 && wantedDigits == 0) || wantedDigits >  stringBuffer.length - 1 - pos);
 
-        // if orig value was positive add minus sign
+        // if orig value was positive _add minus sign
         if (isNegative) {
             stringBuffer[pos] = '-';
         } else {
@@ -174,7 +207,7 @@ public class GreenScreenOutput {
             pos--;
         } while ((value > 0 && wantedDigits == 0) || wantedDigits >  stringBuffer.length - 1 - pos);
 
-        // if orig value was positive add minus sign
+        // if orig value was positive _add minus sign
         if (isNegative) {
             stringBuffer[pos] = '-';
         } else {
@@ -191,7 +224,7 @@ public class GreenScreenOutput {
 
     public void println() {
         print((char) 0);
-        while ((virtualCursor % GreenScreenConst.WIDTH) != 0) {
+        while ((virtualCursor % WIDTH) != 0) {
             print((char) 0);
         }
     }
@@ -226,5 +259,6 @@ public class GreenScreenOutput {
         print(b);
         println();
     }
+
 
 }

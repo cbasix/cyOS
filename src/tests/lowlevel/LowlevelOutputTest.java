@@ -1,13 +1,13 @@
 package tests.lowlevel;
 
 import io.Color;
-import io.GreenScreenConst;
+import io.GreenScreenOutput;
 import io.LowlevelOutput;
 
 public class LowlevelOutputTest {
-    private static GreenScreenConst.VidMem vidMem;
+    private static GreenScreenOutput.VidMem vidMem;
     public static int test() {
-        vidMem = (GreenScreenConst.VidMem) MAGIC.cast2Struct(GreenScreenConst.VID_MEM_BASE);
+        vidMem = (GreenScreenOutput.VidMem) MAGIC.cast2Struct(GreenScreenOutput.VID_MEM_BASE);
 
         // PRINT INT
         // test printInt with different bases
@@ -31,7 +31,7 @@ public class LowlevelOutputTest {
     public static boolean printIntIsEqual(int integer, String string, int len){
         // 80 chars per line so x=4 y=1 should mean pos 84
         int pos = 84;
-        LowlevelOutput.printInt(integer, 10, len, pos % GreenScreenConst.WIDTH, pos / GreenScreenConst.WIDTH, Color.RED);
+        LowlevelOutput.printInt(integer, 10, len, pos % GreenScreenOutput.WIDTH, pos / GreenScreenOutput.WIDTH, Color.RED);
 
         return checkVidMemEquals(string, pos);
     }
@@ -39,7 +39,7 @@ public class LowlevelOutputTest {
     public static boolean printHexIsEqual(int integer, String string, int len){
         // 80 chars per line so x=4 y=1 should mean pos 84
         int pos = 84;
-        LowlevelOutput.printHex(integer, len, pos % GreenScreenConst.WIDTH, pos / GreenScreenConst.WIDTH, Color.RED);
+        LowlevelOutput.printHex(integer, len, pos % GreenScreenOutput.WIDTH, pos / GreenScreenOutput.WIDTH, Color.RED);
 
         return checkVidMemEquals(string, pos);
     }

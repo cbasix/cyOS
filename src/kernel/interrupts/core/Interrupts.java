@@ -2,6 +2,7 @@ package kernel.interrupts.core;
 
 import io.Color;
 import io.LowlevelOutput;
+import kernel.interrupts.receivers.Bluescreen;
 import rte.DynamicRuntime;
 import rte.SClassDesc;
 
@@ -64,13 +65,14 @@ public class Interrupts {
 
     @SJC.Interrupt
     public static void doubleFaultHandler(int param){
-       LowlevelOutput.printStr("DOUBLE FAULT", 20, 13, Color.RED);
-       while (true);
+        LowlevelOutput.clearScreen(Bluescreen.BLUESCREEN_COLOR);
+        LowlevelOutput.printStr("DOUBLE FAULT", 30, 12, Bluescreen.BLUESCREEN_COLOR);
+        while (true) ;
     }
 
     @SJC.Inline
     public static void handleInterrupt(int param){
-        // TODO checkout  if this may result in problems with nested interrupts. Does the compiler dis/enable interrupts in premable?
+        // TODO checkout  if this may result in problems with nested interrupts. Not compiler but HW sets and unsets flag
         int interruptNo = MAGIC.rMem32(DynamicRuntime.interruptJumpTableAddr);
         Interrupts.enable();
 

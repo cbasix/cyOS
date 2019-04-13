@@ -1,5 +1,5 @@
 package kernel.interrupts.core;
 
 public abstract class InterruptReceiver {
-    public abstract void handleInterrupt(int interruptNo, int param);
+    public abstract boolean handleInterrupt(int interruptNo, int param);
 }

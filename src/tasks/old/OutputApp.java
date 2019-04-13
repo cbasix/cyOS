@@ -8,7 +8,7 @@ import kernel.Kernel;
  */
 public class OutputApp {
     public static void run() {
-        LowlevelOutput.clearScreen(GreenScreenConst.DEFAULT_COLOR);
+        LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
 
         GreenScreenOutput out = new GreenScreenOutput();
         out.setCursor(0, 3);
@@ -21,7 +21,7 @@ public class OutputApp {
         // write some displays full of useless ascii jokes
         for (byte c : binimp.ByteData.lorem_ipsum) {
             out.print((char) c);
-            if (out.getCursor() >= GreenScreenConst.WIDTH * GreenScreenConst.HEIGHT) {
+            if (out.getCursor() >= GreenScreenOutput.WIDTH * GreenScreenOutput.HEIGHT) {
                 break;
             }
         }

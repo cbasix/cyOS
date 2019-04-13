@@ -1,19 +1,20 @@
 package kernel;
 
-
 import drivers.keyboard.Keyboard;
 import drivers.keyboard.KeyboardInterruptReceiver;
 import drivers.keyboard.layout.KeyboardLayoutDE;
 import io.*;
+import kernel.datastructs.subtypes.TaskArrayList;
 import kernel.interrupts.core.InterruptHub;
-import kernel.interrupts.core.InterruptReceiver;
 import kernel.interrupts.core.Interrupts;
 import kernel.interrupts.receivers.AliveIndicator;
 import kernel.interrupts.receivers.Bluescreen;
 import kernel.interrupts.receivers.ScreenOutput;
 import rte.DynamicRuntime;
+import tasks.Task;
 import tasks.shell.Shell;
 import tests.TestRunner;
+
 
 public class Kernel {
 
@@ -23,29 +24,17 @@ public class Kernel {
 
     public static int mode = OUTPUT_APP;
 
+    public static TaskManager taskManager;
+
+
     public static void init() {
         DynamicRuntime.initializeMemoryPointers();
         MAGIC.doStaticInit();
 
-        LowlevelOutput.clearScreen(GreenScreenConst.DEFAULT_COLOR);
+        LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
+        taskManager = new TaskManager();
     }
 
-    // temporary: use nmis to switch between tasks
-    // misuse of the nmi interrupt command from qemu monitor ;)
-    private static class ModeSwitcher extends InterruptReceiver {
-        int cnt = 0;
-        @Override
-        public void handleInterrupt(int interruptNo, int param) {
-            Kernel.mode = (Kernel.mode + 1) % 2;
-
-            // on 3th nmi start the interrupt app which shows a bluescreen
-            cnt++;
-            if (cnt >= 3){
-                Kernel.mode = INTERRUPT_APP;
-            }
-
-        }
-    }
 
     public static void main() {
         init();
@@ -56,48 +45,22 @@ public class Kernel {
 
         InterruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_INTERRUPTS);
         InterruptHub.addObserver(new AliveIndicator(), Interrupts.TIMER);
-        InterruptHub.addObserver(new ModeSwitcher(), Interrupts.NMI);
         InterruptHub.addObserver(new Bluescreen(), InterruptHub.ALL_EXCEPTIONS);
         InterruptHub.addObserver(new KeyboardInterruptReceiver(), Interrupts.KEYBOARD);
 
         Interrupts.enable();
 
-        // Show Welcome screen
-        //Welcome.run();
-
         // Run Tests
-        TestRunner.run(0); // run test suite and show result, then wait for 2 secs
+        TestRunner.run(2); // run test suite and show result, then wait for 2 secs
+        LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
 
-        LowlevelOutput.clearScreen(GreenScreenConst.DEFAULT_COLOR);
+        taskManager.addInputDevice(keyboard);
+        taskManager.requestStart(new Shell());
 
-        //Editor e = new Editor();
+        taskManager.loop();
 
-        Shell s = new Shell();
-
-        // Start tasks
-        s.onStart();
-
-        while (true){
-            keyboard.readInto(s.stdin);
-            s.onTick();
-
-
-            /*if (mode == ALLOCATION_APP){
-                AllocationApp.run();  // run allocation app
-            } else if (mode == OUTPUT_APP){
-                OutputApp.run(); // run output app
-            } else {
-                Interrupt.run();
-            }*/
-            //wait(1);
-        }
-
-
-        // remind myself that i forgot to uncomment one of the run methods above...
-        /*while (true) {
-            LowlevelLogging.debug("Please uncomment one of the run methods within the main method (or forgot loop?)", LowlevelLogging.ERROR);
-        }*/
     }
+
 
     /**
      * Wait for up to <delayInSeconds> seconds

@@ -1,10 +1,10 @@
 package drivers.keyboard;
 
-import io.Color;
-import io.LowlevelOutput;
 import kernel.datastructs.RingBuffer;
 import kernel.interrupts.core.InterruptReceiver;
 
+
+// todo prettify
 public class KeyboardInterruptReceiver extends InterruptReceiver {
     public static final int ON_HOLD = 0;
     public static final int TOOGLE = 1;
@@ -14,31 +14,27 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
     public static final int EXPAND_ONE = 0xE0;
     public static final int EXPAND_TWO = 0xE1;
 
-    public static final int MODIFIER_EXTENSION = 0x01;
-    public static final int MODIFIER_CAPS = 0x02;
-    public static final int MODIFIER_ALT = 0x04;
-    public static final int MODIFIER_NUM = 0x08;
-    public static final int MODIFIER_STRG = 0x10;
-    public static final int MODIFIER_ICON = 0x20;
-
-    // todo fill correct
-    //--------------------- MODIFIER KEY CONFIGURATION -----------------------
-    // maybe define roll modifier even if nobody needs it
-    public static final int STRG = 0x1D;
-    public static final int ALT = 0x38;
-    public static final int NUM = 0x45;
-    public static final int CAPS = 0x2A;
-    public static final int CAPS_LCK = 0X3A;
-    public static final int ICON = 0x5B;
-    public static final int ICON_RIGHT = 0x5C;
-    // todo doesnt work now
-    public static final int ALT_GR = ( ALT | MODIFIER_EXTENSION );
-
     public static final int[] MODIFIER_KEYS = {
-            STRG,    ALT,     NUM,    CAPS,    CAPS_LCK, ICON,    ICON_RIGHT, ALT_GR
+            Keyboard.STRG,
+            Keyboard.ALT,
+            Keyboard.NUM,
+            Keyboard.CAPS,
+            Keyboard.CAPS_LCK,
+            Keyboard.ICON,
+            Keyboard.ICON_RIGHT,
+            Keyboard.ALT_GR,
+            Keyboard.CAPS_2ND
     };
     public static final int[] MODIFIER_MODES = {
-            ON_HOLD, ON_HOLD, TOOGLE, ON_HOLD, TOOGLE,   ON_HOLD, ON_HOLD,    ON_HOLD
+            ON_HOLD,
+            ON_HOLD,
+            TOOGLE,
+            ON_HOLD,
+            TOOGLE,
+            ON_HOLD,
+            ON_HOLD,
+            ON_HOLD,
+            ON_HOLD,
     };
     //--------------------- END MODIFIER KEY CONFIGURATION -----------------------
 
@@ -54,14 +50,14 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
 
 
     @Override
-    public void handleInterrupt(int interruptNo, int param) {
+    public boolean handleInterrupt(int interruptNo, int param) {
         boolean done = false;
         KeyboardEvent e = null;
         int key_byte = MAGIC.rIOs8(KEYBOARD_PORT) & 0x000000FF;
 
         if (byteNo == 0 && key_byte > EXPAND_TWO){
             // ignore "diverses" see phase 4a
-            return;
+            return true;
         }
 
         keyPartBuffer[byteNo] = key_byte;
@@ -73,12 +69,12 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
 
         } else if (keyPartBuffer[0] == EXPAND_ONE && byteNo == 2){
             done = true;
-            e = new KeyboardEvent((keyPartBuffer[1] & 0x7F), (keyPartBuffer[1] & 0x80) == 0, MODIFIER_EXTENSION);
+            e = new KeyboardEvent((keyPartBuffer[1] & 0x7F), (keyPartBuffer[1] & 0x80) == 0, Keyboard.MODIFIER_EXTENSION);
 
         } else if (keyPartBuffer[0] == EXPAND_TWO && byteNo == 3){
             // all 3 byte codes (pause) are used as system interrupt
             MAGIC.inline(0xCC);
-            return;
+            return true;
         }
 
         if (done){
@@ -94,6 +90,8 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
             pressedBuffer.push(e);
             byteNo = 0;
         }
+
+        return true;
     }
 
     @SJC.Inline
@@ -120,21 +118,21 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
         for (int i = 0; i < modifierStates.length; i++){
             if (modifierStates[i]) {
                 int modifierKey = MODIFIER_KEYS[i];
-                if (modifierKey == CAPS || modifierKey == CAPS_LCK) {
-                    e.modifiers |= MODIFIER_CAPS;
+                if (modifierKey == Keyboard.CAPS || modifierKey == Keyboard.CAPS_LCK || modifierKey == Keyboard.CAPS_2ND) {
+                    e.modifiers |= Keyboard.MODIFIER_CAPS;
                 }
                 // alt gr works as strg & alt
-                if (modifierKey == STRG || modifierKey == ALT_GR) {
-                    e.modifiers |= MODIFIER_STRG;
+                if (modifierKey == Keyboard.STRG || modifierKey == Keyboard.ALT_GR) {
+                    e.modifiers |= Keyboard.MODIFIER_STRG;
                 }
-                if (modifierKey == ALT || modifierKey == ALT_GR) {
-                    e.modifiers |= MODIFIER_ALT;
+                if (modifierKey == Keyboard.ALT || modifierKey == Keyboard.ALT_GR) {
+                    e.modifiers |= Keyboard.MODIFIER_ALT;
                 }
-                if (modifierKey == NUM) {
-                    e.modifiers |= MODIFIER_NUM;
+                if (modifierKey == Keyboard.NUM) {
+                    e.modifiers |= Keyboard.MODIFIER_NUM;
                 }
-                if (modifierKey == ICON) {
-                    e.modifiers |= MODIFIER_ICON;
+                if (modifierKey == Keyboard.ICON) {
+                    e.modifiers |= Keyboard.MODIFIER_ICON;
                 }
             }
         }

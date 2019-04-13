@@ -1,10 +1,16 @@
 package kernel.interrupts.core;
 
+import io.Color;
+import io.GreenScreenOutput;
+import io.LowlevelOutput;
+import kernel.Kernel;
+
 public class InterruptHub {
     public static final int ALL_INTERRUPTS = 0x00FFFFFF;
     public static final int ALL_EXCEPTIONS = 0x01FFFFFF;
     public static final int ALL_EXTERNAL = 0x02FFFFFF;
 
+    // todo use new arraylist class here instead of duplicated code
     public static ObserverBinding[] observerBindings = {};
 
     private static class ObserverBinding {
@@ -19,12 +25,22 @@ public class InterruptHub {
 
     @SJC.Inline
     public static void forwardInterrupt(int interruptNo, int param){
+        boolean handled = false;
         for (int i = 0; i < observerBindings.length; i++){
             if (observerBindings[i].interruptNo == interruptNo
                     || observerBindings[i].interruptNo == ALL_INTERRUPTS
                     || (interruptNo <= Interrupts.PAGE_FAULT && observerBindings[i].interruptNo == ALL_EXCEPTIONS)){
-                observerBindings[i].observer.handleInterrupt(interruptNo, param);
+
+                if(observerBindings[i].observer.handleInterrupt(interruptNo, param)){
+                    handled = true;
+                }
+
             }
+        }
+        if (!handled) {
+            LowlevelOutput.printStr("Interrupt not handled: ", 40, 0, Color.RED);
+            LowlevelOutput.printInt(interruptNo,10,2, 63, 0, Color.RED);
+            Kernel.wait(2);
         }
     }
 

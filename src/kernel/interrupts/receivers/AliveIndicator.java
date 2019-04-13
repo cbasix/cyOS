@@ -13,7 +13,7 @@ public class AliveIndicator extends InterruptReceiver {
     private String indicators = "-\\|/-\\|/"; //;"▴▸▾◂"
 
     @Override
-    public void handleInterrupt(int interruptNo, int param) {
+    public boolean handleInterrupt(int interruptNo, int param) {
         if (cnt % divider == 0) {
             char c = indicators.charAt(subCnt);
             LowlevelOutput.printChar(c, 79, 0, Color.CYAN << 4 | Color.BLACK);
@@ -21,5 +21,6 @@ public class AliveIndicator extends InterruptReceiver {
         }
         cnt++;
         //MAGIC.wMem16(0xB8F9E, (short)(2|0x2F00));
+        return true;
     }
 }

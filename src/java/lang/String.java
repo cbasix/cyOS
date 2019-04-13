@@ -126,4 +126,22 @@ public class String {
 
         return true;
     }
+
+    public int countOccurences(char c){
+        int cnt = 0;
+        for (int i = 0; i < length(); i++){
+            if (c == charAt(i)){
+                cnt++;
+            }
+        }
+        return cnt;
+    }
+
+    public char[] toChars(){
+        char[] chars = new char[count];
+        for(int i = 0; i < count; i++){
+            chars[i] = value[i];
+        }
+        return chars;
+    }
 }

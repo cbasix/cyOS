@@ -59,6 +59,19 @@ public class StringTest {
             return 336;
         }
 
+        s = "l1\n test\nl3";
+        int c = s.countOccurences('\n');
+        if (c != 2){
+            LowlevelOutput.printStr(s, 55, 15, Color.GREY << 4 |Color.PINK);
+            LowlevelOutput.printInt(c, 10, 4, 55, 16, Color.GREY << 4 |Color.PINK);
+            return 340;
+        }
+
+        s = "blubb78";
+        char[] ca = s.toChars();
+        for (int i = 0; i < s.length(); i++){
+            if (s.charAt(i) != ca[i]){return 342;};
+        }
 
         return 0;
     }

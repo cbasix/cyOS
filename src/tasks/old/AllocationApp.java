@@ -16,16 +16,16 @@ public class AllocationApp {
     private static int dumpStartAddr = 1024;
 
     public static void run() {
-        LowlevelOutput.clearScreen(GreenScreenConst.DEFAULT_COLOR);
+        LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
 
         // set hexdump start to the address where our new objects will be created
         dumpStartAddr = DynamicRuntime.getNextFreeAddr();
 
-        LowlevelOutput.clearScreen(GreenScreenConst.DEFAULT_COLOR);
-        LowlevelOutput.printStr("Allocation App", 0, 0, GreenScreenConst.DEFAULT_COLOR);
-        LowlevelOutput.printStr("Welcome to cyOS", 10, 4, GreenScreenConst.DEFAULT_COLOR);
-        LowlevelOutput.printStr("Destroying world in progress ", 3, 6, GreenScreenConst.DEFAULT_COLOR);
-        LowlevelOutput.printChar('%', 34, 6, GreenScreenConst.DEFAULT_COLOR);
+        LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
+        LowlevelOutput.printStr("Allocation App", 0, 0, Color.DEFAULT_COLOR);
+        LowlevelOutput.printStr("Welcome to cyOS", 10, 4, Color.DEFAULT_COLOR);
+        LowlevelOutput.printStr("Destroying world in progress ", 3, 6, Color.DEFAULT_COLOR);
+        LowlevelOutput.printChar('%', 34, 6, Color.DEFAULT_COLOR);
 
 
         int tick = 0;
@@ -35,12 +35,12 @@ public class AllocationApp {
         while (Kernel.mode == Kernel.ALLOCATION_APP) {
 
             // update percent number
-            LowlevelOutput.printInt(tick, 10, 3, 31, 6, GreenScreenConst.DEFAULT_COLOR);
+            LowlevelOutput.printInt(tick, 10, 3, 31, 6, Color.DEFAULT_COLOR);
             //LowlevelOutputTest.printInt(tick-50, 16, 3, 19, 7, GreenScreenConst.DEFAULT_COLOR);
 
             //update seconds
-            LowlevelOutput.printStr("Sec", 27, 0, GreenScreenConst.DEFAULT_COLOR);
-            LowlevelOutput.printInt(RTC.read(RTC.SECOND), 2, 8, 31, 0, GreenScreenConst.DEFAULT_COLOR);
+            LowlevelOutput.printStr("Sec", 27, 0, Color.DEFAULT_COLOR);
+            LowlevelOutput.printInt(RTC.read(RTC.SECOND), 2, 8, 31, 0, Color.DEFAULT_COLOR);
 
             // update next free addr
             //LowlevelOutputTest.printChar("Next Free",  0, 1, GreenScreenConst.DEFAULT_COLOR);
