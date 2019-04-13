@@ -164,8 +164,13 @@ public class Shell extends Task {
         outputBuffer.push(s);
 
         String[] cmd = s.substring(1).trim().split(' ');
-
         boolean handled = false;
+
+        if(cmd[0].equals("help")){
+            printHelp();
+            handled = true;
+        }
+
         for(int i = 0; i < registeredCommands.size(); i++){
             Command c = registeredCommands.get(i);
             if (cmd[0].equals(c.getCmd())){
@@ -180,6 +185,14 @@ public class Shell extends Task {
         }
 
         draw();
+    }
+
+    private void printHelp() {
+        outputBuffer.push("Available commands:");
+        for(int i = 0; i < registeredCommands.size(); i++){
+            Command c = registeredCommands.get(i);
+            outputBuffer.push(c.getCmd());
+        }
     }
 
 }
