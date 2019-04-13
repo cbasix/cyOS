@@ -53,7 +53,7 @@ public class Kernel {
 
 
         // Run Tests
-        TestRunner.run(2); // run test suite and show result, then wait for 2 secs
+        TestRunner.run(1); // run test suite and show result, then wait for 2 secs
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
 
 

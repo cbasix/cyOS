@@ -57,12 +57,12 @@ public class TaskManager {
     public void loop() {
         while (true){
             // read input into currently focused task
-            for (int i = 0; i < inputs.size(); i++) {
-                inputs.get(i).readInto(focusedTask.stdin);
-            }
-
-            // run current task
             if (focusedTask != null) {
+                for (int i = 0; i < inputs.size(); i++) {
+                    inputs.get(i).readInto(focusedTask.stdin);
+                }
+
+                 // run current task
                 focusedTask.onTick();
             }
 

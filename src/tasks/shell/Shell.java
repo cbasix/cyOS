@@ -76,6 +76,8 @@ public class Shell extends Task {
         draw();
     }
 
+    // todo bug last char not deletable
+    // todo using space is not optimal
     public void onTick() {
         Object e = stdin.get();
 
@@ -85,7 +87,7 @@ public class Shell extends Task {
             if (k.pressed) {
                 if (k.isPrintable()) {
                     currentCommand[currentPos] = k.getPrintChar();
-                    if (currentPos < currentCommand.length) {
+                    if (currentPos < currentCommand.length - 1) {
                         currentPos++;
                     }
                     drawCommandArea();

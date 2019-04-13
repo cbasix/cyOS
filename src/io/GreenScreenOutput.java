@@ -222,10 +222,14 @@ public class GreenScreenOutput {
 
     // ---------- PRINTLN ---------------
 
+    // todo last one (lower right) is written multiple times
     public void println() {
+
         print((char) 0);
-        while ((virtualCursor % WIDTH ) != 0 && virtualCursor < WIDTH*HEIGHT-1) {
-            print((char) 0);
+        for (int i = 0; i < WIDTH; i++){
+            if ((virtualCursor % WIDTH ) != 0) {
+                print((char) 0);
+            }
         }
     }
 

@@ -46,20 +46,19 @@ public class Keyboard extends InputDevice {
     public void readInto(RingBuffer focusTaskStdIn){
         // disable interrupts to prevent messing up the ring buffer during read
         Interrupts.disable();
-        if(KeyboardInterruptReceiver.pressedBuffer.count() > 0){
+        while (KeyboardInterruptReceiver.pressedBuffer.count() > 0){
 
-            // _get raw event from buffer
+            // get raw event from buffer
             KeyboardEvent k = (KeyboardEvent) KeyboardInterruptReceiver.pressedBuffer.get();
-            Interrupts.enable();
 
-            // translate to real keybord Event
+            Interrupts.enable();
+            // add char infos using the layout
             this.layout.setCharOn(k);
 
-
             focusTaskStdIn.push(k);
-
-        } else{
-            Interrupts.enable();
+            Interrupts.disable();
         }
+        Interrupts.enable();
+
     }
 }
