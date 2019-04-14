@@ -1,4 +1,4 @@
-package kernel.datastructs;
+package datastructs;
 
 public class RingBuffer {
     private Object[] data;

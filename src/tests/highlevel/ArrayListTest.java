@@ -1,7 +1,7 @@
 package tests.highlevel;
 
 import io.LowlevelLogging;
-import kernel.datastructs.ArrayList;
+import datastructs.ArrayList;
 
 public class ArrayListTest {
     public static int test(){

@@ -1,6 +1,6 @@
 package tasks.shell.commands;
 
-import kernel.datastructs.RingBuffer;
+import datastructs.RingBuffer;
 
 public class Interrupt extends Command{
 

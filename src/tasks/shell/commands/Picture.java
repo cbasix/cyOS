@@ -1,15 +1,14 @@
 package tasks.shell.commands;
 
-import io.Color;
 import io.Screen;
 import kernel.Kernel;
-import kernel.datastructs.RingBuffer;
+import datastructs.RingBuffer;
 
-public class Welcome extends Command {
+public class Picture extends Command {
 
     @Override
     public String getCmd() {
-        return "welcome";
+        return "picture";
     }
 
     @Override

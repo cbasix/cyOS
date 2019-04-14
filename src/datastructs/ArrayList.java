@@ -1,8 +1,4 @@
-package kernel.datastructs;
-
-import io.LowlevelLogging;
-import kernel.interrupts.core.InterruptHub;
-import rte.SClassDesc;
+package datastructs;
 
 public class ArrayList {
     private static final int GROWTH = 10;

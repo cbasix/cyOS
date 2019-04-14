@@ -1,8 +1,7 @@
-package kernel.datastructs.subtypes;
+package datastructs.subtypes;
 
 import drivers.InputDevice;
-import kernel.datastructs.ArrayList;
-import tasks.shell.commands.Command;
+import datastructs.ArrayList;
 
 public class InputDeviceArrayList extends ArrayList {
     public InputDevice get(int i) {

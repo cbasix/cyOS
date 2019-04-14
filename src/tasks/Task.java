@@ -1,6 +1,6 @@
 package tasks;
 
-import kernel.datastructs.RingBuffer;
+import datastructs.RingBuffer;
 
 public abstract class Task {
     public RingBuffer stdin = new RingBuffer(20);

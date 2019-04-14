@@ -1,6 +1,6 @@
 package tasks.shell.commands;
 
-import kernel.datastructs.RingBuffer;
+import datastructs.RingBuffer;
 import tasks.LogEvent;
 
 public class CatFileTest extends Command{

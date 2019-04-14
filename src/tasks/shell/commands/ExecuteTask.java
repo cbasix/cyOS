@@ -1,7 +1,7 @@
 package tasks.shell.commands;
 
 import kernel.Kernel;
-import kernel.datastructs.RingBuffer;
+import datastructs.RingBuffer;
 import tasks.Editor;
 import tasks.LogEvent;
 
@@ -20,6 +20,8 @@ public class ExecuteTask extends Command{
             if (args[1].equals("editor")){
                 shellMessageBuffer.push(new LogEvent("Editor started"));
                 Kernel.taskManager.requestStart(new Editor());
+            } else {
+                shellMessageBuffer.push(new LogEvent("Task not found. (Currently there is only 'editor')"));
             }
         }
     }

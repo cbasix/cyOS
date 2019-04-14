@@ -2,10 +2,6 @@ package tests.highlevel;
 
 import drivers.keyboard.layout.KeyboardLayout;
 import drivers.keyboard.layout.KeyboardLayoutDE;
-import io.Color;
-import io.LowlevelLogging;
-import io.LowlevelOutput;
-import kernel.datastructs.RingBuffer;
 
 public class KeyboardLayoutTest {
     public static int test(){

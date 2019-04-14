@@ -1,7 +1,6 @@
-package kernel.datastructs.subtypes;
+package datastructs.subtypes;
 
-import kernel.datastructs.ArrayList;
-import tasks.Task;
+import datastructs.ArrayList;
 import tasks.shell.commands.Command;
 
 public class CommandArrayList extends ArrayList {

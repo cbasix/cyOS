@@ -2,7 +2,7 @@ package drivers.keyboard;
 
 import drivers.InputDevice;
 import drivers.keyboard.layout.KeyboardLayout;
-import kernel.datastructs.RingBuffer;
+import datastructs.RingBuffer;
 import kernel.interrupts.core.Interrupts;
 
 public class Keyboard extends InputDevice {
@@ -48,7 +48,7 @@ public class Keyboard extends InputDevice {
         Interrupts.disable();
         while (KeyboardInterruptReceiver.pressedBuffer.count() > 0){
 
-            // get raw event from buffer
+            // getAvailableGtOneMb raw event from buffer
             KeyboardEvent k = (KeyboardEvent) KeyboardInterruptReceiver.pressedBuffer.get();
 
             Interrupts.enable();

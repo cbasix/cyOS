@@ -4,8 +4,8 @@ import drivers.keyboard.Keyboard;
 import drivers.keyboard.KeyboardEvent;
 import io.*;
 import kernel.Kernel;
-import kernel.datastructs.RingBuffer;
-import kernel.datastructs.subtypes.CommandArrayList;
+import datastructs.RingBuffer;
+import datastructs.subtypes.CommandArrayList;
 import tasks.LogEvent;
 import tasks.Task;
 import tasks.shell.commands.*;
@@ -33,10 +33,11 @@ public class Shell extends Task {
         int i = 0;
         registeredCommands = new CommandArrayList();
         registeredCommands.add(new Echo());
-        registeredCommands.add(new Welcome());
+        registeredCommands.add(new Picture());
         registeredCommands.add(new Interrupt());
         registeredCommands.add(new CatFileTest());
         registeredCommands.add(new ExecuteTask());
+        registeredCommands.add(new Smap());
 
         inputArea.setColor(Color.BLACK, Color.GREY);
         outputArea.setColorState(COLOR_NORMAL);
@@ -144,6 +145,7 @@ public class Shell extends Task {
                     outputArea.setColorState(COLOR_HIGHLIGHTED);
                 } else {
                     outputArea.setColorState(COLOR_NORMAL);
+                    cmd = String.concat(" ", cmd);
                 }
                 outputArea.println(cmd);
             }
@@ -206,7 +208,7 @@ public class Shell extends Task {
         outputBuffer.push("Available commands:");
         for(int i = 0; i < registeredCommands.size(); i++){
             Command c = registeredCommands.get(i);
-            outputBuffer.push(c.getCmd());
+            outputBuffer.push(String.concat("- ", c.getCmd()));
         }
     }
 

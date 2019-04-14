@@ -23,7 +23,7 @@ public class AllocationApp {
 
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
         LowlevelOutput.printStr("Allocation App", 0, 0, Color.DEFAULT_COLOR);
-        LowlevelOutput.printStr("Welcome to cyOS", 10, 4, Color.DEFAULT_COLOR);
+        LowlevelOutput.printStr("Picture to cyOS", 10, 4, Color.DEFAULT_COLOR);
         LowlevelOutput.printStr("Destroying world in progress ", 3, 6, Color.DEFAULT_COLOR);
         LowlevelOutput.printChar('%', 34, 6, Color.DEFAULT_COLOR);
 

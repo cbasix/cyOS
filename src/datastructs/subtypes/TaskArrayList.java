@@ -1,6 +1,6 @@
-package kernel.datastructs.subtypes;
+package datastructs.subtypes;
 
-import kernel.datastructs.ArrayList;
+import datastructs.ArrayList;
 import tasks.Task;
 
 public class TaskArrayList extends ArrayList {

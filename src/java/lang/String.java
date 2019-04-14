@@ -5,8 +5,11 @@ import io.LowlevelLogging;
 import io.LowlevelOutput;
 
 public class String {
+    public static final String alphabet = "0123456789ABCDEF";
     private char[] value;
     private int count;
+
+    private String(){}
 
     public String(char[] value) {
         this.value = new char[value.length];
@@ -16,7 +19,7 @@ public class String {
         this.count = value.length;
     }
 
-    // todo improve
+    // todo improve nearly everything below this line...
     public String[] split(char delimiter){
         int parts = 1;
         for (int i = 0; i < value.length; i++){
@@ -57,7 +60,7 @@ public class String {
     }
 
     public String substring(int from) {
-        return substring(from , this.length()-1);
+        return substring(from , this.length());
     }
 
     public static String join(String[] parts, String join){
@@ -143,5 +146,66 @@ public class String {
             chars[i] = value[i];
         }
         return chars;
+    }
+
+    // dirty
+    public static String concat(String first, String second) {
+        String[] temp = new String[2];
+        temp[0] = first;
+        temp[1] = second;
+        return String.join(temp, "");
+    }
+
+    public String concat(String other){
+        return String.concat(this, other);
+    }
+
+    // feels filthy -> min 3 array copys ...
+    public static String from(int value){
+        char[] tempStringBuffer = new char[11];
+        // int can have max 10 digits in base 10 plus a sign up front
+        boolean isNegative = value < 0;
+        if (isNegative) {
+            // 2er komplement positiv machen
+            value -= 1;
+            value = ~value;
+        }
+        int remainder;
+        int pos = tempStringBuffer.length - 1;;
+        do {
+            remainder = value % 10;
+            tempStringBuffer[pos] = alphabet.charAt(remainder);
+            value /= 10;
+            pos--;
+        } while (value > 0);
+
+        // if orig value was positive _add minus sign
+        if (isNegative) {
+            tempStringBuffer[pos] = '-';
+        } else {
+            pos++;
+        }
+
+        // avoid unnecessary copy
+        String ret = new String();
+        ret.value = tempStringBuffer;
+        ret.count = ret.value.length;
+        return ret.substring(pos);
+    }
+
+
+    public static String hexFrom(int value){
+        final int DIGITS = 8;
+        char[] strBuf = new char[DIGITS];
+        for (int i = DIGITS-1; i >= 0; i--) {
+            strBuf[DIGITS-1-i] = String.alphabet.charAt((int)(value >> i*4) & 0xF);
+        }
+
+        // avoid copy
+        // todo avoid duplication
+        String ret = new String();
+        ret.value = strBuf;
+        ret.count = ret.value.length;
+        return ret;
     }
 }

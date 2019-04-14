@@ -1,6 +1,6 @@
 package drivers.keyboard;
 
-import kernel.datastructs.RingBuffer;
+import datastructs.RingBuffer;
 import kernel.interrupts.core.InterruptReceiver;
 
 

@@ -1,7 +1,6 @@
 package tasks.shell.commands;
 
-import io.LowlevelLogging;
-import kernel.datastructs.RingBuffer;
+import datastructs.RingBuffer;
 import tasks.LogEvent;
 
 public class Echo extends Command{

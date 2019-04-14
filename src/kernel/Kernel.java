@@ -4,14 +4,13 @@ import drivers.keyboard.Keyboard;
 import drivers.keyboard.KeyboardInterruptReceiver;
 import drivers.keyboard.layout.KeyboardLayoutDE;
 import io.*;
-import kernel.datastructs.subtypes.TaskArrayList;
 import kernel.interrupts.core.InterruptHub;
 import kernel.interrupts.core.Interrupts;
 import kernel.interrupts.receivers.AliveIndicator;
 import kernel.interrupts.receivers.Bluescreen;
 import kernel.interrupts.receivers.ScreenOutput;
+import kernel.memory.SystemMemoryMap;
 import rte.DynamicRuntime;
-import tasks.Task;
 import tasks.shell.Shell;
 import tests.TestRunner;
 
@@ -50,7 +49,6 @@ public class Kernel {
         InterruptHub.addObserver(new KeyboardInterruptReceiver(), Interrupts.KEYBOARD);
 
         Interrupts.enable();
-
 
         // Run Tests
         TestRunner.run(1); // run test suite and show result, then wait for 2 secs

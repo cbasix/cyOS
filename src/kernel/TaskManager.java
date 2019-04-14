@@ -1,10 +1,8 @@
 package kernel;
 
 import drivers.InputDevice;
-import drivers.keyboard.Keyboard;
-import io.LowlevelLogging;
-import kernel.datastructs.subtypes.InputDeviceArrayList;
-import kernel.datastructs.subtypes.TaskArrayList;
+import datastructs.subtypes.InputDeviceArrayList;
+import datastructs.subtypes.TaskArrayList;
 import tasks.Task;
 
 public class TaskManager {

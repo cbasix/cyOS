@@ -83,13 +83,13 @@ public class BIOS {
             MAGIC.wMem32(addr, BIOS_STKBSE - BIOS_MEMORY); //mov esp,0x2000(BIOS_MEMORY-BIOS_STKBSE)
             addr += 4;
 
-            MAGIC.wMem8(addr++, (byte) 0x1F); //get ds
-            MAGIC.wMem8(addr++, (byte) 0x07); //get es
+            MAGIC.wMem8(addr++, (byte) 0x1F); //getAvailableGtOneMb ds
+            MAGIC.wMem8(addr++, (byte) 0x07); //getAvailableGtOneMb es
 
             MAGIC.wMem8(addr++, (byte) 0x0f);
-            MAGIC.wMem8(addr++, (byte) 0xa1); //get fs
+            MAGIC.wMem8(addr++, (byte) 0xa1); //getAvailableGtOneMb fs
 
-            MAGIC.wMem8(addr++, (byte) 0x58); //get ax -> we have to get something for symmetry
+            MAGIC.wMem8(addr++, (byte) 0x58); //getAvailableGtOneMb ax -> we have to getAvailableGtOneMb something for symmetry
 
             MAGIC.wMem8(addr++, (byte) 0x66);
             MAGIC.wMem8(addr++, (byte) 0x61); //popad
@@ -186,8 +186,8 @@ public class BIOS {
             //use return far as call
             MAGIC.inline(0x48, 0xCB);                   //retf
         }
-        MAGIC.inline(0x5F); //get e/rdi
-        MAGIC.inline(0x5E); //get e/rsi
+        MAGIC.inline(0x5F); //getAvailableGtOneMb e/rdi
+        MAGIC.inline(0x5E); //getAvailableGtOneMb e/rsi
         //TODO lidt(); //load idt with protected/long mode interrupt table
         Interrupts.loadProtectedModeIDT();
         MAGIC.inline(0x9D); //popf

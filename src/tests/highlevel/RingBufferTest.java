@@ -1,7 +1,7 @@
 package tests.highlevel;
 
 import io.LowlevelLogging;
-import kernel.datastructs.RingBuffer;
+import datastructs.RingBuffer;
 
 public class RingBufferTest {
     public static int test(){

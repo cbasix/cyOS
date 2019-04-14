@@ -2,7 +2,6 @@ package io;
 
 
 public class GreenScreenOutput {
-    public static final String alphabet = "0123456789ABCDEF";
     public static final int WIDTH = 80;
     public static final int HEIGHT = 25;
     private int virtualCursor = 0;
@@ -88,14 +87,14 @@ public class GreenScreenOutput {
     @SJC.Inline
     public void printHex(int value, int digits){
         for (int i = digits-1; i >= 0; i--) {
-            print(alphabet.charAt((int)(value >> i*4) & 0xF));
+            print(String.alphabet.charAt((int)(value >> i*4) & 0xF));
         }
     }
     // TODO remove duplication?!
     @SJC.Inline
     public void printHex(long value, int digits){
         for (int i = digits-1; i >= 0; i--) {
-            print(alphabet.charAt((int)(value >> i*4) & 0xF));
+            print(String.alphabet.charAt((int)(value >> i*4) & 0xF));
         }
     }
 
@@ -151,10 +150,10 @@ public class GreenScreenOutput {
         }
 
         int remainder;
-        int pos = 19;
+        int pos = stringBuffer.length - 1;;
         do {
             remainder = value % 10;
-            stringBuffer[pos] = alphabet.charAt(remainder);
+            stringBuffer[pos] = String.alphabet.charAt(remainder);
             value /= 10;
             pos--;
         } while ((value > 0 && wantedDigits == 0) || wantedDigits >  stringBuffer.length - 1 - pos);
@@ -202,7 +201,7 @@ public class GreenScreenOutput {
         int pos = stringBuffer.length - 1;
         do {
             remainder = (int) (value % 10);
-            stringBuffer[pos] = alphabet.charAt(remainder);
+            stringBuffer[pos] = String.alphabet.charAt(remainder);
             value /= 10;
             pos--;
         } while ((value > 0 && wantedDigits == 0) || wantedDigits >  stringBuffer.length - 1 - pos);
