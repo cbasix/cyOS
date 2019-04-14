@@ -54,6 +54,11 @@ public class Shell extends Task {
         for (int i = 1; i < currentCommand.length; i++) {
             currentCommand[i] = ' ';
         }
+        // todo BUG: out of bounds on empty string
+        outputBuffer.push("\0");
+        outputBuffer.push("          +--------------------------------------------------------+");
+        outputBuffer.push("          | Welcome. Type 'help' to get a list available commands. |");
+        outputBuffer.push("          +--------------------------------------------------------+");
 
         Kernel.taskManager.requestFocus(this);
     }
