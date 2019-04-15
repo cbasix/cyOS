@@ -43,12 +43,13 @@ public class Keyboard extends InputDevice {
         this.layout = layout;
     }
 
+    // todo war die fragestellung anders gedacht? (implementieren lock mechanismus, semaphore?)
     public void readInto(RingBuffer focusTaskStdIn){
-        // disable interrupts to prevent messing up the ring buffer during read
+        // disable interrupts to prevent messing up the ring buffer during get
         Interrupts.disable();
         while (KeyboardInterruptReceiver.pressedBuffer.count() > 0){
 
-            // getAvailableGtOneMb raw event from buffer
+            // get raw event from buffer
             KeyboardEvent k = (KeyboardEvent) KeyboardInterruptReceiver.pressedBuffer.get();
 
             Interrupts.enable();

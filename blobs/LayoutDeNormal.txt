@@ -1,8 +1,8 @@
 \0\012345678
 90s\0\0\tqwer
-tzuiopu+\0\0
-asdfghjklo
-a^\0#yxcvbn
+tzuiopÅ+\0\0
+asdfghjklî
+Ñ^\0#yxcvbn
 m,.-\0\0\0 \0\0
 \0\0\0\0\0\0\0\0\0\0
 \0\0\0\0\0\0\0\0\0\0
