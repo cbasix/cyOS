@@ -28,7 +28,7 @@ public class Kernel {
         // test basic allocation
         TestRunner.runBasicAllocationTest();
         // instatiate advanced memory managers
-        //memoryManager = new ArrayListMemoryManager();
+        memoryManager = new ArrayListMemoryManager();
 
 
         MAGIC.doStaticInit();
