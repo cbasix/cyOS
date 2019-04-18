@@ -7,27 +7,28 @@ import io.*;
 import kernel.interrupts.core.InterruptHub;
 import kernel.interrupts.core.Interrupts;
 import kernel.interrupts.receivers.AliveIndicator;
-import kernel.interrupts.receivers.Bluescreen;
 import kernel.interrupts.receivers.ScreenOutput;
-import kernel.memory.SystemMemoryMap;
-import rte.DynamicRuntime;
+import kernel.memory.BasicMemoryManager;
+import kernel.memory.ArrayListMemoryManager;
+import kernel.memory.MemoryManager;
 import tasks.shell.Shell;
 import tests.TestRunner;
 
 
 public class Kernel {
-
-    public static final int OUTPUT_APP = 0;
-    public static final int ALLOCATION_APP = 1;
-    public static final int INTERRUPT_APP = 2;
-
-    public static int mode = OUTPUT_APP;
-
     public static TaskManager taskManager;
+    public static MemoryManager memoryManager;
 
 
     public static void init() {
-        DynamicRuntime.initializeMemoryPointers();
+        // basic manager allows other mangers to use new before taking over allocation
+        memoryManager = BasicMemoryManager.initialize();
+
+        // test basic allocation
+        TestRunner.runBasicAllocationTest();
+
+        //memoryManager = new ArrayListMemoryManager();
+
         MAGIC.doStaticInit();
 
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
@@ -43,9 +44,8 @@ public class Kernel {
         Interrupts.init();
 
 
-        InterruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_INTERRUPTS);
+        InterruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_EXTERNAL);
         InterruptHub.addObserver(new AliveIndicator(), Interrupts.TIMER);
-        InterruptHub.addObserver(new Bluescreen(), InterruptHub.ALL_EXCEPTIONS);
         InterruptHub.addObserver(new KeyboardInterruptReceiver(), Interrupts.KEYBOARD);
 
         Interrupts.enable();

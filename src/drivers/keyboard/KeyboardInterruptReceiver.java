@@ -1,6 +1,7 @@
 package drivers.keyboard;
 
 import datastructs.RingBuffer;
+import kernel.Kernel;
 import kernel.interrupts.core.InterruptReceiver;
 
 
@@ -74,6 +75,7 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
         } else if (keyPartBuffer[0] == EXPAND_TWO && byteNo == 3){
             // all 3 byte codes (pause) are used as system interrupt
             MAGIC.inline(0xCC);
+            byteNo = 0;
             return true;
         }
 

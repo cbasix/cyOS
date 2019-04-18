@@ -1,17 +1,18 @@
 package tests.lowlevel;
 
-import rte.DynamicRuntime;
+import io.LowlevelLogging;
+import kernel.memory.BasicMemoryManager;
 import tests.TestObject;
 
-public class AllocationTest {
+public class BasicAllocationTest {
 
     public static class TestObjectStruct extends STRUCT {
         public int _r_referenceToStr, _r_next, _r_type, _r_relocEntrys, _r_scalarSize, _r_scalarData;
     }
 
     public static int test() {
-        DynamicRuntime.ImageInfo image = (DynamicRuntime.ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
-        int startAddr = DynamicRuntime.getNextFreeAddr();
+        BasicMemoryManager.ImageInfo image = (BasicMemoryManager.ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
+        int startAddr = BasicMemoryManager.getNextFreeAddr();
         int shouldObjSize = 6*MAGIC.ptrSize;
 
         // initalize empty memory with visual "mines" for the next 1024 bytes
@@ -19,7 +20,6 @@ public class AllocationTest {
         for (int i = 0; i < 1024; i++) {
             MAGIC.wMem8(startAddr + i, (byte) 0xFB);
         }
-
 
         TestObject o1 = new TestObject();
         TestObject o2 = new TestObject();

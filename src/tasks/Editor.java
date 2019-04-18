@@ -61,7 +61,7 @@ public class Editor extends Task {
     public void onFocus() {
         LowlevelOutput.clearScreen(Color.RED);
         out.setCursor(0);
-        out.println("Picture to the editor. Just start typing ;) Press ESC to exit.");
+        out.println("Welcome to the editor. Just start typing ;) Press ESC to exit.");
     }
 
 }

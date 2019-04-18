@@ -21,6 +21,7 @@ public class SystemMemoryMap {
     public static MemAreaArrayList getAvailableGtOneMb(){
         MemAreaArrayList memAreas = new MemAreaArrayList();
 
+        // todo move out of stack
         // reserve some space on stack for bios answers
         int bytes16 =0;
         int bytes12 = 0;

@@ -1,9 +1,8 @@
 package kernel.interrupts.core;
 
-import io.Color;
+import io.LowlevelLogging;
 import io.LowlevelOutput;
-import kernel.interrupts.receivers.Bluescreen;
-import rte.DynamicRuntime;
+import kernel.memory.BasicMemoryManager;
 import rte.SClassDesc;
 
 public class Interrupts {
@@ -41,8 +40,8 @@ public class Interrupts {
     public static void init(){
         disable();
 
-        int idtBase = DynamicRuntime.interruptDescriptorTableAddr;
-        int ijtBase = DynamicRuntime.interruptJumpTableAddr;
+        int idtBase = BasicMemoryManager.interruptDescriptorTableAddr;
+        int ijtBase = BasicMemoryManager.interruptJumpTableAddr;
         initDefaultHandlerAddresses();
 
         initPic();
@@ -51,16 +50,21 @@ public class Interrupts {
         DescriptorTable.write(idtBase, ijtBase);
 
         loadIDT(idtBase, DescriptorTable.entrySize*DescriptorTable.entryCount-1);
+        enable();
     }
 
     @SJC.Interrupt
     public static void defaultHandler(){
-        handleInterrupt(0);
+        int interruptEbp=0;
+        MAGIC.inline(0x89, 0x6D); MAGIC.inlineOffset(1, interruptEbp); //mov [ebp+xx],ebp
+        handleInterrupt(0, interruptEbp);
     }
 
     @SJC.Interrupt
     public static void defaultHandlerWithParam(int param){
-        handleInterrupt(param);
+        int interruptEbp=0;
+        MAGIC.inline(0x89, 0x6D); MAGIC.inlineOffset(1, interruptEbp); //mov [ebp+xx],ebp
+        handleInterrupt(param, interruptEbp);
     }
 
     @SJC.Interrupt
@@ -71,25 +75,45 @@ public class Interrupts {
     }
 
     @SJC.Inline
-    public static void handleInterrupt(int param){
-        // TODO checkout  if this may result in problems with nested interrupts. Not compiler but HW sets and unsets flag
-        int interruptNo = MAGIC.rMem32(DynamicRuntime.interruptJumpTableAddr);
-        Interrupts.enable();
+    public static void handleInterrupt(int param, int interruptEbp){
+        // interrupts are disabled per default during interrupt handling
+        int interruptNo = MAGIC.rMem32(BasicMemoryManager.interruptJumpTableAddr);
 
-        InterruptHub.forwardInterrupt(interruptNo, param);
+        Interrupts.enable(); // todo disabled reentrant interrupts ... if having strange errors
+
+        // if is an exception
+        if (interruptNo <= Interrupts.PAGE_FAULT){
+            Bluescreen.handleInterrupt(interruptNo, param, interruptEbp);
+        } else {
+            InterruptHub.forwardInterrupt(interruptNo, param);
+        }
 
         ack(interruptNo);
+
     }
 
 
+    private static int state = 0;
+
     @SJC.Inline
     public static void enable(){
-        // set interrupt flag
+        state++;
+        if (state >= 1) {
+            // set interrupt flag
+            MAGIC.inline(0xFB);
+            state = 1;
+        }
+    }
+
+    @SJC.Inline
+    public static void forceEnable(){
         MAGIC.inline(0xFB);
+        state = 1;
     }
 
     @SJC.Inline
     public static void disable(){
+        state--;
         // clear interrupt flag
         MAGIC.inline(0xFA);
     }
@@ -129,7 +153,7 @@ public class Interrupts {
 
     @SJC.Inline
     public static void loadProtectedModeIDT(){
-        loadIDT(DynamicRuntime.interruptDescriptorTableAddr, DescriptorTable.entrySize*DescriptorTable.entryCount-1);
+        loadIDT(BasicMemoryManager.interruptDescriptorTableAddr, DescriptorTable.entrySize*DescriptorTable.entryCount-1);
     }
 
     @SJC.Inline
@@ -145,8 +169,5 @@ public class Interrupts {
 
         int mthdOffParam = MAGIC.mthdOff("Interrupts", "defaultHandlerWithParam");
         handleInterruptWithParamAddr = MAGIC.rMem32(MAGIC.cast2Ref(interruptClassDesc)+mthdOffParam )+MAGIC.getCodeOff();
-
-        int mthdDoubleFault = MAGIC.mthdOff("Interrupts", "doubleFaultHandler");
-        handleDoubleFaultAddr = MAGIC.rMem32(MAGIC.cast2Ref(interruptClassDesc)+mthdDoubleFault )+MAGIC.getCodeOff();
     }
 }

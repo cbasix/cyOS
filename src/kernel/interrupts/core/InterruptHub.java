@@ -6,8 +6,6 @@ import io.LowlevelOutput;
 import kernel.Kernel;
 
 public class InterruptHub {
-    public static final int ALL_INTERRUPTS = 0x00FFFFFF;
-    public static final int ALL_EXCEPTIONS = 0x01FFFFFF;
     public static final int ALL_EXTERNAL = 0x02FFFFFF;
 
     // todo use new arraylist class here instead of duplicated code
@@ -28,8 +26,7 @@ public class InterruptHub {
         boolean handled = false;
         for (int i = 0; i < observerBindings.length; i++){
             if (observerBindings[i].interruptNo == interruptNo
-                    || observerBindings[i].interruptNo == ALL_INTERRUPTS
-                    || (interruptNo <= Interrupts.PAGE_FAULT && observerBindings[i].interruptNo == ALL_EXCEPTIONS)){
+                    || observerBindings[i].interruptNo == ALL_EXTERNAL){
 
                 if(observerBindings[i].observer.handleInterrupt(interruptNo, param)){
                     handled = true;

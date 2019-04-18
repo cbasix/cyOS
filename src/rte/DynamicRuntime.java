@@ -1,93 +1,16 @@
 package rte;
 
+import io.Color;
 import io.LowlevelLogging;
+import io.LowlevelOutput;
+import kernel.Kernel;
 import kernel.interrupts.core.DescriptorTable;
 import kernel.interrupts.core.JumpTable;
 
 public class DynamicRuntime {
 
-    public static final int POINTER_SIZE = MAGIC.ptrSize;
-    private static Object firstObj;
-    private static Object lastObj;
-    private static int nextFreeAddr;
-    public static int interruptDescriptorTableAddr, interruptJumpTableAddr;
-
-
-    public static class ImageInfo extends STRUCT {
-        public int start, size; //, classDescStart, codebyteAddr, firstObjInImageAddr, ramInitAddr;
-    }
-
-    public static int getNextFreeAddr() {
-        return nextFreeAddr;
-    }
-
-    public static void initializeMemoryPointers() {
-        ImageInfo image = (ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
-        // make room for interrupt table after image
-        // allign to 4 byte, (last two address bits zero)
-        interruptDescriptorTableAddr =  (image.start + image.size + 0x3) & ~0x3;
-
-        // write marker into mem
-        MAGIC.wMem32(interruptDescriptorTableAddr, 0xA1A1A1A1);
-        interruptDescriptorTableAddr += MAGIC.ptrSize;
-
-        int idtSize = DescriptorTable.entryCount * DescriptorTable.entrySize;
-        int ijtSize = DescriptorTable.entryCount * JumpTable.entrySize + JumpTable.scalarSize;
-
-        interruptJumpTableAddr = interruptDescriptorTableAddr + idtSize;
-
-        MAGIC.wMem32(interruptJumpTableAddr, 0xA6A6A6A6);
-        interruptJumpTableAddr += MAGIC.ptrSize;
-
-        nextFreeAddr = interruptJumpTableAddr + ijtSize;
-
-
-        // write marker into mem
-        MAGIC.wMem32(nextFreeAddr, 0xB2B2B2B2);
-        nextFreeAddr += MAGIC.ptrSize;
-    }
-
-    // Todo cleanup prints later on
     public static Object newInstance(int scalarSize, int relocEntries, SClassDesc type) {
-        // allign scalar size to 4 byte
-        scalarSize = (scalarSize + 0x3) & ~0x3;
-
-        // calculate memory requirements
-        int objSize = scalarSize + relocEntries * POINTER_SIZE;
-
-        // clear allocated memory
-        for (int i = 0; i < objSize/4; i++) {
-            MAGIC.wMem32(nextFreeAddr + i*4, 0x00000000);
-        }
-
-        // calculate object address inside allocated memory
-        int objAddr = nextFreeAddr + relocEntries * POINTER_SIZE;
-
-        Object newObject = MAGIC.cast2Obj(objAddr);
-
-        // fill kernel fields of object
-        MAGIC.assign(newObject._r_type, type);
-        MAGIC.assign(newObject._r_relocEntries, relocEntries);
-        MAGIC.assign(newObject._r_scalarSize, scalarSize);
-
-
-        if (lastObj == null) {
-            // first object ever, save it for having a startpoint for _r_next iteration GC (later on)
-            firstObj = newObject;
-
-        } else {
-            // set r_next on last object
-            MAGIC.assign(lastObj._r_next, newObject);
-        }
-
-        // allocate requested memory
-        // this is automatically alligned because scalar size was aligned at the beginning of this method
-        // and all the reloc entrys are always 4 bytes on ia32
-        nextFreeAddr = nextFreeAddr + objSize;
-
-        lastObj = newObject;
-
-        return newObject;
+        return Kernel.memoryManager.allocate(scalarSize, relocEntries, type);
     }
 
 
@@ -225,5 +148,22 @@ public class DynamicRuntime {
             MAGIC.inline(0xCC);
         }
         else isInstance(newEntry, dest._r_unitType, true);
+    }
+
+    /*
+    Laufzeit-Routine bei Array-Fehlindizierungen (Compiler-Option -b ):
+     */
+    public static void boundException(SArray arr, int ind) {
+        LowlevelLogging.debug("Array out of Bounds");
+        LowlevelOutput.printHex(MAGIC.addr(arr), 10, 25, 10, Color.BLUE);
+        LowlevelOutput.printInt(ind, 10, 10, 25, 11, Color.BLUE);
+        while (true);
+    }
+
+    /* Laufzeit-Routine bei unzulässiger Dereferenzierung eines Null-Zeigers (Compiler-Option -n ):
+     */
+    public static void nullException() {
+        LowlevelLogging.debug("Nullpointer");
+        while (true);
     }
 }
