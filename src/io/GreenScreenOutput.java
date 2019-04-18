@@ -90,7 +90,7 @@ public class GreenScreenOutput {
             print(String.alphabet.charAt((int)(value >> i*4) & 0xF));
         }
     }
-    // TODO remove duplication?!
+
     @SJC.Inline
     public void printHex(long value, int digits){
         for (int i = digits-1; i >= 0; i--) {
@@ -174,8 +174,6 @@ public class GreenScreenOutput {
     public void print(long value){
         print(value, 0);
     }
-
-    // TODO How to avoid duplicated code here? without casting everything to long?
     /**
      * @param value the value to convert to a string using base 10
      * @param wantedDigits 0 means -> use as many digits as the number needs
@@ -220,8 +218,6 @@ public class GreenScreenOutput {
     }
 
     // ---------- PRINTLN ---------------
-
-    // todo last one (lower right) is written multiple times
     public void println() {
 
         print((char) 0);

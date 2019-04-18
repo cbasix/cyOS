@@ -11,6 +11,16 @@ public class String {
 
     private String(){}
 
+    @SJC.Inline
+    public int length() {
+        return count;
+    }
+
+    @SJC.Inline
+    public char charAt(int i) {
+        return value[i];
+    }
+
     public String(char[] value) {
         this.value = new char[value.length];
         for (int i = 0; i < value.length; i++){
@@ -19,7 +29,9 @@ public class String {
         this.count = value.length;
     }
 
-    // todo improve nearly everything below this line...
+    // nearly everything below this line should be improved... but since efficient string manipulation is
+    // not the focus of the lecture and it is working it stays like it is
+
     public String[] split(char delimiter){
         int parts = 1;
         for (int i = 0; i < value.length; i++){
@@ -27,7 +39,6 @@ public class String {
                 parts++;
             }
         }
-        LowlevelOutput.printHex(parts, 2, 55, 13, Color.RED);
 
         String[] out = new String[parts];
 
@@ -65,8 +76,8 @@ public class String {
 
     public static String join(String[] parts, String join){
         int newLen = 0;
-        for (int i = 0; i < parts.length; i++){
-            newLen += parts[i].length();
+        for (String part : parts) {
+            newLen += part.length();
         }
         newLen += join.length() * (parts.length-1);
 
@@ -104,16 +115,6 @@ public class String {
         }
 
         return substring(start, stop);
-    }
-
-    @SJC.Inline
-    public int length() {
-        return count;
-    }
-
-    @SJC.Inline
-    public char charAt(int i) {
-        return value[i];
     }
 
     public boolean equals(String str) {
@@ -202,7 +203,6 @@ public class String {
         }
 
         // avoid copy
-        // todo avoid duplication
         String ret = new String();
         ret.value = strBuf;
         ret.count = ret.value.length;

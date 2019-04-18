@@ -8,7 +8,6 @@ import kernel.Kernel;
 import kernel.interrupts.core.InterruptReceiver;
 
 
-// todo prettify
 public class KeyboardInterruptReceiver extends InterruptReceiver {
     public static final int ON_HOLD = 0;
     public static final int TOOGLE = 1;

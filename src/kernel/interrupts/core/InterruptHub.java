@@ -1,5 +1,6 @@
 package kernel.interrupts.core;
 
+import datastructs.subtypes.ObserverBindingArrayList;
 import io.Color;
 import io.GreenScreenOutput;
 import io.LowlevelOutput;
@@ -9,9 +10,9 @@ public class InterruptHub {
     public static final int ALL_EXTERNAL = 0x02FFFFFF;
 
     // todo use new arraylist class here instead of duplicated code
-    public static ObserverBinding[] observerBindings = {};
+    public ObserverBindingArrayList observerBindings = new ObserverBindingArrayList();
 
-    private static class ObserverBinding {
+    public static class ObserverBinding {
         public InterruptReceiver observer;
         public int interruptNo;
 
@@ -22,13 +23,14 @@ public class InterruptHub {
     }
 
     @SJC.Inline
-    public static void forwardInterrupt(int interruptNo, int param){
+    public void forwardInterrupt(int interruptNo, int param){
         boolean handled = false;
-        for (int i = 0; i < observerBindings.length; i++){
-            if (observerBindings[i].interruptNo == interruptNo
-                    || observerBindings[i].interruptNo == ALL_EXTERNAL){
+        for (int i = 0; i < observerBindings.size(); i++){
+            ObserverBinding ob = observerBindings.get(i);
+            if (ob.interruptNo == interruptNo
+                    || ob.interruptNo == ALL_EXTERNAL){
 
-                if(observerBindings[i].observer.handleInterrupt(interruptNo, param)){
+                if(ob.observer.handleInterrupt(interruptNo, param)){
                     handled = true;
                 }
 
@@ -41,25 +43,17 @@ public class InterruptHub {
         }
     }
 
-    public static void addObserver(InterruptReceiver observer, int interruptNo){
-        ObserverBinding[] newObserverBindings = new ObserverBinding[observerBindings.length + 1];
-        for (int i = 0; i < observerBindings.length; i++){
-            newObserverBindings[i] = observerBindings[i];
-        }
-        // use observer bindings length here since it already is less one
-        newObserverBindings[observerBindings.length] = new ObserverBinding(observer, interruptNo);
-        observerBindings = newObserverBindings;
+    public void addObserver(InterruptReceiver observer, int interruptNo){
+        observerBindings.add(new ObserverBinding(observer, interruptNo));
     }
 
-    public static void removeObserver(InterruptReceiver observer, int interruptNo){
-        ObserverBinding[] newObserverBindings = new ObserverBinding[observerBindings.length - 1];
-        int j = 0;
-        for (int i = 0; i < observerBindings.length; i++){
-            if (observerBindings[i].interruptNo == interruptNo && observerBindings[i].observer == observer) {
-                newObserverBindings[j] = observerBindings[i];
-                j++;
+    public void removeObserver(InterruptReceiver observer, int interruptNo){
+        for (int i = 0; i < observerBindings.size(); i++){
+            ObserverBinding ob = observerBindings.get(i);
+            if (ob.interruptNo == interruptNo && ob.observer == observer) {
+                observerBindings.remove(ob);
+                break;
             }
         }
-        observerBindings = newObserverBindings;
     }
 }

@@ -125,7 +125,7 @@ public class Bluescreen {
                 if (0x08 <= interruptNo && interruptNo <=0x0E) {
                     offsetAddedByParam = MAGIC.ptrSize;
                 }
-                analyzedEip = MAGIC.rMem32(ebp + (1 + pushARegNames.length)*MAGIC.ptrSize + offsetAddedByParam);// todo check
+                analyzedEip = MAGIC.rMem32(ebp + (1 + pushARegNames.length)*MAGIC.ptrSize + offsetAddedByParam);
             }
 
             LowlevelOutput.printHex(analyzedEbp, 10, 58, line, BLUESCREEN_COLOR);

@@ -33,7 +33,6 @@ public class LowlevelOutput {
 
     }
 
-    // TODO find out how to not duplicate code here without using long for everything
     @SJC.Inline
     public static void printInt(int value, int base, int len, int x, int y, int color) {
         if (base > alphabet.length()+1 || base < 2) {
@@ -87,8 +86,7 @@ public class LowlevelOutput {
 
     @SJC.Inline
     public static void printChar(char c, int x, int y, int color) {
-        // TODO find a way not to cast struct for every printed char (is it cheap or not???).
-        // TODO Can not be static. Rember: new / object stuff not wanted here, because this here is uses from within newInstance!
+        // vidMem can not be static. Rember: new / object stuff not wanted here, because this here is used from within newInstance!
         GreenScreenOutput.VidMem vidMem =(GreenScreenOutput.VidMem) MAGIC.cast2Struct(GreenScreenOutput.VID_MEM_BASE);
         //if pos is after end of screen, start up top again
         GreenScreenOutput.VidChar vidChar = vidMem.chars[(y * GreenScreenOutput.WIDTH + x) % (GreenScreenOutput.WIDTH * GreenScreenOutput.HEIGHT)];

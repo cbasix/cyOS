@@ -36,9 +36,12 @@ public class Interrupts {
     public static final int IRQ15 = 0x2F;
 
     public static int handleInterruptAddr, handleInterruptWithParamAddr, handleDoubleFaultAddr;
+    public static InterruptHub interruptHub = null;
 
-    public static void init(){
+    public static InterruptHub init(){
         disable();
+
+        interruptHub = new InterruptHub();
 
         int idtBase = BasicMemoryManager.interruptDescriptorTableAddr;
         int ijtBase = BasicMemoryManager.interruptJumpTableAddr;
@@ -51,6 +54,8 @@ public class Interrupts {
 
         loadIDT(idtBase, DescriptorTable.entrySize*DescriptorTable.entryCount-1);
         enable();
+
+        return interruptHub;
     }
 
     @SJC.Interrupt
@@ -85,7 +90,7 @@ public class Interrupts {
         if (interruptNo <= Interrupts.PAGE_FAULT){
             Bluescreen.handleInterrupt(interruptNo, param, interruptEbp);
         } else {
-            InterruptHub.forwardInterrupt(interruptNo, param);
+            interruptHub.forwardInterrupt(interruptNo, param);
         }
 
         ack(interruptNo);

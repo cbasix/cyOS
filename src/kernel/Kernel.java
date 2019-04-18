@@ -36,11 +36,11 @@ public class Kernel {
 
 
         // -------------- setup interrupts
-        Interrupts.init();
+        InterruptHub interruptHub = Interrupts.init();
 
-        InterruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_EXTERNAL);
-        InterruptHub.addObserver(new AliveIndicator(), Interrupts.TIMER);
-        InterruptHub.addObserver(new KeyboardInterruptReceiver(), Interrupts.KEYBOARD);
+        interruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_EXTERNAL);
+        interruptHub.addObserver(new AliveIndicator(), Interrupts.TIMER);
+        interruptHub.addObserver(new KeyboardInterruptReceiver(), Interrupts.KEYBOARD);
 
         Interrupts.enable();
 
