@@ -23,7 +23,6 @@ public class LowlevelOutputTest {
         // PRINT HEX
         if (!printHexIsEqual(0xFBC0505, "BC0505", 6)) {return 120;}
 
-        // TODO more tests
 
         return 0;
     }

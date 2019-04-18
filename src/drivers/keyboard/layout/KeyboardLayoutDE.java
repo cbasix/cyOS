@@ -12,4 +12,9 @@ public class KeyboardLayoutDE extends KeyboardLayout{
     public char[] getCapsMapping() {
         return MAGIC.getNamedString("../../blobs/LayoutDeCaps.txt").toChars();
     }
+
+    @Override
+    public char[] getAltGrMapping() {
+        return MAGIC.getNamedString("../../blobs/LayoutDeAltGr.txt").toChars();
+    }
 }

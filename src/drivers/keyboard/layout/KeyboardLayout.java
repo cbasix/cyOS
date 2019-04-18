@@ -6,14 +6,17 @@ import drivers.keyboard.KeyboardEvent;
 public abstract class KeyboardLayout {
     char[] mappingCaps;
     char[] mappingNormal;
+    char[] mappingAltGr;
 
     public KeyboardLayout(){
         mappingCaps = unescape(getCapsMapping(), true);
         mappingNormal = unescape(getNormalMapping(), true);
+        mappingAltGr= unescape(getAltGrMapping(), true);
     }
 
     public abstract char[] getNormalMapping();
     public abstract char[] getCapsMapping();
+    public abstract char[] getAltGrMapping();
 
     public void setCharOn(KeyboardEvent evt){
         //keyNo -= offset;
@@ -22,9 +25,9 @@ public abstract class KeyboardLayout {
             evt.setPrintChar(mappingCaps[evt.key]);
         }
 
-        /*if ((evt.modifiers & KeyboardInterruptReceiver.MODIFIER_ALT) != 0){
-            evt.setPrintChar(mappingNormal[evt.key]);
-        }*/
+        if ((evt.modifiers & Keyboard.MODIFIER_ALT_GR) != 0){
+            evt.setPrintChar(mappingAltGr[evt.key]);
+        }
 
         if (evt.modifiers == 0) {
             evt.setPrintChar(mappingNormal[evt.key]);
@@ -59,6 +62,9 @@ public abstract class KeyboardLayout {
 
                 } else if (c == 'n'){
                     data[j++] = '\n';
+
+                } else if (c == '\\'){
+                    data[j++] = '\\';
                 }
 
                 escaped = false;

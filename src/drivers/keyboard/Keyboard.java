@@ -7,22 +7,22 @@ import kernel.interrupts.core.Interrupts;
 
 public class Keyboard extends InputDevice {
 
-    public static final int MODIFIER_EXTENSION = 0x01;
-    public static final int MODIFIER_CAPS = 0x02;
-    public static final int MODIFIER_ALT = 0x04;
-    public static final int MODIFIER_NUM = 0x08;
-    public static final int MODIFIER_STRG = 0x10;
-    public static final int MODIFIER_ICON = 0x20;
-    // todo fill correct
+    public static final int MODIFIER_EXTENSION = 1;
+    public static final int MODIFIER_CAPS = 1 << 1;
+    public static final int MODIFIER_ALT = 1 << 2;
+    public static final int MODIFIER_NUM = 1 << 3;
+    public static final int MODIFIER_STRG = 1 << 4;
+    public static final int MODIFIER_ICON = 1 << 5;
+    public static final int MODIFIER_ALT_GR = 1 << 6;
+
     //--------------------- MODIFIER KEY CONFIGURATION -----------------------
-    // maybe define roll modifier even if nobody needs it
-    public static final int STRG = 0x1D;
+    public static final int STRG_LEFT = 0x1D;
+    public static final int STRG_RIGHT = 0x11D;
     public static final int ALT = 0x38;
-    // todo altgr not implemented
-    public static final int ALT_GR = ( ALT | MODIFIER_EXTENSION );
+    public static final int ALT_GR = 0x138;
     public static final int NUM = 0x45;
-    public static final int CAPS = 0x2A; // todo 2nd caps
-    public static final int CAPS_2ND = 0x36; // todo 2nd caps
+    public static final int CAPS = 0x2A;
+    public static final int CAPS_2ND = 0x36;
     public static final int CAPS_LCK = 0X3A;
     public static final int ICON = 0x5B;
     public static final int ICON_RIGHT = 0x5C;
@@ -43,7 +43,6 @@ public class Keyboard extends InputDevice {
         this.layout = layout;
     }
 
-    // todo war die fragestellung anders gedacht? (implementieren lock mechanismus, semaphore?)
     public void readInto(RingBuffer focusTaskStdIn){
         // disable interrupts to prevent messing up the ring buffer during get
         Interrupts.disable();

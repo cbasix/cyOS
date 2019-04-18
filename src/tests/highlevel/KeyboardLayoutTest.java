@@ -7,10 +7,10 @@ public class KeyboardLayoutTest {
     public static int test(){
 
         KeyboardLayout kl = new KeyboardLayoutDE();
-        char[] escaped = "one\nliner\\n\\0".toChars();
+        char[] escaped = "one\nliner\\n\\0\\\\".toChars();
         char[] unescaped = kl.unescape(escaped, true);
 
-        char[] should ="oneliner\n\0".toChars();
+        char[] should ="oneliner\n\0\\".toChars();
 
         /* different length is ok
         if (should.length != unescaped.length){

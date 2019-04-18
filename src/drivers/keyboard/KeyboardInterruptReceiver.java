@@ -1,6 +1,9 @@
 package drivers.keyboard;
 
 import datastructs.RingBuffer;
+import io.Color;
+import io.LowlevelLogging;
+import io.LowlevelOutput;
 import kernel.Kernel;
 import kernel.interrupts.core.InterruptReceiver;
 
@@ -16,7 +19,8 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
     public static final int EXPAND_TWO = 0xE1;
 
     public static final int[] MODIFIER_KEYS = {
-            Keyboard.STRG,
+            Keyboard.STRG_LEFT,
+            Keyboard.STRG_RIGHT,
             Keyboard.ALT,
             Keyboard.NUM,
             Keyboard.CAPS,
@@ -27,6 +31,7 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
             Keyboard.CAPS_2ND
     };
     public static final int[] MODIFIER_MODES = {
+            ON_HOLD,
             ON_HOLD,
             ON_HOLD,
             TOOGLE,
@@ -88,6 +93,8 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
             /*for (int i = 0; i < modifierStates.length; i++) {
                 LowlevelOutput.printBool(modifierStates[i], 70, 10+i, Color.PINK);
             }*/
+            LowlevelOutput.printInt(e.key, 10, 4, 50, 0, Color.DEFAULT_COLOR);
+            LowlevelOutput.printHex(e.modifiers, 8, 58, 0, Color.DEFAULT_COLOR);
 
             pressedBuffer.push(e);
             byteNo = 0;
@@ -99,7 +106,9 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
     @SJC.Inline
     private void toggleModifiers(KeyboardEvent e) {
         for (int i = 0; i < modifierStates.length; i++){
-            if (MODIFIER_KEYS[i] == e.key){
+            if ((MODIFIER_KEYS[i] == e.key && (e.modifiers & 0x1) != Keyboard.MODIFIER_EXTENSION)
+                    || (MODIFIER_KEYS[i]  == (e.key | 0x100) && (e.modifiers & 0x1) == Keyboard.MODIFIER_EXTENSION)){
+
                 if (MODIFIER_MODES[i] == ON_HOLD) {
                     // modifier only active while key hold down
                     modifierStates[i] = e.pressed;
@@ -109,7 +118,6 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
                     if (e.pressed){
                         modifierStates[i] = ! modifierStates[i];
                     }
-                    // todo maybe if key has led: set it too (no leds available on my keyboard)
                 }
             }
         }
@@ -124,11 +132,14 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
                     e.modifiers |= Keyboard.MODIFIER_CAPS;
                 }
                 // alt gr works as strg & alt
-                if (modifierKey == Keyboard.STRG || modifierKey == Keyboard.ALT_GR) {
+                if (modifierKey == Keyboard.STRG_LEFT || modifierKey == Keyboard.STRG_RIGHT) {
                     e.modifiers |= Keyboard.MODIFIER_STRG;
                 }
-                if (modifierKey == Keyboard.ALT || modifierKey == Keyboard.ALT_GR) {
+                if (modifierKey == Keyboard.ALT) {
                     e.modifiers |= Keyboard.MODIFIER_ALT;
+                }
+                if (modifierKey == Keyboard.ALT_GR) {
+                    e.modifiers |= Keyboard.MODIFIER_ALT_GR;
                 }
                 if (modifierKey == Keyboard.NUM) {
                     e.modifiers |= Keyboard.MODIFIER_NUM;

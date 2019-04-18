@@ -67,10 +67,12 @@ public class Bluescreen {
         // allow continue after breakpoint
         //while (interruptNo != Interrupts.BREAKPOINT){}
 
-        while(true){};
+        // while true (with fooling the ide's dead code recognition)
+        int i = 0;
+        while(i==0){};
 
         Interrupts.enable();
-        //return true;
+        return true;
     }
 
     public static final int STACK_START = 0x9BFFC;
