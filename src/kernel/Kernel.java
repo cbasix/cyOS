@@ -20,29 +20,23 @@ public class Kernel {
     public static MemoryManager memoryManager;
 
 
-    public static void init() {
+    public static void main() {
+
+        // ------------- setup memory ~> new -------------
         // basic manager allows other mangers to use new before taking over allocation
         memoryManager = BasicMemoryManager.initialize();
-
         // test basic allocation
         TestRunner.runBasicAllocationTest();
-
+        // instatiate advanced memory managers
         //memoryManager = new ArrayListMemoryManager();
 
+
         MAGIC.doStaticInit();
-
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
-        taskManager = new TaskManager();
-    }
 
 
-    public static void main() {
-        init();
-
-        Keyboard keyboard = new Keyboard(new KeyboardLayoutDE());
-
+        // -------------- setup interrupts
         Interrupts.init();
-
 
         InterruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_EXTERNAL);
         InterruptHub.addObserver(new AliveIndicator(), Interrupts.TIMER);
@@ -50,14 +44,15 @@ public class Kernel {
 
         Interrupts.enable();
 
-        // Run Tests
-        TestRunner.run(1); // run test suite and show result, then wait for 2 secs
+        // -------------- Run Tests
+        TestRunner.run(1); // run test suite and show result
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
 
 
-        taskManager.addInputDevice(keyboard);
+        // -------------- setup and run task manager
+        taskManager = new TaskManager();
+        taskManager.addInputDevice(new Keyboard(new KeyboardLayoutDE()));
         taskManager.requestStart(new Shell());
-
         taskManager.loop();
 
     }
