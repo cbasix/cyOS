@@ -165,7 +165,7 @@ public class BIOS {
         MAGIC.wMem8(BIOS_MEMORY + 61, (byte) inter); //set interrupt number
         MAGIC.inline(0x9C); //pushf
         MAGIC.inline(0xFA); //cli
-        //TODO lidtRM(); //load idt with real mode interrupt table
+        //load idt with real mode interrupt table
         Interrupts.loadRealModeIDT();
         //call 16 bit code
         MAGIC.inline(0x56); //push e/rsi
@@ -188,7 +188,7 @@ public class BIOS {
         }
         MAGIC.inline(0x5F); //getAvailableGtOneMb e/rdi
         MAGIC.inline(0x5E); //getAvailableGtOneMb e/rsi
-        //TODO lidt(); //load idt with protected/long mode interrupt table
+        //load idt with protected/long mode interrupt table
         Interrupts.loadProtectedModeIDT();
         MAGIC.inline(0x9D); //popf
     }

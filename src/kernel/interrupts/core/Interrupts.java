@@ -84,7 +84,7 @@ public class Interrupts {
         // interrupts are disabled per default during interrupt handling
         int interruptNo = MAGIC.rMem32(BasicMemoryManager.interruptJumpTableAddr);
 
-        Interrupts.enable(); // todo disabled reentrant interrupts ... if having strange errors
+        //Interrupts.enable(); //  disabled reentrant interrupts ... for now..
 
         // if is an exception
         if (interruptNo <= Interrupts.PAGE_FAULT){

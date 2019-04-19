@@ -8,8 +8,6 @@ import kernel.Kernel;
 
 public class InterruptHub {
     public static final int ALL_EXTERNAL = 0x02FFFFFF;
-
-    // todo use new arraylist class here instead of duplicated code
     public ObserverBindingArrayList observerBindings = new ObserverBindingArrayList();
 
     public static class ObserverBinding {

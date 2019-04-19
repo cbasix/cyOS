@@ -24,7 +24,6 @@ public class TaskManager {
         inputs = new InputDeviceArrayList();
     }
 
-    // todo extract task stuff into own scheduler class later on
     private void startTask(Task task, boolean withFocus){
         task.onStart();
         if (withFocus){
@@ -51,7 +50,6 @@ public class TaskManager {
         tasksToStop.add(task);
     }
 
-    // todo prettify
     public void loop() {
         while (true){
             // read input into currently focused task

@@ -17,7 +17,7 @@ public class ArrayListMemoryManager extends MemoryManager {
         for(int i = 0; i < areas.size(); i++){
             MemArea a = areas.get(i);
 
-            // Basic manager has allready used this area so carve that part out of the "free" area
+            // Basic manager has already used this area so carve that part out of the "free" area
             if(a.start <= basicFirstFree && basicFirstFree <= a.start + a.size){
                 a.size -= basicNextFree - a.start;
                 a.start = basicNextFree;
@@ -36,10 +36,14 @@ public class ArrayListMemoryManager extends MemoryManager {
         for(int i = 0; i < areas.size(); i++){
             MemArea a = areas.get(i);
 
-            // uses first fitting todo maybe use best fitting
+            // uses first fitting,  maybe use best fitting later on
             if(a.size >= objSize){
                 a.size -= objSize;
                 newObj = createObject(scalarSize, relocEntries, type, a.start+a.size, objSize);
+
+                if (a.size == 0){
+                    areas.remove(a);
+                }
                 break;
             }
         }
@@ -50,6 +54,6 @@ public class ArrayListMemoryManager extends MemoryManager {
 
     @Override
     public void deallocate(Object o) {
-        // not implemented yet
+        // todo not implemented yet
     }
 }

@@ -61,7 +61,7 @@ public class Kernel {
     /**
      * Wait for up to <delayInSeconds> seconds
      *
-     * TODO Rembember this is not exact! depending on the timing up to 1000ms are getting lost.
+     *  Rembember this is not exact! depending on the timing up to 1000ms are getting lost.
      */
     public static void wait(int delayInSeconds) {
         int diffCount = 0;
