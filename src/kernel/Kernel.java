@@ -45,7 +45,7 @@ public class Kernel {
         Interrupts.enable();
 
         // -------------- Run Tests
-        TestRunner.run(1); // run test suite and show result
+        TestRunner.run(2); // run test suite and show result
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
 
 

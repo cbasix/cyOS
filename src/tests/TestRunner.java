@@ -2,6 +2,7 @@ package tests;
 
 import io.Color;
 import io.LowlevelOutput;
+import io.Screen;
 import kernel.Kernel;
 import tests.highlevel.ArrayListTest;
 import tests.highlevel.KeyboardLayoutTest;
@@ -19,9 +20,13 @@ public class TestRunner {
         check(KeyboardLayoutTest.test());
         check(ArrayListTest.test());
 
-        LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
-        LowlevelOutput.printStr("Tests OK. All systems GO;", 25, 12, Color.DEFAULT_COLOR);
+        //LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
+        //LowlevelOutput.printStr("Tests OK. All systems GO;", 25, 12, Color.DEFAULT_COLOR);
+        Screen s = new Screen();
+        s.switchToGraphics();
+        s.showGreyscaleSquirrelPicture();
         Kernel.wait(seconds);
+        s.switchToTextMode();
 
     }
 
