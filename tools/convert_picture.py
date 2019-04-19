@@ -1,4 +1,7 @@
 from PIL import Image
+
+from tools.find_best_fit import SHIFT
+
 jpgfile = Image.open("squirrel_small.jpg")
 import pickle
 
@@ -26,8 +29,8 @@ rgb_im = jpgfile.convert('RGB')
 for i in range(rgb_im.size[0]):
     for j in range(rgb_im.size[1]):
         pxl = rgb_im.getpixel((i, j))
-        print(bytes([int(best_match[pxl[0]>>2][pxl[1]>>2][pxl[2]>>2])]))
-        pixels[i, j] = int(best_match[pxl[0]>>2][pxl[1]>>2][pxl[2]>>2])
+        print(bytes([int(best_match[pxl[0]>>SHIFT][pxl[1]>>SHIFT][pxl[2]>>SHIFT])]))
+        pixels[i, j] = int(best_match[pxl[0]>>SHIFT][pxl[1]>>SHIFT][pxl[2]>>SHIFT])
 out.write(img.tobytes())
 
 img.show()

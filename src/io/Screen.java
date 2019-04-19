@@ -27,14 +27,19 @@ public class Screen {
     /*public void drawLine(int start_x, int start_y, int end_x, int end_y){
 
     }*/
-    public void showWelcomePicture(){
+    public void showSquirrelPicture(){
         for (int i = 0; i < binimp.ByteData.squirrel.length; i++){
-            //byte red = binimp.ByteData.squirrel[i];
-            //byte green = binimp.ByteData.squirrel[i+1];
-            //byte blue = binimp.ByteData.squirrel[i+2];
             graphMem.pixels[i] = binimp.ByteData.squirrel[i]; //convert(red, green, blue);
         }
     }
+
+    public void showGreyscaleSquirrelPicture(){
+        for (int i = 0; i < binimp.ByteData.squirrel_grey.length; i++){
+            graphMem.pixels[i] = binimp.ByteData.squirrel_grey[i]; //convert(red, green, blue);
+        }
+    }
+
+
 
     public void showColorPicture(){
         for (int i = 0; i < WIDTH*HEIGHT; i++){

@@ -20,14 +20,18 @@ public class Picture extends Command {
         screen.switchToGraphics();
 
         if (args.length > 1){
-            screen.showColorPicture();
+            if (args[1].equals("grey")) {
+                screen.showGreyscaleSquirrelPicture();
+            } else {
+                screen.showColorPicture();
+            }
         } else {
-            screen.showWelcomePicture();
+            screen.showSquirrelPicture();
         }
         //screen.erase();
 
 
-        Kernel.wait(4);
+        Kernel.wait(8);
         screen.switchToTextMode();
 
 

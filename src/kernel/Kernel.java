@@ -26,7 +26,7 @@ public class Kernel {
         // basic manager allows other mangers to use new before taking over allocation
         memoryManager = BasicMemoryManager.initialize();
         // test basic allocation
-        TestRunner.runBasicAllocationTest();
+        //TestRunner.runBasicAllocationTest();
         // instatiate advanced memory managers
         memoryManager = new ArrayListMemoryManager();
 
