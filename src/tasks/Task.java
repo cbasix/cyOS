@@ -3,7 +3,7 @@ package tasks;
 import datastructs.RingBuffer;
 
 public abstract class Task {
-    public RingBuffer stdin = new RingBuffer(20);
+    public RingBuffer stdin = new RingBuffer(200);
 
     public abstract void onStart();
 

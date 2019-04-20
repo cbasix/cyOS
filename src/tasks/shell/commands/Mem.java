@@ -1,11 +1,10 @@
 package tasks.shell.commands;
 
 import datastructs.RingBuffer;
-import datastructs.subtypes.MemAreaArrayList;
+import datastructs.subtypes.MemAreaLinkedList;
 import kernel.Kernel;
-import kernel.memory.ArrayListMemoryManager;
+import kernel.memory.LinkedListMemoryManager;
 import kernel.memory.MemArea;
-import kernel.memory.SystemMemoryMap;
 import tasks.LogEvent;
 
 public class Mem extends Command{
@@ -16,15 +15,19 @@ public class Mem extends Command{
 
     @Override
     public void execute(RingBuffer shellMessageBuffer, String[] args) {
-        MemAreaArrayList memAreas = ((ArrayListMemoryManager)Kernel.memoryManager).getAreas();
-        for(int i = 0; i < memAreas.size(); i++) {
-            MemArea mem = memAreas.get(i);
-            shellMessageBuffer.push("Available memory areas:");
+        shellMessageBuffer.push(new LogEvent("Free memory areas"));
+        MemAreaLinkedList memAreas = ((LinkedListMemoryManager)Kernel.memoryManager).getAreas();
+        MemAreaLinkedList.MemAreaIterator iter = memAreas.iter();
+        int cnt = 0;
+        int free = 0;
+        while(iter.next()){
+            MemArea mem = iter.get();
+
             shellMessageBuffer.push(
                     new LogEvent(
                             String.concat(
-                                    String.concat("Start: 0x",
-                                        String.hexFrom(mem.start)
+                                    String.concat("Start: ",
+                                        String.from(mem.start)
                                     ),
                                     String.concat(
                                         " Size: ",
@@ -33,6 +36,13 @@ public class Mem extends Command{
                             )
                     )
             );
+            cnt++;
+            free += mem.size;
         }
+        shellMessageBuffer.push(new LogEvent(String.concat(
+                String.concat("Total Mem areas: ", String.from(cnt)),
+                String.concat(" Free mem (bytes): ", String.from(free))
+        )));
+
     }
 }

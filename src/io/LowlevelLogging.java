@@ -10,7 +10,7 @@ public class LowlevelLogging {
     public static final int INFO = 4;
     public static final int ERROR = 5;
 
-    public static int DEBUG_LEVEL = ERROR;
+    public static final int DEBUG_LEVEL = ERROR;
 
     public static void printHexdump(int dumpStartAddr) {
 

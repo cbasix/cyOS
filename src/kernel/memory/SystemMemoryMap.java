@@ -1,9 +1,7 @@
 package kernel.memory;
 
-import datastructs.subtypes.MemAreaArrayList;
-import io.Color;
+import datastructs.subtypes.MemAreaLinkedList;
 import io.LowlevelLogging;
-import io.LowlevelOutput;
 import rte.BIOS;
 
 
@@ -18,8 +16,9 @@ public class SystemMemoryMap {
     }
 
 
-    public static MemAreaArrayList getAvailableGtOneMb(){
-        MemAreaArrayList memAreas = new MemAreaArrayList();
+    public static MemAreaLinkedList getAvailableGtOneMb(){
+        MemAreaLinkedList memAreas = new MemAreaLinkedList();
+        MemAreaLinkedList.MemAreaIterator iter = memAreas.iter();
 
         // todo move out of stack
         // reserve some space on stack for bios answers
@@ -53,7 +52,7 @@ public class SystemMemoryMap {
             }
 
             if (s.type == AVAILABLE_TO_OS && s.base >= 0x00100000) {
-                memAreas.add(new MemArea((int) s.base, (int) s.len));
+                iter.insert(new MemArea((int) s.base, (int) s.len));
             }
 
 

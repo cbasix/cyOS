@@ -111,10 +111,10 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
                 isFirstTime = false;
 
             } else {
-                LowlevelOutput.printHex(currentObj._s_gcUsedBy,8, 21, line, Color.GREY);
+                /*LowlevelOutput.printHex(currentObj._s_gcUsedBy,8, 21, line, Color.GREY);
                 LowlevelOutput.printStr("<-", 29, line, Color.RED);
                 LowlevelOutput.printHex(MAGIC.cast2Ref(currentObj),8, 31, line, Color.GREY);
-                line++;
+                line++;*/
 
                 // go back in dependency hierarchy
                 currentObj = MAGIC.cast2Obj(currentObj._s_gcUsedBy);
@@ -127,10 +127,10 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
                 if (child != null && child._s_gcUsedBy == 0) {
                     MAGIC.assign(child._s_gcUsedBy, MAGIC.cast2Ref(currentObj));
                     // descend into hierarchy
-                    LowlevelOutput.printHex(MAGIC.cast2Ref(currentObj),8, 21, line, Color.GREY);
+                    /*LowlevelOutput.printHex(MAGIC.cast2Ref(currentObj),8, 21, line, Color.GREY);
                     LowlevelOutput.printStr("->", 29, line, Color.GREEN);
                     LowlevelOutput.printHex(MAGIC.cast2Ref(child),8, 31, line, Color.GREY);
-                    line++;
+                    line++;*/
 
                     currentObj = child;
                     isFirstTime = true;

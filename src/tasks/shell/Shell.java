@@ -18,10 +18,12 @@ public class Shell extends Task {
     public static final int OUTPUT_AREA_LINES = 22;
     public static final int COLOR_HIGHLIGHTED =  Color.BLACK << 4 | Color.CYAN;
     public static final int COLOR_NORMAL = Color.BLACK << 4 | Color.GREY;
+    public static final int SCROLL_BUFFER_SIZE = 100;
 
-    RingBuffer outputBuffer = new RingBuffer(100);
+    RingBuffer outputBuffer = new RingBuffer(SCROLL_BUFFER_SIZE);
     char[] currentCommand = new char[GreenScreenOutput.WIDTH-1];
-    int currentPos = 1;
+    int currentCommandPos = 1;
+    int scrollOffset = 0;
     CommandArrayList registeredCommands;
 
     GreenScreenOutput outputArea = new GreenScreenOutput();
@@ -40,6 +42,7 @@ public class Shell extends Task {
         registeredCommands.add(new Smap());
         registeredCommands.add(new CharTest());
         registeredCommands.add(new Mem());
+        registeredCommands.add(new GarbageCollection());
 
         inputArea.setColor(Color.BLACK, Color.GREY);
         outputArea.setColorState(COLOR_NORMAL);
@@ -58,9 +61,9 @@ public class Shell extends Task {
         }
         // todo BUG: out of bounds on empty string
         outputBuffer.push("\0");
-        outputBuffer.push("          +--------------------------------------------------------+");
-        outputBuffer.push("          | Welcome. Type 'help' to get a list available commands. |");
-        outputBuffer.push("          +--------------------------------------------------------+");
+        outputBuffer.push("        +-----------------------------------------------------------+");
+        outputBuffer.push("        | Welcome. Type 'help' to get a list of available commands. |");
+        outputBuffer.push("        +-----------------------------------------------------------+");
 
         Kernel.taskManager.requestFocus(this);
     }
@@ -94,26 +97,41 @@ public class Shell extends Task {
 
             if (k.pressed) {
                 if (k.isPrintable()) {
-                    currentCommand[currentPos] = k.getPrintChar();
-                    if (currentPos < currentCommand.length - 1) {
-                        currentPos++;
+                    currentCommand[currentCommandPos] = k.getPrintChar();
+                    if (currentCommandPos < currentCommand.length - 1) {
+                        currentCommandPos++;
                     }
                     drawCommandArea();
                 }
                 if (k.key == Keyboard.ENTER) {
                     execute(currentCommand);
-                    currentPos = 1;
+                    currentCommandPos = 1;
                     for (int i = 1; i < currentCommand.length; i++) {
                         currentCommand[i] = ' ';
                     }
                     drawCommandArea();
                 }
                 if (k.key == Keyboard.BACKSP) {
-                    if (currentPos > 1) {
-                        currentPos--;
-                        currentCommand[currentPos] = ' ';
+                    if (currentCommandPos > 1) {
+                        currentCommandPos--;
+                        currentCommand[currentCommandPos] = ' ';
                         drawCommandArea();
                     }
+                }
+                if (k.key == Keyboard.UP) {
+                    scrollOffset++;
+                    if (scrollOffset > SCROLL_BUFFER_SIZE){
+                        scrollOffset = SCROLL_BUFFER_SIZE;
+                    }
+                    drawOutputArea();
+                }
+
+                if (k.key == Keyboard.DOWN) {
+                    scrollOffset--;
+                    if (scrollOffset < 0){
+                        scrollOffset = 0;
+                    }
+                    drawOutputArea();
                 }
             }
 
@@ -132,7 +150,8 @@ public class Shell extends Task {
     private void drawOutputArea() {
         outputArea.setCursor(0, 1);
         int lines = 0;
-        int oldest_cmd = 0;
+        // todo bug if output buffer is empty and scrolling
+        int oldest_cmd = scrollOffset;
         // find out how many cmds fit into output area
         // todo fix overflow if one single command has to much lines
         String cmd = null;
@@ -144,7 +163,8 @@ public class Shell extends Task {
                  oldest_cmd++;
              }
         } while (lines < OUTPUT_AREA_LINES && cmd != null);
-        for (int i = oldest_cmd; i >= 0; i--){
+
+        for (int i = oldest_cmd; i >= scrollOffset; i--){
             cmd = (String) outputBuffer.peekPushed(i);
             if (cmd != null) {
 
@@ -171,7 +191,7 @@ public class Shell extends Task {
         inputArea.println(currentCommand);
 
         // blinking cursor
-        inputArea.setCursor(currentPos, 24);
+        inputArea.setCursor(currentCommandPos, 24);
         inputArea.setColorState(inputArea.getColorState() | Color.MOD_BLINK);
         inputArea.print(' ');
         inputArea.setColorState(inputArea.getColorState() & ~Color.MOD_BLINK);

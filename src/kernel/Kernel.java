@@ -9,7 +9,7 @@ import kernel.interrupts.core.Interrupts;
 import kernel.interrupts.receivers.AliveIndicator;
 import kernel.interrupts.receivers.ScreenOutput;
 import kernel.memory.BasicMemoryManager;
-import kernel.memory.ArrayListMemoryManager;
+import kernel.memory.LinkedListMemoryManager;
 import kernel.memory.MemoryManager;
 import tasks.shell.Shell;
 import tests.TestRunner;
@@ -18,6 +18,7 @@ import tests.TestRunner;
 public class Kernel {
     public static TaskManager taskManager;
     public static MemoryManager memoryManager;
+    public static boolean doGC = false;
 
 
     public static void main() {
@@ -28,7 +29,7 @@ public class Kernel {
         // test basic allocation
         //TestRunner.runBasicAllocationTest();
         // instatiate advanced memory managers
-        memoryManager = new ArrayListMemoryManager();
+
 
 
         MAGIC.doStaticInit();
@@ -44,6 +45,8 @@ public class Kernel {
 
         Interrupts.enable();
 
+        memoryManager = new LinkedListMemoryManager();
+
         // -------------- Run Tests
         TestRunner.run(2); // run test suite and show result
 
@@ -53,7 +56,10 @@ public class Kernel {
         taskManager.requestStart(new Shell());
         while (true) {
             taskManager.tick();
-            memoryManager.gc();
+            if (doGC) {
+                memoryManager.gc();
+                doGC = false;
+            }
         }
 
     }

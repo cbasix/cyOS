@@ -14,10 +14,11 @@ public class TestRunner {
         check(LowlevelOutputTest.test());
         check(StringTest.test());
         check(RingBufferTest.test());
+        check(LinkedListIterTest.test());
         check(KeyboardLayoutTest.test());
         check(ArrayListTest.test());
-        check(ArrayListMemoryManagerTest.test());
-        check(LinkedListIterTest.test());
+        check(LinkedListMemoryManagerTest.test());
+
         check(GarbageCollectorTest.test());
 
 

@@ -18,6 +18,7 @@ public class RingBuffer {
         // start has to be one after -> buffer is full overwrite oldest one
         if (start == end){
             start++;
+            start %= length;
         }
     }
 
@@ -26,6 +27,7 @@ public class RingBuffer {
         if (count() > 0) {
             start++;
             start %= length;
+
         } else {
             return null;
         }
@@ -35,7 +37,11 @@ public class RingBuffer {
     // todo check & fix: thows out of range exception.
     public Object peekPushed(int i){
         if (i < count()) {
-            return data[(end-1-i) % length];
+            int peekIndex = (end-1-i) % length;
+            if (peekIndex < 0) {
+                peekIndex += length;
+            }
+            return data[peekIndex];
         } else {
             return null;
         }

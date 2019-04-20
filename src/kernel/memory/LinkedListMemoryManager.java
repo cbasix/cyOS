@@ -1,30 +1,31 @@
 package kernel.memory;
 
-import datastructs.subtypes.MemAreaArrayList;
-import io.Color;
+import datastructs.subtypes.MemAreaLinkedList;
 import io.LowlevelLogging;
-import io.LowlevelOutput;
 import kernel.interrupts.core.Interrupts;
 import rte.SClassDesc;
 
-public class ArrayListMemoryManager extends MemoryManager {
-    private final MemAreaArrayList areas;
+public class LinkedListMemoryManager extends MemoryManager {
+    private final MemAreaLinkedList areas;
+    private final MemAreaLinkedList.MemAreaIterator areaIter;
     private GarbageCollector gc;
 
-    public MemAreaArrayList getAreas(){
+    public MemAreaLinkedList getAreas(){
         return areas;
     }
 
-    public ArrayListMemoryManager(){
+
+    public LinkedListMemoryManager(){
         areas = SystemMemoryMap.getAvailableGtOneMb();
         gc = new MarkAndSweepGarbageCollector();
+        areaIter = areas.iter();
 
         // ---------------------- no new after this line ------------------------
         int basicFirstFree = BasicMemoryManager.getFirstFreeAddr();
         int basicNextFree = BasicMemoryManager.getNextFreeAddr();
 
-        for(int i = 0; i < areas.size(); i++){
-            MemArea a = areas.get(i);
+        while(areaIter.next()){
+            MemArea a = areaIter.get();
 
             // Basic manager has already used this area so carve that part out of the "free" area
             if(a.start <= basicFirstFree && basicFirstFree <= a.start + a.size){
@@ -33,8 +34,6 @@ public class ArrayListMemoryManager extends MemoryManager {
 
             }
         }
-
-
     }
 
     @Override
@@ -44,8 +43,10 @@ public class ArrayListMemoryManager extends MemoryManager {
         Object newObj = null;
 
         int objSize = getAllignedSize(scalarSize, relocEntries);
-        for(int i = 0; i < areas.size(); i++){
-            MemArea a = areas.get(i);
+
+        areaIter.gotoStart();
+        while(areaIter.next()){
+            MemArea a = areaIter.get();
 
             // uses first fitting,  maybe use best fitting later on
             if(a.size >= objSize){
@@ -53,7 +54,7 @@ public class ArrayListMemoryManager extends MemoryManager {
                 newObj = createObject(scalarSize, relocEntries, type, a.start+a.size, objSize);
 
                 if (a.size == 0){
-                    areas.remove(a);
+                    areaIter.removeCurrent();
                 }
                 break;
             }
@@ -71,22 +72,21 @@ public class ArrayListMemoryManager extends MemoryManager {
         int start = MAGIC.cast2Ref(o) - o._r_relocEntries * MAGIC.ptrSize;
         int size = getAllignedSize(o._r_scalarSize, o._r_relocEntries);
 
-        for (int i = 0; i < size/4; i++) {
+        /*for (int i = 0; i < size/4; i++) {
             MAGIC.wMem32(start + i*4, 0);
-        }
+        }*/
 
-        insertArea(start, size, areas);
+        insertArea(start, size, areaIter);
         Interrupts.enable();
     }
 
-    public static void insertArea(int start, int size, MemAreaArrayList list){
-        Interrupts.disable();
+    @SJC.Inline
+    public static void insertArea(int start, int size, MemAreaLinkedList.MemAreaIterator iter){
         MemArea expandedOther = null;
-        MemArea deleteSlot1 = null;
-        MemArea deleteSlot2 = null;
-        // backwards to allow deletion
-        for (int i = 0; i < list.size() ; i++){
-            MemArea other = list.get(i); // todo out ouf bounds here
+
+        iter.gotoStart();
+        while(iter.next()){
+            MemArea other = iter.get(); // todo out ouf bounds here
 
             if (other.start == start + size && expandedOther == null){
                 // touching free space on top -> just expand it
@@ -104,32 +104,20 @@ public class ArrayListMemoryManager extends MemoryManager {
             if (other.start == start + size && expandedOther != null){
                 // touching free space on top -> and already joined bottom -> join both of them together
                 expandedOther.size += other.size;
-                deleteSlot1 = other;
-
+                iter.removeCurrent();
             }
 
             if (other.start + other.size == start && expandedOther != null){
                 // touching free space on bottom -> and already joined top -> join both of them together
                 expandedOther.start -= other.size;
                 expandedOther.size += other.size;
-                deleteSlot2 = other;
-
-
+                iter.removeCurrent();
             }
         }
 
-        if (deleteSlot1 != null){
-            list.remove(deleteSlot1);
-        }
-
-        if (deleteSlot2 != null){
-            list.remove(deleteSlot2);
-        }
-
         if (expandedOther == null){
-            list.add(new MemArea(start, size));
+            iter.insert(new MemArea(start, size));
         }
-        Interrupts.enable();
     }
 
     @Override
