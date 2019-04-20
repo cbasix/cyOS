@@ -15,20 +15,21 @@ import tasks.shell.commands.*;
  * Quick and dirty shell application
  */
 public class Shell extends Task {
-    public static final int OUTPUT_AREA_LINES = 22;
-    public static final int COLOR_HIGHLIGHTED =  Color.BLACK << 4 | Color.CYAN;
-    public static final int COLOR_NORMAL = Color.BLACK << 4 | Color.GREY;
-    public static final int SCROLL_BUFFER_SIZE = 100;
+    private static final int OUTPUT_AREA_LINES = 22;
+    private static final int COLOR_HIGHLIGHTED =  Color.BLACK << 4 | Color.CYAN;
+    private static final int COLOR_NORMAL = Color.BLACK << 4 | Color.GREY;
+    private static final int SCROLL_BUFFER_SIZE = 100;
 
-    RingBuffer outputBuffer = new RingBuffer(SCROLL_BUFFER_SIZE);
-    char[] currentCommand = new char[GreenScreenOutput.WIDTH-1];
-    int currentCommandPos = 1;
-    int scrollOffset = 0;
-    CommandArrayList registeredCommands;
+    private RingBuffer outputBuffer = new RingBuffer(SCROLL_BUFFER_SIZE);
+    private char[] currentCommand = new char[GreenScreenOutput.WIDTH-1];
+    private int currentCommandPos = 1;
+    private int scrollOffset = 0;
+    private int backgroundTickCount = 0;
+    private CommandArrayList registeredCommands;
 
-    GreenScreenOutput outputArea = new GreenScreenOutput();
-    GreenScreenOutput inputArea = new GreenScreenOutput();
-    GreenScreenOutput statusArea = new GreenScreenOutput();
+    private GreenScreenOutput outputArea = new GreenScreenOutput();
+    private GreenScreenOutput inputArea = new GreenScreenOutput();
+    private GreenScreenOutput statusArea = new GreenScreenOutput();
 
     public Shell(){
         // register default commands
@@ -68,7 +69,7 @@ public class Shell extends Task {
         Kernel.taskManager.requestFocus(this);
     }
 
-    public void draw(){
+    private void draw(){
 
         LowlevelOutput.disableCursor();
         LowlevelOutput.clearScreen(COLOR_NORMAL);
@@ -84,6 +85,9 @@ public class Shell extends Task {
 
     @Override
     public void onFocus() {
+        if (backgroundTickCount > 0){
+            outputBuffer.push(String.concat("You spend x ticks outside of the Shell. x = ", String.from(backgroundTickCount)));
+        }
         draw();
     }
 
@@ -133,6 +137,21 @@ public class Shell extends Task {
                     }
                     drawOutputArea();
                 }
+                if (k.key == Keyboard.PG_UP) {
+                    scrollOffset+=10;
+                    if (scrollOffset > SCROLL_BUFFER_SIZE){
+                        scrollOffset = SCROLL_BUFFER_SIZE;
+                    }
+                    drawOutputArea();
+                }
+
+                if (k.key == Keyboard.PG_DOWN) {
+                    scrollOffset-=10;
+                    if (scrollOffset < 0){
+                        scrollOffset = 0;
+                    }
+                    drawOutputArea();
+                }
             }
 
         } else if (e instanceof LogEvent) {
@@ -140,10 +159,12 @@ public class Shell extends Task {
             outputBuffer.push(l.message);
             drawOutputArea();
         }
+        backgroundTickCount = 0;
     }
 
     @Override
     public void onBackgroundTick() {
+        backgroundTickCount++;
 
     }
 
@@ -227,7 +248,7 @@ public class Shell extends Task {
         if (!handled){
             outputBuffer.push("Unknown command");
         }
-
+        scrollOffset = 0;
         draw();
     }
 

@@ -35,6 +35,8 @@ public class Keyboard extends InputDevice {
     public static final int DOWN = 80;
     public static final int LEFT = 75;
     public static final int ESC = 1;
+    public static final int PG_UP = 73;
+    public static final int PG_DOWN = 81;
 
 
     KeyboardLayout layout;

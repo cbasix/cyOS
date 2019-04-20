@@ -18,7 +18,6 @@ public class ExecuteTask extends Command{
             shellMessageBuffer.push(new LogEvent("Usage: exec <taskname>"));
         } else {
             if (args[1].equals("editor")){
-                shellMessageBuffer.push(new LogEvent("Editor started"));
                 Kernel.taskManager.requestStart(new Editor());
             } else {
                 shellMessageBuffer.push(new LogEvent("Task not found. (Currently there is only 'editor')"));

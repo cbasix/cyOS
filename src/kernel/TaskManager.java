@@ -51,6 +51,18 @@ public class TaskManager {
     }
 
     public void tick() {
+        // check if something
+        boolean nothingTodo = true;
+        for (int i = 0; i < runningTasks.size(); i++){
+            if (runningTasks.get(i).stdin.count() > 0){
+                nothingTodo = false;
+            }
+        }
+        if (nothingTodo) {
+            Kernel.hlt();
+        }
+
+
         // read input into currently focused task
         if (focusedTask != null) {
             for (int i = 0; i < inputs.size(); i++) {

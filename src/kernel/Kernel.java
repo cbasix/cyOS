@@ -54,9 +54,12 @@ public class Kernel {
         taskManager = new TaskManager();
         taskManager.addInputDevice(new Keyboard(new KeyboardLayoutDE()));
         taskManager.requestStart(new Shell());
+
         while (true) {
             taskManager.tick();
+
             if (doGC) {
+                // doGC is set by the shell command GarbageCollection gc
                 memoryManager.gc();
                 doGC = false;
             }
@@ -82,6 +85,11 @@ public class Kernel {
                 diffCount++;
             }
         }
+    }
+
+    @SJC.Inline
+    public static void hlt(){
+        MAGIC.inline(0xF4);
     }
 
 
