@@ -32,7 +32,7 @@ public class RingBuffer {
         return o;
     }
 
-    // todo check
+    // todo check & fix: thows out of range exception.
     public Object peekPushed(int i){
         if (i < count()) {
             return data[(end-1-i) % length];

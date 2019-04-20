@@ -164,6 +164,6 @@ public class DynamicRuntime {
      */
     public static void nullException() {
         LowlevelLogging.debug("Nullpointer");
-        while (true);
+        MAGIC.inline(0xCC);
     }
 }

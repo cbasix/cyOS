@@ -4,10 +4,7 @@ import io.Color;
 import io.LowlevelOutput;
 import io.Screen;
 import kernel.Kernel;
-import tests.highlevel.ArrayListTest;
-import tests.highlevel.KeyboardLayoutTest;
-import tests.highlevel.RingBufferTest;
-import tests.highlevel.StringTest;
+import tests.highlevel.*;
 import tests.lowlevel.BasicAllocationTest;
 import tests.lowlevel.LowlevelOutputTest;
 
@@ -19,6 +16,10 @@ public class TestRunner {
         check(RingBufferTest.test());
         check(KeyboardLayoutTest.test());
         check(ArrayListTest.test());
+        check(ArrayListMemoryManagerTest.test());
+        check(LinkedListIterTest.test());
+        check(GarbageCollectorTest.test());
+
 
         //LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
         //LowlevelOutput.printStr("Tests OK. All systems GO;", 25, 12, Color.DEFAULT_COLOR);
@@ -27,6 +28,7 @@ public class TestRunner {
         s.showGreyscaleSquirrelPicture();
         Kernel.wait(seconds);
         s.switchToTextMode();
+        LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
 
     }
 

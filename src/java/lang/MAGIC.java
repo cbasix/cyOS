@@ -276,4 +276,6 @@ public class MAGIC {
 
     public static void assign(Object dest, Object value) {
     }
+    public static void assign(boolean dest, boolean value) {
+    }
 }

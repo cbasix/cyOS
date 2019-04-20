@@ -46,14 +46,15 @@ public class Kernel {
 
         // -------------- Run Tests
         TestRunner.run(2); // run test suite and show result
-        LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
-
 
         // -------------- setup and run task manager
         taskManager = new TaskManager();
         taskManager.addInputDevice(new Keyboard(new KeyboardLayoutDE()));
         taskManager.requestStart(new Shell());
-        taskManager.loop();
+        while (true) {
+            taskManager.tick();
+            memoryManager.gc();
+        }
 
     }
 

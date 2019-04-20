@@ -12,10 +12,6 @@ public abstract class MemoryManager {
     public abstract Object allocate(int scalarSize, int relocEntries, SClassDesc type);
     public abstract void deallocate(Object o);
 
-    public Object getFirstObject(){
-        return firstObj;
-    }
-
     @SJC.Inline
     public static int getAllignedSize(int scalarSize, int relocEntries){
         // allign scalar size to 4 byte
@@ -54,5 +50,9 @@ public abstract class MemoryManager {
 
         return newObject;
     }
+
+
+    public abstract void gc();
+
 
 }

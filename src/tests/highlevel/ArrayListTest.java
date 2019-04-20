@@ -7,7 +7,8 @@ public class ArrayListTest {
     public static int test(){
         ArrayList a = new ArrayList();
 
-        a._add("eins");
+        String eins = "eins";
+        a._add(eins);
         String r = (String) a._get(0);
         if (!r.equals("eins")) {
             LowlevelLogging.debug(r, LowlevelLogging.ERROR);
@@ -47,6 +48,13 @@ public class ArrayListTest {
 
         if (a.size() != 45) { return 680;}
         //LowlevelLogging.debug("ARRAY LIST TESTED");
+
+        a.remove(eins);
+        if (a.size() != 44) { return 683;}
+
+        for (int i = 0; i < a.size(); i++){
+            String b = (String) a._get(i);
+        }
 
         return 0;
     }

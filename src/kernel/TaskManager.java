@@ -50,55 +50,53 @@ public class TaskManager {
         tasksToStop.add(task);
     }
 
-    public void loop() {
-        while (true){
-            // read input into currently focused task
-            if (focusedTask != null) {
-                for (int i = 0; i < inputs.size(); i++) {
-                    inputs.get(i).readInto(focusedTask.stdin);
-                }
-
-                 // run current task
-                focusedTask.onTick();
+    public void tick() {
+        // read input into currently focused task
+        if (focusedTask != null) {
+            for (int i = 0; i < inputs.size(); i++) {
+                inputs.get(i).readInto(focusedTask.stdin);
             }
 
-            // run background tasks
-            for (int i = 0; i < runningTasks.size(); i++){
-                if (runningTasks.get(i) != focusedTask){
-                    runningTasks.get(i).onBackgroundTick();
-                }
+             // run current task
+            focusedTask.onTick();
+        }
+
+        // run background tasks
+        for (int i = 0; i < runningTasks.size(); i++){
+            if (runningTasks.get(i) != focusedTask){
+                runningTasks.get(i).onBackgroundTick();
+            }
+        }
+
+        // stop pending toStop Tasks  (backwards to allow deletion ;)
+        for (int i = tasksToStop.size()-1; i >= 0 ; i--) {
+            Task t = tasksToStop.get(i);
+            t.onStop();
+
+            // if task had focus return it to the shell
+            if (focusedTask == t) {
+                focusedTask = runningTasks.get(0);
+                focusedTask.onFocus();
             }
 
-            // stop pending toStop Tasks  (backwards to allow deletion ;)
-            for (int i = tasksToStop.size()-1; i >= 0 ; i--) {
-                Task t = tasksToStop.get(i);
-                t.onStop();
+            runningTasks.remove(t);
+            tasksToStop.remove(t);
+        }
 
-                // if task had focus return it to the shell
-                if (focusedTask == t) {
-                    focusedTask = runningTasks.get(0);
-                    focusedTask.onFocus();
-                }
+        // start pending new tasks  (backwards to allow deletion ;)
+        for (int i = tasksToStart.size()-1; i >= 0 ; i--) {
+            Task t = tasksToStart.get(i);
+            t.onStart();
+            runningTasks.add(t);
+            tasksToStart.remove(t);
+        }
 
-                runningTasks.remove(t);
-                tasksToStop.remove(t);
-            }
-
-            // start pending new tasks  (backwards to allow deletion ;)
-            for (int i = tasksToStart.size()-1; i >= 0 ; i--) {
-                Task t = tasksToStart.get(i);
-                t.onStart();
-                runningTasks.add(t);
-                tasksToStart.remove(t);
-            }
-
-            // focus pending toFocus Tasks  (backwards to allow deletion ;)
-            for (int i = tasksToFocus.size()-1; i >= 0 ; i--) {
-                Task t = tasksToFocus.get(i);
-                t.onFocus();
-                focusedTask = t;
-                tasksToFocus.remove(t);
-            }
+        // focus pending toFocus Tasks  (backwards to allow deletion ;)
+        for (int i = tasksToFocus.size()-1; i >= 0 ; i--) {
+            Task t = tasksToFocus.get(i);
+            t.onFocus();
+            focusedTask = t;
+            tasksToFocus.remove(t);
         }
     }
 

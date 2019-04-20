@@ -35,9 +35,15 @@ public class GreenScreenOutput {
 
     public void setCursor(int x, int y) {
         virtualCursor = y * WIDTH + x;
+        if (virtualCursor < 0){
+            virtualCursor = 0;
+        }
     }
     public void setCursor(int cursor) {
         virtualCursor = cursor;
+        if (virtualCursor < 0){
+            virtualCursor = 0;
+        }
     }
 
     public int getCursor() {

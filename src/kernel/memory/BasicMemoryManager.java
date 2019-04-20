@@ -14,7 +14,7 @@ public class BasicMemoryManager extends MemoryManager{
     public static int interruptDescriptorTableAddr, interruptJumpTableAddr;
 
     public static class ImageInfo extends STRUCT {
-        public int start, size; //, classDescStart, codebyteAddr, firstObjInImageAddr, ramInitAddr;
+        public int start, size, classDescStart, codebyteAddr, firstObjInImageAddr, ramInitAddr;
     }
 
     public static int getNextFreeAddr() {
@@ -68,6 +68,11 @@ public class BasicMemoryManager extends MemoryManager{
     @Override
     public void deallocate(Object o) {
         // basic manager can not deallocate
+    }
+
+    @Override
+    public void gc() {
+        // basic manager has no garbage collection
     }
 
     public static Object staticAllocate(int scalarSize, int relocEntries, SClassDesc type) {
