@@ -69,7 +69,7 @@ public class Bluescreen {
 
         // while true (with fooling the ide's dead code recognition)
         int i = 0;
-        while(i==0){};
+        while(i==0){Kernel.hlt();};
 
         Interrupts.enable();
         return true;
