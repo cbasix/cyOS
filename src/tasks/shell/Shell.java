@@ -60,8 +60,7 @@ public class Shell extends Task {
         for (int i = 1; i < currentCommand.length; i++) {
             currentCommand[i] = ' ';
         }
-        // todo BUG: out of bounds on empty string
-        outputBuffer.push("\0");
+        outputBuffer.push("");
         outputBuffer.push("        +-----------------------------------------------------------+");
         outputBuffer.push("        | Welcome. Type 'help' to get a list of available commands. |");
         outputBuffer.push("        +-----------------------------------------------------------+");
@@ -189,7 +188,7 @@ public class Shell extends Task {
             cmd = (String) outputBuffer.peekPushed(i);
             if (cmd != null) {
 
-                if (cmd.charAt(0) == '>') {
+                if (cmd.length() > 0 && cmd.charAt(0) == '>') {
                     outputArea.setColorState(COLOR_HIGHLIGHTED);
                 } else {
                     outputArea.setColorState(COLOR_NORMAL);
