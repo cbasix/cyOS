@@ -33,7 +33,6 @@ public class Shell extends Task {
 
     public Shell(){
         // register default commands
-        int i = 0;
         registeredCommands = new CommandArrayList();
         registeredCommands.add(new Echo());
         registeredCommands.add(new Picture());
@@ -47,6 +46,7 @@ public class Shell extends Task {
         registeredCommands.add(new Nullpointer());
         registeredCommands.add(new NullRead());
         registeredCommands.add(new NullWrite());
+        registeredCommands.add(new TextualCall());
 
         inputArea.setColor(Color.BLACK, Color.GREY);
         outputArea.setColorState(COLOR_NORMAL);

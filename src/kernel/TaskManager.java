@@ -174,8 +174,8 @@ public class TaskManager {
                 && Kernel.taskManager.tasksToStart.size() == 0) {
 
             LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
-            LowlevelOutput.printStr("Contratulations you killed all Tasks. Happy rebooting", 10, 13, Color.DEFAULT_COLOR);
-            // todo maybe start a new shell here...
+            LowlevelOutput.printStr("Contratulations you killed all tasks. Happy rebooting", 10, 13, Color.DEFAULT_COLOR);
+            // maybe start a new shell here...
         }
         Interrupts.ack(intNo);
 

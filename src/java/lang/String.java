@@ -74,6 +74,13 @@ public class String {
         return substring(from , this.length());
     }
 
+    public String limit(int limit) {
+        if (this.length() < limit){
+            limit = this.length();
+        }
+        return substring(0, limit);
+    }
+
     public static String join(String[] parts, String join){
         int newLen = 0;
         for (String part : parts) {
@@ -208,4 +215,6 @@ public class String {
         ret.count = ret.value.length;
         return ret;
     }
+
+
 }

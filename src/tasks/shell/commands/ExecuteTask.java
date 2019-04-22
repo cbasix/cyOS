@@ -16,7 +16,7 @@ public class ExecuteTask extends Command{
     public void execute(RingBuffer shellMessageBuffer, String[] args) {
         //LowlevelLogging.debug(String.join(args, " "), LowlevelLogging.ERROR);
         if (args.length <= 1){
-            shellMessageBuffer.push(new LogEvent("Usage: exec <taskname>"));
+            shellMessageBuffer.push(new LogEvent("Usage: exec <taskname> (Currently there are only 'editor' and 'blocking')"));
         } else {
             if (args[1].equals("editor")){
                 Kernel.taskManager.requestStart(new Editor());
@@ -25,7 +25,7 @@ public class ExecuteTask extends Command{
                 Kernel.taskManager.requestStart(new Blocking());
 
             } else {
-                shellMessageBuffer.push(new LogEvent("Task not found. (Currently there is only 'editor' and 'blocking')"));
+                shellMessageBuffer.push(new LogEvent("Task not found. (Currently there are only 'editor' and 'blocking')"));
             }
         }
     }

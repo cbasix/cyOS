@@ -101,6 +101,18 @@ public class StringTest {
             return 346;
         }
 
+        // limit
+        s = "test0123456789";
+        if (!s.limit(4).equals("test")){
+            LowlevelOutput.printStr(s, 55, 15, Color.GREY << 4 |Color.PINK);
+            return 348;
+        }
+        s = "test0123456789";
+        if (!s.limit(50).equals("test0123456789")){
+            LowlevelOutput.printStr(s, 55, 15, Color.GREY << 4 |Color.PINK);
+            return 350;
+        }
+
         return 0;
     }
 }

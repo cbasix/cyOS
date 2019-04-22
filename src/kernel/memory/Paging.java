@@ -48,7 +48,8 @@ public class Paging {
     }
 
     public static void enable(){
-        int pageDirAddr = 1024*1024*10; // at 20mb in nirvana just for testing todo find good free place. Is it necessary? or is it copied?
+        int pageDirAddr = 1024*1024*10; // at 20mb in nirvana just for testing
+        // todo find good free place. Is it necessary? or is it copied?  -> not necessary processor keeps cached copy, only if i wanted to change it after the memory has been used i would have to find someplace else
         writePageDirectory(pageDirAddr);
         setCR3(pageDirAddr);
         enableVirtualMemory();

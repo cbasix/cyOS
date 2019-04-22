@@ -64,7 +64,6 @@ public class Kernel {
 
 
         taskManager.loop();
-
     }
 
 
@@ -95,5 +94,11 @@ public class Kernel {
         MAGIC.inline(0xF4);
     }
 
+    /* just stops forever */
+    @SJC.NoOptimization
+    public static void stop(){
+        Interrupts.disable();
+        hlt();
+    }
 
 }

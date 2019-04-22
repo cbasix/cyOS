@@ -6,6 +6,8 @@ import kernel.Kernel;
 import kernel.interrupts.core.InterruptReceiver;
 import kernel.interrupts.core.Interrupts;
 import kernel.memory.Paging;
+import rte.SClassDesc;
+import rte.SMthdBlock;
 
 public class Bluescreen {
     public static final int BLUESCREEN_COLOR = Color.BLUE << 4 | Color.GREY;  // red on black background
@@ -16,69 +18,71 @@ public class Bluescreen {
 
     public static boolean handleInterrupt(int interruptNo, int param, int interruptEbp) {
         Interrupts.disable();
+        int titleLine = 1;
+        int xStart = 1;
         LowlevelOutput.clearScreen(BLUESCREEN_COLOR);
 
         switch(interruptNo) {
 
             case Interrupts.DIVIDE_ERROR:
-                LowlevelOutput.printStr("ZERO DIVISION ERROR", 30, 12, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("ZERO DIVISION ERROR", xStart, titleLine, BLUESCREEN_COLOR);
                 break;
 
             case Interrupts.DEBUG_EXCEPTION:
-                LowlevelOutput.printStr("DEBUG EXCEPTION", 30, 12, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("DEBUG EXCEPTION", xStart, titleLine, BLUESCREEN_COLOR);
                 break;
 
             case Interrupts.NMI:
-                LowlevelOutput.printStr("NON MASKABLE INTERRUPT (NMI)", 30, 12, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("NON MASKABLE INTERRUPT (NMI)", xStart, titleLine, BLUESCREEN_COLOR);
                 break;
 
             case Interrupts.BREAKPOINT:
-                LowlevelOutput.printStr("BREAKPOINT", 30, 12, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("BREAKPOINT", xStart, titleLine, BLUESCREEN_COLOR);
                 break;
 
             case Interrupts.INTO_OVERFLOW:
-                LowlevelOutput.printStr("INTO (Overflow)", 30, 12, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("INTO (Overflow)", xStart, titleLine, BLUESCREEN_COLOR);
                 break;
 
             case Interrupts.INVALID_OPCODE:
-                LowlevelOutput.printStr("INVALID OPCODE", 30, 12, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("INVALID OPCODE", xStart, titleLine, BLUESCREEN_COLOR);
                 break;
 
             case Interrupts.GENERAL_PROTECTION_ERROR:
-                LowlevelOutput.printStr("GENERAL PROTECTION ERROR", 30, 12, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("GENERAL PROTECTION ERROR", xStart, titleLine, BLUESCREEN_COLOR);
                 break;
 
             case Interrupts.PAGE_FAULT:
-                LowlevelOutput.printStr("PAGE FAULT", 30, 12, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("PAGE FAULT", xStart, titleLine, BLUESCREEN_COLOR);
 
                 int cause = Paging.getCR2();
-                LowlevelOutput.printStr("Address: 0x", 25, 14, BLUESCREEN_COLOR);
-                LowlevelOutput.printHex(cause, 10, 36, 14, BLUESCREEN_COLOR);
-                LowlevelOutput.printStr("Param:   0x", 25, 15, BLUESCREEN_COLOR);
-                LowlevelOutput.printHex(param, 10, 36, 15, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("Address: 0x", xStart, titleLine+2, BLUESCREEN_COLOR);
+                LowlevelOutput.printHex(cause, 10, xStart+11, titleLine+2, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("Param:   0x", xStart, titleLine+3, BLUESCREEN_COLOR);
+                LowlevelOutput.printHex(param, 10, xStart+11, titleLine+3, BLUESCREEN_COLOR);
 
 
                 // ACHTUNG Bedeutung BIT 0 ist anders als in AB7 beschrieben! 0 -> Page not present;  1 -> Protection violation
                 // Quelle: https://wiki.osdev.org/Page_fault supported by results.
                 if ((param & 0x1) == 0) {
-                    LowlevelOutput.printStr("Page not present", 25, 17, BLUESCREEN_COLOR);
+                    LowlevelOutput.printStr("Page not present", xStart, titleLine+5, BLUESCREEN_COLOR);
                 } else {
-                    LowlevelOutput.printStr("Protection violation", 25, 17, BLUESCREEN_COLOR);
+                    LowlevelOutput.printStr("Protection violation", xStart, titleLine+5, BLUESCREEN_COLOR);
                 }
                 if ((param & 0x2) == 0) {
-                    LowlevelOutput.printStr("Read access caused fault", 25, 18, BLUESCREEN_COLOR);
+                    LowlevelOutput.printStr("Read access", xStart, titleLine+6, BLUESCREEN_COLOR);
                 } else {
-                    LowlevelOutput.printStr("Write access caused fault", 25, 18, BLUESCREEN_COLOR);
+                    LowlevelOutput.printStr("Write access", xStart, titleLine+6, BLUESCREEN_COLOR);
                 }
                 break;
 
             case Interrupts.INDEX_OUT_OF_RANGE:
-                LowlevelOutput.printStr("INDEX OUT OF RANGE", 30, 12, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("INDEX OUT OF RANGE", xStart, titleLine, BLUESCREEN_COLOR);
                 break;
 
             default:
-                LowlevelOutput.printStr("UNKNOWN EXCEPTION", 30, 12, BLUESCREEN_COLOR);
-                LowlevelOutput.printInt(interruptNo, 10, 10, 33, 13, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("UNKNOWN EXCEPTION", xStart, titleLine, BLUESCREEN_COLOR);
+                LowlevelOutput.printInt(interruptNo, 10, 10, xStart, titleLine+1, BLUESCREEN_COLOR);
                 break;
         }
 
@@ -106,30 +110,33 @@ public class Bluescreen {
     @SJC.Inline
     public static void printRegisters(int interruptEbp) {
         int ebp = interruptEbp;
-        int line = 1;
+        int line = 12;
+        int xStart = 1;
         int pushABaseAddr = interruptEbp + MAGIC.ptrSize; // start of pusha saved register values
 
         //SavedRegs regs = (SavedRegs) MAGIC.cast2Struct(pushABaseAddr);
 
-        LowlevelOutput.printStr("Registers", 4, line++, BLUESCREEN_COLOR);
-        line++;
+        LowlevelOutput.printStr("---Registers---", xStart, line++, BLUESCREEN_COLOR);
 
         int i = 0;
         for (String regname : pushARegNames) {
-            LowlevelOutput.printStr(regname, 1, line, BLUESCREEN_COLOR);
+            LowlevelOutput.printStr(regname, xStart, line, BLUESCREEN_COLOR);
             LowlevelOutput.printHex(MAGIC.rMem32(pushABaseAddr + (i++ * MAGIC.ptrSize)), 10, 6, line++, BLUESCREEN_COLOR);
         }
     }
 
-    /* analyze callstack */
+    /* analyze callstack
+    *
+    * */
     @SJC.Inline
     public static void printCallStack(int interruptEbp, int interruptNo){
 
         int ebp = interruptEbp;
         int line = 1;
-        LowlevelOutput.printStr("CallStack", 61, line++, BLUESCREEN_COLOR);
-        LowlevelOutput.printStr("EBPs:", 58, line, BLUESCREEN_COLOR);
-        LowlevelOutput.printStr("EIPs:", 69, line++, BLUESCREEN_COLOR);
+        int xStart = 25;
+        LowlevelOutput.printStr("---CALL STACK---", xStart, line++, BLUESCREEN_COLOR);
+        LowlevelOutput.printStr("EBPs:", xStart, line, BLUESCREEN_COLOR);
+        LowlevelOutput.printStr("EIPs:", xStart+11, line++, BLUESCREEN_COLOR);
         line++;
 
         int analyzedEbp = 0;
@@ -141,7 +148,7 @@ public class Bluescreen {
                 analyzedEip = MAGIC.rMem32(ebp + 4);
 
             } else {
-                // interrupt method has different stack frame (addressing with offset from last ebp)
+                // interrupt method has different stack frame
                 // if it has a param it must be jumped over too
                 int offsetAddedByParam = 0;
                 if (0x08 <= interruptNo && interruptNo <=0x0E) {
@@ -150,11 +157,49 @@ public class Bluescreen {
                 analyzedEip = MAGIC.rMem32(ebp + (1 + pushARegNames.length)*MAGIC.ptrSize + offsetAddedByParam);
             }
 
-            LowlevelOutput.printHex(analyzedEbp, 10, 58, line, BLUESCREEN_COLOR);
-            LowlevelOutput.printHex(analyzedEip, 10, 69, line++, BLUESCREEN_COLOR);
+            LowlevelOutput.printHex(analyzedEbp, 10, xStart, line, BLUESCREEN_COLOR);
+            LowlevelOutput.printHex(analyzedEip, 10, xStart+11, line, BLUESCREEN_COLOR);
+            LowlevelOutput.printStr(getMethod(analyzedEip).limit(33),xStart+22, line++, BLUESCREEN_COLOR);
 
             ebp = analyzedEbp;
 
         } while (analyzedEbp < STACK_START-8 && line < 24);
+    }
+
+    /*
+        find method name of given eip
+        todo does currently not handle invalid EIPs in nirvana very well...
+        its kind of a "dirty" solution.
+     */
+    public static String getMethod(int eip){
+        // allign
+        eip = (eip + 0x3) & ~0x3;
+
+        int methodBlock = MAGIC.cast2Ref(MAGIC.clssDesc("SMthdBlock"));
+
+        SMthdBlock currentBlock = null;
+
+        boolean found = false;
+        while (!found) {
+
+            // find the type field of the current code block
+            int i = -1;
+            while (MAGIC.rMem32(eip - MAGIC.ptrSize * (++i)) != methodBlock) ;
+            // now we should be on the type field
+
+            int typeAddr = eip - MAGIC.ptrSize * i;
+            int mthAddr = typeAddr + MAGIC.ptrSize;
+
+            currentBlock = (SMthdBlock) MAGIC.cast2Obj(mthAddr);
+
+            // do some validity tests (we may have hit a code pattern that just looks like an type descriptor
+            if (currentBlock._r_relocEntries == MAGIC.getInstRelocEntries("SMthdBlock")
+                    && currentBlock.owner instanceof SClassDesc) {
+
+                found = true;
+            }
+        }
+
+        return String.concat(String.concat(currentBlock.owner.name, "."), currentBlock.namePar);
     }
 }
