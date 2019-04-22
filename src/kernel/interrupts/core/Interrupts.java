@@ -35,7 +35,7 @@ public class Interrupts {
     public static final int IRQ14 = 0x2E;
     public static final int IRQ15 = 0x2F;
 
-    public static int handleInterruptAddr, handleInterruptWithParamAddr, handleDoubleFaultAddr;
+    public static int handleInterruptAddr, handleInterruptWithParamAddr;
     public static InterruptHub interruptHub = null;
 
     public static InterruptHub init(){
@@ -70,13 +70,6 @@ public class Interrupts {
         int interruptEbp=0;
         MAGIC.inline(0x89, 0x6D); MAGIC.inlineOffset(1, interruptEbp); //mov [ebp+xx],ebp
         handleInterrupt(param, interruptEbp);
-    }
-
-    @SJC.Interrupt
-    public static void doubleFaultHandler(int param){
-        LowlevelOutput.clearScreen(Bluescreen.BLUESCREEN_COLOR);
-        LowlevelOutput.printStr("DOUBLE FAULT", 30, 12, Bluescreen.BLUESCREEN_COLOR);
-        while (true) ;
     }
 
     @SJC.Inline
@@ -168,11 +161,14 @@ public class Interrupts {
 
     private static void initDefaultHandlerAddresses(){
         SClassDesc interruptClassDesc = (SClassDesc) MAGIC.clssDesc("Interrupts");
-
         int mthdOff = MAGIC.mthdOff("Interrupts", "defaultHandler");
         handleInterruptAddr = MAGIC.rMem32(MAGIC.cast2Ref(interruptClassDesc)+mthdOff )+MAGIC.getCodeOff();
 
         int mthdOffParam = MAGIC.mthdOff("Interrupts", "defaultHandlerWithParam");
         handleInterruptWithParamAddr = MAGIC.rMem32(MAGIC.cast2Ref(interruptClassDesc)+mthdOffParam )+MAGIC.getCodeOff();
+
+        /*SClassDesc bluescreenClassDesc = (SClassDesc) MAGIC.clssDesc("Bluescreen");
+        int mthdOffPageFault = MAGIC.mthdOff("Bluescreen", "handlePageFault");
+        handlePageFaultAddr = MAGIC.rMem32(MAGIC.cast2Ref(bluescreenClassDesc)+mthdOffPageFault )+MAGIC.getCodeOff();*/
     }
 }

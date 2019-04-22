@@ -7,11 +7,13 @@ import kernel.Kernel;
 import tests.highlevel.*;
 import tests.lowlevel.BasicAllocationTest;
 import tests.lowlevel.LowlevelOutputTest;
+import tests.lowlevel.PagingTest;
 
 public class TestRunner {
     public static void run(int seconds) {
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
         check(LowlevelOutputTest.test());
+        check(PagingTest.test());
         check(StringTest.test());
         check(RingBufferTest.test());
         check(LinkedListIterTest.test());

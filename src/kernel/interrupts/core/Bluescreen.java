@@ -5,6 +5,7 @@ import io.LowlevelOutput;
 import kernel.Kernel;
 import kernel.interrupts.core.InterruptReceiver;
 import kernel.interrupts.core.Interrupts;
+import kernel.memory.Paging;
 
 public class Bluescreen {
     public static final int BLUESCREEN_COLOR = Color.BLUE << 4 | Color.GREY;  // red on black background
@@ -49,6 +50,26 @@ public class Bluescreen {
 
             case Interrupts.PAGE_FAULT:
                 LowlevelOutput.printStr("PAGE FAULT", 30, 12, BLUESCREEN_COLOR);
+
+                int cause = Paging.getCR2();
+                LowlevelOutput.printStr("Address: 0x", 25, 14, BLUESCREEN_COLOR);
+                LowlevelOutput.printHex(cause, 10, 36, 14, BLUESCREEN_COLOR);
+                LowlevelOutput.printStr("Param:   0x", 25, 15, BLUESCREEN_COLOR);
+                LowlevelOutput.printHex(param, 10, 36, 15, BLUESCREEN_COLOR);
+
+
+                // ACHTUNG Bedeutung BIT 0 ist anders als in AB7 beschrieben! 0 -> Page not present;  1 -> Protection violation
+                // Quelle: https://wiki.osdev.org/Page_fault supported by results.
+                if ((param & 0x1) == 0) {
+                    LowlevelOutput.printStr("Page not present", 25, 17, BLUESCREEN_COLOR);
+                } else {
+                    LowlevelOutput.printStr("Protection violation", 25, 17, BLUESCREEN_COLOR);
+                }
+                if ((param & 0x2) == 0) {
+                    LowlevelOutput.printStr("Read access caused fault", 25, 18, BLUESCREEN_COLOR);
+                } else {
+                    LowlevelOutput.printStr("Write access caused fault", 25, 18, BLUESCREEN_COLOR);
+                }
                 break;
 
             case Interrupts.INDEX_OUT_OF_RANGE:
@@ -67,7 +88,8 @@ public class Bluescreen {
         // allow continue after breakpoint
         //while (interruptNo != Interrupts.BREAKPOINT){}
 
-        // while true (with fooling the ide's dead code recognition)
+        // while(true) (with fooling the ide's dead code recognition)
+        // and yes just sleeping with interrupts disabled would have the same effect
         int i = 0;
         while(i==0){Kernel.hlt();};
 

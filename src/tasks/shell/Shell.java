@@ -44,6 +44,9 @@ public class Shell extends Task {
         registeredCommands.add(new CharTest());
         registeredCommands.add(new Mem());
         registeredCommands.add(new GarbageCollection());
+        registeredCommands.add(new Nullpointer());
+        registeredCommands.add(new NullRead());
+        registeredCommands.add(new NullWrite());
 
         inputArea.setColor(Color.BLACK, Color.GREY);
         outputArea.setColorState(COLOR_NORMAL);

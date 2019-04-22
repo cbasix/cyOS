@@ -36,10 +36,10 @@ public class DescriptorTable {
                 }
             }
 
-            // handle double fault outside of the system
-            if (i == 0x08 || i == 0x1E || i == 0x01) {
-                target = Interrupts.handleDoubleFaultAddr;
-            }
+            // handle page fault outside of the system
+            /*if (i == Interrupts.PAGE_FAULT) {
+                target = Interrupts.handlePageFaultAddr;
+            }*/
 
             idt.entries[i].segmentSelector = (short)(1 << 3);
             idt.entries[i].offsetLowBytes = (short)(target & 0xFFFF);

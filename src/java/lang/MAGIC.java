@@ -96,8 +96,9 @@ public class MAGIC {
     public static void wMem32(int addr, int v) {
     }
 
+    static int i;
     public static int rMem32(int addr) {
-        return 0;
+        return i;
     }
 
     public static int rMem32(long addr) {

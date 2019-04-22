@@ -11,6 +11,7 @@ import kernel.interrupts.receivers.ScreenOutput;
 import kernel.memory.BasicMemoryManager;
 import kernel.memory.LinkedListMemoryManager;
 import kernel.memory.MemoryManager;
+import kernel.memory.Paging;
 import tasks.shell.Shell;
 import tests.TestRunner;
 
@@ -45,10 +46,14 @@ public class Kernel {
 
         Interrupts.enable();
 
+        // switch to advanced memory manager
         memoryManager = new LinkedListMemoryManager();
 
         // -------------- Run Tests
         TestRunner.run(2); // run test suite and show result
+
+        // enable paging
+        Paging.enable();
 
         // -------------- setup and run task manager
         taskManager = new TaskManager();
