@@ -131,7 +131,7 @@ public class Interrupts {
     }
 
     @SJC.Inline
-    private static void ack(int interruptNo){
+    public static void ack(int interruptNo){
         // if interrupt from slave PIC
         if (IRQ8 <= interruptNo && interruptNo <= IRQ15){
             MAGIC.wIOs8(Interrupts.SLAVE, (byte)0x20);

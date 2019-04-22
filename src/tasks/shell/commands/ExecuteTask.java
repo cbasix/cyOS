@@ -2,6 +2,7 @@ package tasks.shell.commands;
 
 import kernel.Kernel;
 import datastructs.RingBuffer;
+import tasks.Blocking;
 import tasks.Editor;
 import tasks.LogEvent;
 
@@ -19,8 +20,12 @@ public class ExecuteTask extends Command{
         } else {
             if (args[1].equals("editor")){
                 Kernel.taskManager.requestStart(new Editor());
+
+            } else if (args[1].equals("blocking")){
+                Kernel.taskManager.requestStart(new Blocking());
+
             } else {
-                shellMessageBuffer.push(new LogEvent("Task not found. (Currently there is only 'editor')"));
+                shellMessageBuffer.push(new LogEvent("Task not found. (Currently there is only 'editor' and 'blocking')"));
             }
         }
     }

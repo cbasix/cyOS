@@ -5,6 +5,7 @@ import io.Color;
 import io.LowlevelLogging;
 import io.LowlevelOutput;
 import kernel.Kernel;
+import kernel.TaskManager;
 import kernel.interrupts.core.InterruptReceiver;
 
 
@@ -78,8 +79,13 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
 
         } else if (keyPartBuffer[0] == EXPAND_TWO && byteNo == 3){
             // all 3 byte codes (pause) are used as system interrupt
-            MAGIC.inline(0xCC);
+            //MAGIC.inline(0xCC);
             byteNo = 0;
+
+            boolean pressed = (keyPartBuffer[2] & 0x80) == 0;
+            if (pressed) {
+                TaskManager.killCurrentTask(interruptNo);
+            }
             return true;
         }
 

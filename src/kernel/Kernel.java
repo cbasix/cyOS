@@ -60,15 +60,10 @@ public class Kernel {
         taskManager.addInputDevice(new Keyboard(new KeyboardLayoutDE()));
         taskManager.requestStart(new Shell());
 
-        while (true) {
-            taskManager.tick();
+        TaskManager.saveStackCheckpoint();
 
-            if (doGC) {
-                // doGC is set by the shell command GarbageCollection gc
-                memoryManager.gc();
-                doGC = false;
-            }
-        }
+
+        taskManager.loop();
 
     }
 
@@ -92,6 +87,9 @@ public class Kernel {
         }
     }
 
+    /*
+        Puts the processor to sleep until the next interrupt. (Most likely system timer)
+     */
     @SJC.Inline
     public static void hlt(){
         MAGIC.inline(0xF4);
