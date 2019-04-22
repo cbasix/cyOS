@@ -94,8 +94,10 @@ public class Kernel {
         MAGIC.inline(0xF4);
     }
 
-    /* just stops forever */
-    @SJC.NoOptimization
+    /* just stops forever
+
+    may be used from textual call*/
+    @SJC.GenCode
     public static void stop(){
         Interrupts.disable();
         hlt();
