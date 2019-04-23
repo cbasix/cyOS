@@ -1,8 +1,9 @@
 # cyOS
-A small educational Java OS which was created as an exercise for the lecture "Betriebssysteme im Eigenbau" (Operating Systems self-made)
+A small monolitic educational Java OS which was created as an exercise for the lecture "Betriebssysteme im Eigenbau" (Operating Systems self-made)
+
+![Screenshot](blobs/cyOS.png)
 
 # Implemented Parts
-- Simple Shell (with buggy scrolling ;)
 - Virtual Memory (1:1 Mapped)
 - Flexible Interrupt Handling
 - Simple Keyboard Driver
@@ -11,6 +12,7 @@ A small educational Java OS which was created as an exercise for the lecture "Be
 - Simplistic Task Scheduler
 - Cooperative Multitasking
 - Kill blocking Tasks via keystroke
+- Simple Shell (with buggy scrolling ;)
 - Some test commands 
 - Get memory map from BIOS
 
