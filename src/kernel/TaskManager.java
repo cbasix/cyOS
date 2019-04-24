@@ -12,6 +12,7 @@ import tasks.Task;
 public class TaskManager {
     static int savedEbp;
     static int savedEsp;
+    private static int currentEbp;
 
     private TaskArrayList runningTasks;
     private TaskArrayList tasksToStart;
@@ -137,11 +138,14 @@ public class TaskManager {
         inputs.add(inputDevice);
     }
 
-    @SJC.Inline
+    //@SJC.Inline
     public static void saveStackCheckpoint(){
-        //Ablage der Registerwerte in Variablen
-        MAGIC.inline(0x89, 0x2D); MAGIC.inlineOffset(4, savedEbp); //mov [addr(v1)],ebp
-        MAGIC.inline(0x89, 0x25); MAGIC.inlineOffset(4, savedEsp); //mov [addr(v1)],esp
+        //Ablage der äußeren (aufrufenden) Stack-Registerwerte in Variablen
+        //int currentEbp = 0;
+        MAGIC.inline(0x89, 0x2D); MAGIC.inlineOffset(4, currentEbp); //mov [addr(v1)],ebp
+
+        savedEsp = currentEbp;
+        savedEbp = MAGIC.rMem32(currentEbp+2*MAGIC.ptrSize); // see ab 5a (method has no params, so only eip and epb are there
 
         /*LowlevelLogging.printHexdump(savedEsp);
         Interrupts.disable();

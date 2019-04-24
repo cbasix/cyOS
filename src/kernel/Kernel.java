@@ -50,7 +50,7 @@ public class Kernel {
         memoryManager = new LinkedListMemoryManager();
 
         // -------------- Run Tests
-        TestRunner.run(2); // run test suite and show result
+        TestRunner.run(1); // run test suite and show result
 
         // enable paging
         Paging.enable();
@@ -61,7 +61,6 @@ public class Kernel {
         taskManager.requestStart(new Shell());
 
         TaskManager.saveStackCheckpoint();
-
 
         taskManager.loop();
     }
