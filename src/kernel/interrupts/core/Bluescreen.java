@@ -159,7 +159,8 @@ public class Bluescreen {
 
             LowlevelOutput.printHex(analyzedEbp, 10, xStart, line, BLUESCREEN_COLOR);
             LowlevelOutput.printHex(analyzedEip, 10, xStart+11, line, BLUESCREEN_COLOR);
-            LowlevelOutput.printStr(getMethod(analyzedEip).limit(33),xStart+22, line++, BLUESCREEN_COLOR);
+            //LowlevelOutput.printStr(getMethod(analyzedEip).limit(33),xStart+22, line, BLUESCREEN_COLOR);
+            line++;
 
             ebp = analyzedEbp;
 
@@ -168,7 +169,7 @@ public class Bluescreen {
 
     /*
         find method name of given eip
-        todo does currently not handle invalid EIPs in nirvana very well...
+        todo do it right does currently not handle invalid EIPs in nirvana very well...
         its kind of a "dirty" solution.
      */
     public static String getMethod(int eip){

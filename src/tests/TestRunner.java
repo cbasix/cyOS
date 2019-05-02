@@ -20,6 +20,7 @@ public class TestRunner {
         check(KeyboardLayoutTest.test());
         check(ArrayListTest.test());
         check(LinkedListMemoryManagerTest.test());
+        check(PooledKeyEventBufferTest.test());
 
         check(GarbageCollectorTest.test());
 

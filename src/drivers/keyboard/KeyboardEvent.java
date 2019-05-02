@@ -7,12 +7,21 @@ public class KeyboardEvent {
     public boolean pressed;
     private boolean printable;
 
+    public KeyboardEvent(){}
+
     KeyboardEvent(int key, boolean pressed){
-        this.key = key;
-        this.pressed = pressed;
+        reinit(key, pressed);
     }
 
     KeyboardEvent(int key, boolean pressed, int modifiers){
+        reinit(key, pressed, modifiers);
+    }
+
+    public void reinit(int key, boolean pressed){
+        reinit(key, pressed, 0);
+    }
+
+    public void reinit(int key, boolean pressed, int modifiers){
         this.key = key;
         this.pressed = pressed;
         this.modifiers = modifiers;

@@ -29,14 +29,11 @@ public class Kernel {
         // basic manager allows other mangers to use new before taking over allocation
         memoryManager = BasicMemoryManager.initialize();
         // test basic allocation
-        //TestRunner.runBasicAllocationTest();
-        // instatiate advanced memory managers
-
-
+        // TestRunner.runBasicAllocationTest(); todo actualize basic allocation test to new object format
+        // instatiate advanced memory managers -> after interrupts are enabled
 
         MAGIC.doStaticInit();
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
-
 
         // -------------- setup interrupts
         InterruptHub interruptHub = Interrupts.init();
@@ -70,9 +67,9 @@ public class Kernel {
                 Kernel.doGC = false;
                 gcRun++;
             }
-            if (gcRun == 2){
+            /*if (gcRun == 2){
                 LowlevelLogging.debug("into loop");
-            }
+            }*/
             taskManager.loop();
         }
     }

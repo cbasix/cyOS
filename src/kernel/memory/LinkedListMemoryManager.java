@@ -122,6 +122,8 @@ public class LinkedListMemoryManager extends MemoryManager {
 
     @Override
     public void gc() {
+        Interrupts.disable();
         gc.run(this);
+        Interrupts.enable();
     }
 }

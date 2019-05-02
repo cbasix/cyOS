@@ -54,7 +54,7 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
         }*/
 
 
-        LowlevelOutput.printInt(deleted, 10, 5, 0, 0, Color.DEFAULT_COLOR);
+        //LowlevelOutput.printInt(deleted, 10, 5, 0, 0, Color.DEFAULT_COLOR);
         //LowlevelLogging.debug("Deleted Objects:");
 
     }
@@ -68,7 +68,7 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
             Object next = currentObj._r_next;
 
             if(currentObj._s_gcUsedBy == 0){
-                if (currentObj instanceof MemAreaArrayList){
+                /*if (currentObj instanceof MemAreaArrayList){
                     LowlevelLogging.debug("deleting memAreaArrayList");
                 }
                 if (currentObj instanceof TaskManager){
@@ -87,10 +87,10 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
                     //LowlevelOutput.printHex(, 10, 0, 1, Color.GREY);
                     //LowlevelLogging.debug("name is null");
                     invalid++;
-                    /*LowlevelLogging.printHexdump(MAGIC.cast2Ref(cd)-16);
-                    Interrupts.disable();
-                    Kernel.hlt();*/
-                }
+                    //LowlevelLogging.printHexdump(MAGIC.cast2Ref(cd)-16);
+                    //Interrupts.disable();
+                    //Kernel.hlt();
+                }*/
 
                 mgr.deallocate(currentObj);
                 deleted++;

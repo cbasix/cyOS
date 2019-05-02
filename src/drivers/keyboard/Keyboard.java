@@ -51,14 +51,16 @@ public class Keyboard extends InputDevice {
         while (KeyboardInterruptReceiver.pressedBuffer.count() > 0){
 
             // get raw event from buffer
-            KeyboardEvent k = (KeyboardEvent) KeyboardInterruptReceiver.pressedBuffer.get();
+            KeyboardEvent k = new KeyboardEvent();
+            if(KeyboardInterruptReceiver.pressedBuffer.getCopyInto(k)) {
 
-            Interrupts.enable();
-            // add char infos using the layout
-            this.layout.setCharOn(k);
+                Interrupts.enable();
+                // add char infos using the layout
+                this.layout.setCharOn(k);
 
-            focusTaskStdIn.push(k);
-            Interrupts.disable();
+                focusTaskStdIn.push(k);
+                Interrupts.disable();
+            }
         }
         Interrupts.enable();
 

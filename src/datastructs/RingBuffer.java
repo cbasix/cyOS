@@ -9,6 +9,10 @@ public class RingBuffer {
         this.data = new Object[this.length];
     }
 
+    public int maxLength(){
+        return this.length - 1;
+    }
+
     public void push(Object o){
         data[end] = o;
 
@@ -49,5 +53,17 @@ public class RingBuffer {
 
     public int count(){
         return ((end + length)-start) % length;
+    }
+
+    public Object[] getRawArray(){
+        return this.data;
+    }
+
+    public int getNextPushIndex(){
+        return end;
+    }
+
+    public int getNextPopIndex(){
+        return start;
     }
 }

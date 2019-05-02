@@ -1,10 +1,7 @@
 package drivers.keyboard;
 
-import datastructs.RingBuffer;
 import io.Color;
-import io.LowlevelLogging;
 import io.LowlevelOutput;
-import kernel.Kernel;
 import kernel.TaskManager;
 import kernel.interrupts.core.InterruptReceiver;
 
@@ -45,20 +42,21 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
     //--------------------- END MODIFIER KEY CONFIGURATION -----------------------
 
     private boolean[] modifierStates = new boolean[MODIFIER_KEYS.length];
-    public static RingBuffer pressedBuffer;
+    public static PooledKeyboardEventRingBuffer pressedBuffer;
+    public static KeyboardEvent keyboardEvent;
     private int keyPartBuffer[] = new int[3];
     private int byteNo = 0;
 
 
     public KeyboardInterruptReceiver(){
-        pressedBuffer = new RingBuffer(20);
+        pressedBuffer = new PooledKeyboardEventRingBuffer(20);
+        keyboardEvent = new KeyboardEvent();
     }
 
 
     @Override
     public boolean handleInterrupt(int interruptNo, int param) {
         boolean done = false;
-        KeyboardEvent e = null;
         int key_byte = MAGIC.rIOs8(KEYBOARD_PORT) & 0x000000FF;
 
         if (byteNo == 0 && key_byte > EXPAND_TWO){
@@ -71,11 +69,11 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
 
         if (keyPartBuffer[0] <= NORMAL){
             done = true;
-            e = new KeyboardEvent(keyPartBuffer[0] & 0x7F, (keyPartBuffer[0] & 0x80) == 0);
+            keyboardEvent.reinit(keyPartBuffer[0] & 0x7F, (keyPartBuffer[0] & 0x80) == 0);
 
         } else if (keyPartBuffer[0] == EXPAND_ONE && byteNo == 2){
             done = true;
-            e = new KeyboardEvent((keyPartBuffer[1] & 0x7F), (keyPartBuffer[1] & 0x80) == 0, Keyboard.MODIFIER_EXTENSION);
+            keyboardEvent.reinit((keyPartBuffer[1] & 0x7F), (keyPartBuffer[1] & 0x80) == 0, Keyboard.MODIFIER_EXTENSION);
 
         } else if (keyPartBuffer[0] == EXPAND_TWO && byteNo == 3){
             // all 3 byte codes (pause) are used as system interrupt
@@ -84,24 +82,25 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
 
             boolean pressed = (keyPartBuffer[2] & 0x80) == 0;
             if (pressed) {
-                TaskManager.killCurrentTask(interruptNo);
+                //TaskManager.killCurrentTask(interruptNo); todo repair -> is defect nullptr
+                MAGIC.inline(0xCC);
             }
             return true;
         }
 
         if (done){
             // apply modifiers
-            applyModifiers(e);
+            applyModifiers(keyboardEvent);
 
             // toogle modifiers (after apply because they shall not modify them selfes)
-            toggleModifiers(e);
+            toggleModifiers(keyboardEvent);
             /*for (int i = 0; i < modifierStates.length; i++) {
                 LowlevelOutput.printBool(modifierStates[i], 70, 10+i, Color.PINK);
             }*/
-            LowlevelOutput.printInt(e.key, 10, 4, 50, 0, Color.DEFAULT_COLOR);
-            LowlevelOutput.printHex(e.modifiers, 8, 58, 0, Color.DEFAULT_COLOR);
+            LowlevelOutput.printInt(keyboardEvent.key, 10, 4, 50, 0, Color.DEFAULT_COLOR);
+            LowlevelOutput.printHex(keyboardEvent.modifiers, 8, 58, 0, Color.DEFAULT_COLOR);
 
-            pressedBuffer.push(e);
+            pressedBuffer.pushCopyOf(keyboardEvent);
             byteNo = 0;
         }
 
