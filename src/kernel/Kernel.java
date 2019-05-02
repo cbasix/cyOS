@@ -20,6 +20,7 @@ public class Kernel {
     public static TaskManager taskManager;
     public static MemoryManager memoryManager;
     public static boolean doGC = false;
+    public  static int gcRun;
 
 
     public static void main() {
@@ -62,7 +63,18 @@ public class Kernel {
 
         TaskManager.saveStackCheckpoint();
 
-        taskManager.loop();
+        while (true) {
+            if (Kernel.doGC) {
+                // doGC is set by the shell command GarbageCollection gc
+                Kernel.memoryManager.gc();
+                Kernel.doGC = false;
+                gcRun++;
+            }
+            if (gcRun == 2){
+                LowlevelLogging.debug("into loop");
+            }
+            taskManager.loop();
+        }
     }
 
 

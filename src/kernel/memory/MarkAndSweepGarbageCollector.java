@@ -4,63 +4,96 @@ import datastructs.subtypes.MemAreaArrayList;
 import io.Color;
 import io.LowlevelLogging;
 import io.LowlevelOutput;
+import kernel.Kernel;
+import kernel.TaskManager;
+import kernel.interrupts.core.Interrupts;
+import rte.SClassDesc;
 
 public class MarkAndSweepGarbageCollector extends GarbageCollector{
-    private int deleted = 0;
+    public int deleted = 0;
+    public int visitedRootObjects = 0;
+    public int visitedHeapObjects = 0;
+    public int heapObjects = 0;
+    public int rootObjects = 0;
+    public int invalid = 0;
+    public int logAddr = 1024*1024*6; //6mb
 
     @Override
     public void run(MemoryManager mgr) {
-        Object currentObj = MemoryManager.firstObj;
+        /*if (Kernel.gcRun == 1){
+            LowlevelLogging.debug("gc run");
+        }*/
+        heapObjects = 0;
+        visitedRootObjects = 0;
+        deleted = 0;
+        rootObjects = 0;
+        invalid = 0;
 
-        if (currentObj == null){
+        //log up
+        MAGIC.wMem32(logAddr, 0x01234567); logAddr += 4;
+
+        if (MemoryManager.firstObj == null){
             LowlevelLogging.debug("There are no objects on the heap. Thats impossible. YOUR GC RUNS AMOK");
-            while (true);
+            Kernel.stop();
         }
 
-        int cnt = 0;
-        // mark all objects on heap with kill mark = 0
-        do {
-            MAGIC.assign(currentObj._s_gcUsedBy, 0);
-            currentObj = currentObj._r_next;
-            cnt++;
-        } while(currentObj != null);
+        markAllUnused();
+
+        /*if (Kernel.gcRun == 1){
+            LowlevelLogging.debug("marking done");
+        }*/
+
+        markUsedByImage();
+
+        deleteUnused(mgr);
 
 
-        // remove mark on used objects (objects accessable from one of the pre created in image objects)
-        BasicMemoryManager.ImageInfo image = (BasicMemoryManager.ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
-        Object rootObj = MAGIC.cast2Obj(image.firstObjInImageAddr);
-
-        // loop over all root objects
-        while(rootObj != null){
-            iterativeMarkUsed(rootObj);
-
-            rootObj = rootObj._r_next;
-        }
-
-        /*LowlevelOutput.printInt(MAGIC.getInstRelocEntries("Object"), 10, 5, 0, 10, Color.DEFAULT_COLOR);
-        LowlevelOutput.printInt(root, 10, 5, 0, 2, Color.DEFAULT_COLOR);
-        LowlevelOutput.printInt(descended, 10, 5, 0, 3, Color.DEFAULT_COLOR);
-        LowlevelOutput.printInt(cnt, 10, 5, 0, 4, Color.DEFAULT_COLOR);
-        LowlevelOutput.printInt(maxDepth, 10, 5, 4, 5, Color.DEFAULT_COLOR);
-        LowlevelLogging.debug("root / descended / total obj");
-        LowlevelLogging.debug("root / descended / total obj");
-        LowlevelLogging.debug("root / descended / total obj");
-        LowlevelLogging.debug("root / descended / total obj");*/
+        /*if (Kernel.gcRun == 1){
+            LowlevelLogging.debug("gc deletion done");
+            while(true){};
+        }*/
 
 
+        LowlevelOutput.printInt(deleted, 10, 5, 0, 0, Color.DEFAULT_COLOR);
+        //LowlevelLogging.debug("Deleted Objects:");
+
+    }
+
+    @SJC.Inline
+    public void deleteUnused(MemoryManager mgr) {
         // recycle all still kill marked objects
-        currentObj = MemoryManager.firstObj;
+        Object currentObj = MemoryManager.firstObj;
         Object last = null;
-        do {
+        while(currentObj != null) {
             Object next = currentObj._r_next;
 
             if(currentObj._s_gcUsedBy == 0){
-                deleted++;
                 if (currentObj instanceof MemAreaArrayList){
                     LowlevelLogging.debug("deleting memAreaArrayList");
-
                 }
+                if (currentObj instanceof TaskManager){
+                    LowlevelLogging.debug("deleting taskManager");
+                }
+
+                SClassDesc cd = currentObj._r_type;
+                if (cd.name != null
+                        && !cd.name.equals("String")
+                        && !cd.name.equals("SArray")) {
+                    LowlevelOutput.printStr(String.concat(cd.name, "                           "), 0, 0, Color.GREY);
+                    Kernel.wait(1);
+                } else {
+                    LowlevelOutput.printHex(MAGIC.cast2Ref(currentObj), 10, 0, 1, Color.GREY);
+                    LowlevelOutput.printHex(MAGIC.cast2Ref(cd), 10, 0, 2, Color.BLUE);
+                    //LowlevelOutput.printHex(, 10, 0, 1, Color.GREY);
+                    //LowlevelLogging.debug("name is null");
+                    invalid++;
+                    /*LowlevelLogging.printHexdump(MAGIC.cast2Ref(cd)-16);
+                    Interrupts.disable();
+                    Kernel.hlt();*/
+                }
+
                 mgr.deallocate(currentObj);
+                deleted++;
                 if(next == null){
                     // its the last object -> update memmanager
                     MemoryManager.lastObj = last;
@@ -88,11 +121,36 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
             // go to the next one
             currentObj = next;
 
-        } while(currentObj != null);
+        }
+    }
 
-        LowlevelOutput.printInt(deleted, 10, 5, 0, 0, Color.DEFAULT_COLOR);
-        //LowlevelLogging.debug("Deleted Objects:");
+    @SJC.Inline
+    public void markAllUnused() {
+        Object currentObj = MemoryManager.firstObj;
 
+        // mark all objects on heap with kill mark = 0
+        while(currentObj != null){
+            MAGIC.assign(currentObj._s_gcUsedBy, 0);
+            currentObj = currentObj._r_next;
+            heapObjects++;
+        }
+    }
+
+    /**
+     * remove mark on used objects (objects accessable from one of the pre created in image objects)
+     */
+    @SJC.Inline
+    public void markUsedByImage() {
+        BasicMemoryManager.ImageInfo image = (BasicMemoryManager.ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
+        Object rootObj = MAGIC.cast2Obj(image.firstObjInImageAddr);
+
+        // loop over all root objects
+        while(rootObj != null){
+            iterativeMarkUsed(rootObj);
+
+            rootObj = rootObj._r_next;
+            rootObjects++;
+        }
     }
 
     @SJC.Inline
@@ -116,6 +174,11 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
                 LowlevelOutput.printHex(MAGIC.cast2Ref(currentObj),8, 31, line, Color.GREY);
                 line++;*/
 
+                //log up
+                MAGIC.wMem32(logAddr, 0x0000000B); logAddr += 4;
+                MAGIC.wMem32(logAddr, MAGIC.cast2Ref(currentObj));  logAddr += 4;
+                MAGIC.wMem32(logAddr, currentObj._s_gcUsedBy);  logAddr += 4;
+
                 // go back in dependency hierarchy
                 currentObj = MAGIC.cast2Obj(currentObj._s_gcUsedBy);
 
@@ -132,14 +195,25 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
                     LowlevelOutput.printHex(MAGIC.cast2Ref(child),8, 31, line, Color.GREY);
                     line++;*/
 
+                    //log descend
+                    MAGIC.wMem32(logAddr, 0x0000DE3C); logAddr += 4;
+                    MAGIC.wMem32(logAddr, MAGIC.cast2Ref(currentObj));  logAddr += 4;
+                    MAGIC.wMem32(logAddr, MAGIC.cast2Ref(child) );  logAddr += 4;
+
                     currentObj = child;
                     isFirstTime = true;
 
+                    if (MAGIC.cast2Ref(child) >= MAGIC.cast2Ref(MemoryManager.firstObj)){
+                        visitedHeapObjects++;
+                    } else {
+                        visitedRootObjects++;
+                    }
                     break;
                 }
             }
 
         } while (currentObj != rootObj);
+
     }
 
 }

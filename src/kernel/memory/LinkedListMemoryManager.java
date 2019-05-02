@@ -8,7 +8,7 @@ import rte.SClassDesc;
 public class LinkedListMemoryManager extends MemoryManager {
     private final MemAreaLinkedList areas;
     private final MemAreaLinkedList.MemAreaIterator areaIter;
-    private GarbageCollector gc;
+    public GarbageCollector gc;
 
     public MemAreaLinkedList getAreas(){
         return areas;
@@ -86,7 +86,7 @@ public class LinkedListMemoryManager extends MemoryManager {
 
         iter.gotoStart();
         while(iter.next()){
-            MemArea other = iter.get(); // todo out ouf bounds here
+            MemArea other = iter.get();
 
             if (other.start == start + size && expandedOther == null){
                 // touching free space on top -> just expand it

@@ -1,7 +1,7 @@
 package tasks.shell.commands;
 
+import datastructs.LinkedList;
 import datastructs.RingBuffer;
-import datastructs.subtypes.MemAreaLinkedList;
 import kernel.memory.MemArea;
 import kernel.memory.SystemMemoryMap;
 import tasks.LogEvent;
@@ -14,11 +14,11 @@ public class Smap extends Command{
 
     @Override
     public void execute(RingBuffer shellMessageBuffer, String[] args) {
-        MemAreaLinkedList memAreas = SystemMemoryMap.getAvailableGtOneMb();
-        MemAreaLinkedList.MemAreaIterator iter = memAreas.iter();
+        LinkedList memAreas = SystemMemoryMap.getAvailableGtOneMb();
+        LinkedList.Iterator iter = memAreas._iter();
         shellMessageBuffer.push(new LogEvent("Available memory areas"));
         while(iter.next()){
-            MemArea mem = iter.get();
+            MemArea mem = (MemArea) iter._get();
 
             shellMessageBuffer.push(
                     new LogEvent(

@@ -62,6 +62,15 @@ public class GarbageCollectorTest {
         if(gc._s_gcUsedBy != -1){ return 810;}
 
 
+        // full run over all objects three times
+        gc.markAllUnused();
+        gc.markUsedByImage();
+        gc.markAllUnused();
+        gc.markUsedByImage();
+        gc.markAllUnused();
+        gc.markUsedByImage();
+        // it would have deleted itself ... which is never correct
+        if(gc._s_gcUsedBy == -1){ return 888;}
 
         return 0;
     }
