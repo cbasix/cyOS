@@ -48,6 +48,7 @@ public class Shell extends Task {
         registeredCommands.add(new NullWrite());
         registeredCommands.add(new TextualCall());
         registeredCommands.add(new GarbageCollectionInfo());
+        registeredCommands.add(new PciScan());
 
         inputArea.setColor(Color.BLACK, Color.GREY);
         outputArea.setColorState(COLOR_NORMAL);
