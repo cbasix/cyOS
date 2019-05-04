@@ -16,7 +16,7 @@ with open('ref.pickle', 'rb') as f:
     ref = pickle.load(f)
 
 out = open("../blobs/squirrel.bib", "wb")
-#out.write(jpgfile.convert("P", palette=Image.MAXCOVERAGE, colors=256).tobytes())
+#out.writeConfigSpace(jpgfile.convert("P", palette=Image.MAXCOVERAGE, colors=256).tobytes())
 
 
 img = Image.new('RGB', (320, 200), color = 'red')

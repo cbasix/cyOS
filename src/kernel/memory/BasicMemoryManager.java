@@ -31,7 +31,7 @@ public class BasicMemoryManager extends MemoryManager{
         // allign to 4 byte, (last two address bits zero)
         interruptDescriptorTableAddr =  (image.start + image.size + 0x3) & ~0x3;
 
-        // write marker into mem
+        // writeConfigSpace marker into mem
         MAGIC.wMem32(interruptDescriptorTableAddr, 0xA1A1A1A1);
         interruptDescriptorTableAddr += MAGIC.ptrSize;
 
@@ -45,7 +45,7 @@ public class BasicMemoryManager extends MemoryManager{
 
         firstFreeAddr = interruptJumpTableAddr + ijtSize;
 
-        // write marker into mem
+        // writeConfigSpace marker into mem
         MAGIC.wMem32(firstFreeAddr, 0xB2B2B2B2);
         firstFreeAddr += MAGIC.ptrSize;
 

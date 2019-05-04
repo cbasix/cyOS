@@ -10,7 +10,7 @@ public class Paging {
             entry |= (i + pageTableEntryCount * tableNo) << 12; // page base address
             entry |= 0 << 7; // page size
             entry |= 0 << 4; // cache disable (0) -> cache on
-            entry |= 0 << 3; // write trough (0) -> write back
+            entry |= 0 << 3; // writeConfigSpace trough (0) -> writeConfigSpace back
             entry |= 0 << 2; // user/system (0) -> system
             entry |= 1 << 1; // read/r+w (1) -> r+w
 
@@ -36,7 +36,7 @@ public class Paging {
             entry |= pageTableAddr ; // page table base address
             entry |= 0 << 7; // page size
             entry |= 0 << 4; // cache disable (0) -> cache on
-            entry |= 0 << 3; // write trough (0) -> write back
+            entry |= 0 << 3; // writeConfigSpace trough (0) -> writeConfigSpace back
             entry |= 0 << 2; // user/system (0) -> system
             entry |= 1 << 1; // read/r+w (1) -> r+w
             entry |= 1 << 0; // present (1) -> seite vorhanden

@@ -11,7 +11,7 @@ public class PagingTest {
 
 
         int pageDirAddr = 1024*1024*5; // at 10mb in nirvana  todo just for testing
-        //LowlevelLogging.debug("before write");
+        //LowlevelLogging.debug("before writeConfigSpace");
         Paging.writePageDirectory(pageDirAddr);
         //LowlevelLogging.debug("written");
 

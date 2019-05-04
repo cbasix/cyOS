@@ -54,4 +54,4 @@ if __name__ == '__main__':
 #print(file.bits, file.size, file.format)
 
 #out = open("../blobs/squirrel.bib", "wb")
-#out.write(jpgfile.convert("P", palette=Image.MAXCOVERAGE, colors=256).tobytes())
+#out.writeConfigSpace(jpgfile.convert("P", palette=Image.MAXCOVERAGE, colors=256).tobytes())
