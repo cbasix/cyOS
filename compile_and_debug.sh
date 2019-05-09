@@ -1,3 +1,6 @@
+set -e
+set -o pipefail
+
 cd compiler/exec0190/
 ./compile ../../src/ ../../blobs/ -o boot -s 2M -D code addr.txt -Q -I 5
 #qemu-system-i386 -no-kvm -monitor stdio -m 32 -boot a -drive format=raw,if=none,file=BOOT_FLP.IMG -device floppy,drive=none0,drive-type=144

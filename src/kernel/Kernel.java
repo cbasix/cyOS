@@ -38,7 +38,7 @@ public class Kernel {
         // -------------- setup interrupts
         InterruptHub interruptHub = Interrupts.init();
 
-        interruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_EXTERNAL);
+        //interruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_EXTERNAL);
         interruptHub.addObserver(new AliveIndicator(), Interrupts.TIMER);
         interruptHub.addObserver(new KeyboardInterruptReceiver(), Interrupts.KEYBOARD);
 
@@ -98,7 +98,7 @@ public class Kernel {
         Puts the processor to sleep until the next interrupt. (Most likely system timer)
      */
     @SJC.Inline
-    public static void hlt(){
+    public static void sleep(){
         MAGIC.inline(0xF4);
     }
 
@@ -108,7 +108,7 @@ public class Kernel {
     @SJC.GenCode
     public static void stop(){
         Interrupts.disable();
-        hlt();
+        sleep();
     }
 
 }

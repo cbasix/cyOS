@@ -2,6 +2,7 @@ package tasks.shell;
 
 import drivers.keyboard.Keyboard;
 import drivers.keyboard.KeyboardEvent;
+import drivers.virtio.VirtIo;
 import io.*;
 import kernel.Kernel;
 import datastructs.RingBuffer;
@@ -49,6 +50,7 @@ public class Shell extends Task {
         registeredCommands.add(new TextualCall());
         registeredCommands.add(new GarbageCollectionInfo());
         registeredCommands.add(new PciScan());
+        registeredCommands.add(new LoadVirtioNetDriver());
 
         inputArea.setColor(Color.BLACK, Color.GREY);
         outputArea.setColorState(COLOR_NORMAL);
@@ -93,6 +95,8 @@ public class Shell extends Task {
             outputBuffer.push(String.concat("You spend x ticks outside of the Shell. x = ", String.from(backgroundTickCount)));
         }
         draw();
+        // todo remove when virtio testing ready
+        execute(">virtio".toChars());
     }
 
     // todo bug last char not deletable

@@ -3,9 +3,8 @@ package tasks.shell.commands;
 import datastructs.ArrayList;
 import datastructs.RingBuffer;
 import drivers.pci.PCI;
+import drivers.pci.PciBaseAddr;
 import drivers.pci.PciDevice;
-import io.LowlevelLogging;
-import kernel.Kernel;
 import tasks.LogEvent;
 
 public class PciScan extends Command{
@@ -28,12 +27,24 @@ public class PciScan extends Command{
 
             String[] out = new String[14];
             shellMessageBuffer.push(new LogEvent(String.concat("Device Id:     0x",  String.hexFrom(p.deviceId))));
-            shellMessageBuffer.push(new LogEvent(String.concat("Manufacturer:  0x",  String.hexFrom(p.manufacturerId))));
+            shellMessageBuffer.push(new LogEvent(String.concat("Manufacturer:  0x",  String.hexFrom(p.vendorId))));
             shellMessageBuffer.push(new LogEvent(String.concat("BaseClassCode: 0x",  String.hexFrom(p.baseClassCode))));
             shellMessageBuffer.push(new LogEvent(String.concat("SubClassCode:  0x",  String.hexFrom(p.subClassCode))));
             shellMessageBuffer.push(new LogEvent(String.concat("Interf:        0x",  String.hexFrom(p.interf))));
             shellMessageBuffer.push(new LogEvent(String.concat("Revision:      0x",  String.hexFrom(p.revision))));
             shellMessageBuffer.push(new LogEvent(String.concat("Header:        0x",  String.hexFrom(p.header))));
+            shellMessageBuffer.push(new LogEvent(String.concat("Cap Poiner:    0x",  String.hexFrom(p.capabilitiesPointer))));
+
+            shellMessageBuffer.push(new LogEvent("Base Adresses:"));
+            for (int j = 0; j < p.baseAddresses.size(); j++) {
+                shellMessageBuffer.push(new LogEvent(
+                        String.concat(
+                            String.hexFrom(((PciBaseAddr) p.baseAddresses._get(j)).address),
+                            String.concat(" ", String.hexFrom(((PciBaseAddr) p.baseAddresses._get(j)).size))
+                        )
+                ));
+            }
+
             shellMessageBuffer.push(new LogEvent(""));
 
         }

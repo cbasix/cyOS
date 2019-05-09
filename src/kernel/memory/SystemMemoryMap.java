@@ -50,8 +50,8 @@ public class SystemMemoryMap {
                 LowlevelLogging.debug("Get memory map: Error");
                 while (true){}
             }
-
-            if (s.type == AVAILABLE_TO_OS && s.base >= 0x00100000) {
+            // java uses signed ints ...
+            if (s.type == AVAILABLE_TO_OS && (s.base >= 0x00100000 || s.base < 0)) {
                 iter.insert(new MemArea((int) s.base, (int) s.len));
             }
 

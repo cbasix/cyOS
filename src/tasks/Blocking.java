@@ -1,7 +1,5 @@
 package tasks;
 
-import drivers.keyboard.Keyboard;
-import drivers.keyboard.KeyboardEvent;
 import io.Color;
 import io.GreenScreenOutput;
 import io.LowlevelOutput;
@@ -27,7 +25,7 @@ public class Blocking extends Task {
             out.print(i);
             out.setCursor(37, 12);
             i++;
-            Kernel.hlt();// energy saving is important even in blocking tasks ;)
+            Kernel.sleep();// energy saving is important even in blocking tasks ;)
             // the problem is, that my cpu fan is annoying me if one core is running with full speed...
             // and that happens when qemu is within normal while true;
         }

@@ -4,7 +4,6 @@ import drivers.InputDevice;
 import datastructs.subtypes.InputDeviceArrayList;
 import datastructs.subtypes.TaskArrayList;
 import io.Color;
-import io.LowlevelLogging;
 import io.LowlevelOutput;
 import kernel.interrupts.core.Interrupts;
 import tasks.Task;
@@ -67,7 +66,7 @@ public class TaskManager {
             }
         }
         if (nothingTodo) {
-            Kernel.hlt();
+            Kernel.sleep();
         }
 
         // read input into currently focused task
@@ -140,7 +139,7 @@ public class TaskManager {
 
         /*LowlevelLogging.printHexdump(savedEsp);
         Interrupts.disable();
-        Kernel.hlt();*/
+        Kernel.sleep();*/
     }
 
     /*

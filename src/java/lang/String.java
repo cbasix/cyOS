@@ -203,10 +203,12 @@ public class String {
 
 
     public static String hexFrom(int value){
-        final int DIGITS = 8;
-        char[] strBuf = new char[DIGITS];
-        for (int i = DIGITS-1; i >= 0; i--) {
-            strBuf[DIGITS-1-i] = String.alphabet.charAt((int)(value >> i*4) & 0xF);
+        return hexFrom(value, 8);
+    }
+    public static String hexFrom(int value, int digits){
+        char[] strBuf = new char[digits];
+        for (int i = digits-1; i >= 0; i--) {
+            strBuf[digits-1-i] = String.alphabet.charAt((int)(value >> i*4) & 0xF);
         }
 
         // avoid copy
@@ -216,5 +218,16 @@ public class String {
         return ret;
     }
 
+    public static String hexFrom(short value){
+        return hexFrom(value, 4);
+    }
+
+    public static String hexFrom(char value){
+        return hexFrom(value, 2);
+    }
+
+    public static String hexFrom(byte value){
+        return hexFrom(value, 2);
+    }
 
 }

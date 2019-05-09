@@ -89,7 +89,7 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
                     invalid++;
                     //LowlevelLogging.printHexdump(MAGIC.cast2Ref(cd)-16);
                     //Interrupts.disable();
-                    //Kernel.hlt();
+                    //Kernel.sleep();
                 }*/
 
                 mgr.deallocate(currentObj);

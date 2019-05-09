@@ -3,8 +3,6 @@ package kernel.interrupts.core;
 import io.Color;
 import io.LowlevelOutput;
 import kernel.Kernel;
-import kernel.interrupts.core.InterruptReceiver;
-import kernel.interrupts.core.Interrupts;
 import kernel.memory.Paging;
 import rte.SClassDesc;
 import rte.SMthdBlock;
@@ -95,7 +93,7 @@ public class Bluescreen {
         // while(true) (with fooling the ide's dead code recognition)
         // and yes just sleeping with interrupts disabled would have the same effect
         int i = 0;
-        while(i==0){Kernel.hlt();};
+        while(i==0){Kernel.sleep();};
 
         Interrupts.enable();
         return true;

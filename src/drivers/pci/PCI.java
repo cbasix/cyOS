@@ -5,8 +5,11 @@ import datastructs.ArrayList;
 public class PCI {
     public static final int ADDR_REG = 0x0CF8;
     public static final int DATA_REG = 0x0CFC;
-
     public static final int FIXED = 0x80000000;
+
+    public static final int NETWORK_CARD = 0x1;
+    public static final int BLOCK_DEVICE = 0x2;
+
 
     @SJC.Inline
     public static int addr(int busNo, int deviceNo, int functionNo, int reg){
