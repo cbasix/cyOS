@@ -1,11 +1,10 @@
-package drivers.virtio;
+package drivers.virtio.first_try;
 
 import drivers.pci.PciBaseAddr;
 import drivers.pci.PciDevice;
-import io.Color;
-import io.GreenScreenOutput;
+import drivers.virtio.VirtIo;
+import drivers.virtio.structs.CommonConfig;
 import io.LowlevelLogging;
-import io.LowlevelOutput;
 import kernel.Kernel;
 
 public abstract class VirtIoPciDevice extends PciDevice {
@@ -63,20 +62,20 @@ public abstract class VirtIoPciDevice extends PciDevice {
         while (conf.device_status != 0){Kernel.sleep();}// see 4.1.4.3.2
 
         // Acknowledge device (let it know that its presence will will get honored soon :;
-        conf.device_status = (byte)VirtIo.VIRTIO_CONF_STATUS_ACKNOWLEDGE;
+        conf.device_status = (byte) CommonConfig.VIRTIO_CONF_STATUS_ACKNOWLEDGE;
 
         // set driver status bit (let it know we know how to drive it)
-        conf.device_status = (byte)(VirtIo.VIRTIO_CONF_STATUS_ACKNOWLEDGE | VirtIo.VIRTIO_CONF_STATUS_DRIVER);
+        conf.device_status = (byte)(CommonConfig.VIRTIO_CONF_STATUS_ACKNOWLEDGE | CommonConfig.VIRTIO_CONF_STATUS_DRIVER);
 
         // negotiate features (device specific)
         negotiateFeatures(conf);
 
         // set features ok
-        conf.device_status = (byte)(VirtIo.VIRTIO_CONF_STATUS_ACKNOWLEDGE | VirtIo.VIRTIO_CONF_STATUS_DRIVER | VirtIo.VIRTIO_CONF_STATUS_FEATURES_OK);
+        conf.device_status = (byte)(CommonConfig.VIRTIO_CONF_STATUS_ACKNOWLEDGE | CommonConfig.VIRTIO_CONF_STATUS_DRIVER | CommonConfig.VIRTIO_CONF_STATUS_FEATURES_OK);
         MAGIC.inline(0x0F, 0xAE, 0xF0); //mfence Memory Fence
 
         // check if features ok is still set
-        if ((conf.device_status & VirtIo.VIRTIO_CONF_STATUS_FEATURES_OK) == 0){
+        if ((conf.device_status & CommonConfig.VIRTIO_CONF_STATUS_FEATURES_OK) == 0){
             // the device does not support our subset of features and the device is unusable.
             LowlevelLogging.debug("Virtio device does not support selected features");
         }
@@ -86,8 +85,8 @@ public abstract class VirtIoPciDevice extends PciDevice {
 
 
         // set driver go -> now the device is LIVE
-        conf.device_status = (byte)(VirtIo.VIRTIO_CONF_STATUS_ACKNOWLEDGE | VirtIo.VIRTIO_CONF_STATUS_DRIVER |
-                VirtIo.VIRTIO_CONF_STATUS_FEATURES_OK | VirtIo.VIRTIO_CONF_STATUS_DRIVER_OK);
+        conf.device_status = (byte)(CommonConfig.VIRTIO_CONF_STATUS_ACKNOWLEDGE | CommonConfig.VIRTIO_CONF_STATUS_DRIVER |
+                CommonConfig.VIRTIO_CONF_STATUS_FEATURES_OK | CommonConfig.VIRTIO_CONF_STATUS_DRIVER_OK);
 
 
         /*LowlevelOutput.printInt(conf.device_status,2 ,8, 1,1,  Color.RED);

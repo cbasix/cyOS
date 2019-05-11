@@ -5,8 +5,9 @@ import datastructs.RingBuffer;
 import drivers.pci.PCI;
 import drivers.pci.PciDevice;
 import drivers.virtio.VirtIo;
-import drivers.virtio.legacy.VirtioNetLegacy;
-import drivers.virtio.net.VirtioNet;
+import drivers.virtio.first_try.VirtioNet;
+import drivers.virtio.net.VirtioNic;
+import io.LowlevelLogging;
 import tasks.LogEvent;
 
 
@@ -26,13 +27,17 @@ public class LoadVirtioNetDriver extends Command{
 
             if (p.vendorId == VirtIo.VIRTIO_VENDOR_ID && (
                     p.deviceId == VirtIo.VIRTIO_NETWORK_CARD_ID || p.deviceId == VirtIo.VIRTIO_NETWORK_CARD_ID_2)){
-                //LowlevelLogging.debug("Device found");
+
+                if(found) {
+                    LowlevelLogging.debug("Multiple devices found");
+                }
 
                 byte[] firstMessage = binimp.ByteData.discover;
 
                 //VirtioNetLegacy deviceLegacy = new VirtioNetLegacy(p);
-                VirtioNet device = VirtioNet.from(p);
-                for (int j = 0; j < 100; j++) {
+                //VirtioNet device = VirtioNet.from(p);
+                VirtioNic device = new VirtioNic(p);
+                for (int j = 0; j < 512; j++) {
                     device.send(firstMessage);
                 }
 

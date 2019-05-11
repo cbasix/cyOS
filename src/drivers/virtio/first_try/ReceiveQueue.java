@@ -1,8 +1,4 @@
-package drivers.virtio.net;
-
-import drivers.virtio.VirtQueue;
-import io.LowlevelLogging;
-import kernel.Kernel;
+package drivers.virtio.first_try;
 
 public class ReceiveQueue extends VirtQueue {
     public ReceiveQueue(short queueIndex, int notifierAddr) {

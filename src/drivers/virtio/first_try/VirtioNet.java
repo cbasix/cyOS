@@ -1,12 +1,13 @@
-package drivers.virtio.net;
+package drivers.virtio.first_try;
 
 import drivers.pci.PciDevice;
-import drivers.virtio.*;
+import drivers.virtio.structs.CommonConfig;
 import io.Color;
 import io.GreenScreenOutput;
 import io.LowlevelLogging;
 import io.LowlevelOutput;
 import kernel.Kernel;
+import kernel.interrupts.core.InterruptReceiver;
 
 
 public class VirtioNet extends VirtIoPciDevice {
@@ -15,6 +16,21 @@ public class VirtioNet extends VirtIoPciDevice {
 
     private static final short ENABLED = 1;
     private static final short DISABLED = 0;
+
+
+    public static final int INTERRUPT_NO = 43;
+    private final InterruptHandler interruptHandler;
+
+    public class InterruptHandler extends InterruptReceiver {
+        @Override
+        public boolean handleInterrupt(int interruptNo, int param) {
+            if (interruptNo == INTERRUPT_NO){
+                //todo read isr register an check if virtio was the source then
+                return true;
+            }
+            return false;
+        }
+    }
 
     TransmitQueue transmitQueue;
     ReceiveQueue receiveQueue;
@@ -25,10 +41,12 @@ public class VirtioNet extends VirtIoPciDevice {
 
     public VirtioNet(PciDevice pciDevice) {
         super(pciDevice);
+        this.interruptHandler = new InterruptHandler();
     }
 
     @Override
     public void negotiateFeatures(CommonConfig conf) {
+        conf.device_feature_select = 0;
         //read device feature bits
         int features1 = conf.device_feature;
         conf.device_feature_select = 1;
@@ -55,7 +73,7 @@ public class VirtioNet extends VirtIoPciDevice {
         setFeatureFlag(conf, VIRTIO_F_RING_EVENT_IDX);
     }
 
-    public void setFeatureFlag( CommonConfig conf, int featureId){
+    public void setFeatureFlag(CommonConfig conf, int featureId){
         int featureRegister = featureId / 32;
         int offsetInRegister = featureId % 32;
         conf.driver_feature_select = featureRegister;
@@ -97,7 +115,9 @@ public class VirtioNet extends VirtIoPciDevice {
      */
     @Override
     public void setup(CommonConfig conf) {
-        setInterruptLine(5);
+        //Kernel.interruptHub.addObserver(this.interrupHandler);
+        setInterruptLine(11); // todo changing doesnt work
+
 
         GreenScreenOutput out = new GreenScreenOutput();
 
@@ -108,6 +128,8 @@ public class VirtioNet extends VirtIoPciDevice {
         } else {
             //printConf(conf, out);
         }
+
+
 
         //conf.msix_config = 0x1;
         //if(conf.msix_config != 0x1){LowlevelLogging.debug("msix_config not ok");};
@@ -137,6 +159,9 @@ public class VirtioNet extends VirtIoPciDevice {
             }*/
 
             int notifyAddr = this.notifyBaseAddr + notify_cap_offset + conf.queue_notify_off * notify_off_multiplier;
+
+            LowlevelLogging.debug(String.hexFrom(notifyAddr));
+            Kernel.wait(15);
 
             // todo only one transmit and receive queue supported  no config no second transmit queue ...
             VirtQueue currentlyAddedQueue;
@@ -230,8 +255,8 @@ public class VirtioNet extends VirtIoPciDevice {
             conf.queue_enable = ENABLED;
 
             printConf(conf, out);
-            LowlevelLogging.printHexdump(confBase);
-            Kernel.wait(10);
+            //LowlevelLogging.printHexdump(confBase);
+            Kernel.wait(2);
 
             // todo msi-x capabilities? NO
         }

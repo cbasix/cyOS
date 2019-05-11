@@ -1,6 +1,8 @@
-package drivers.virtio.legacy.structs;
+package drivers.virtio.structs;
 
 public class UsedRingElement extends STRUCT {
+    public static final int SIZE = 4 + 4;
+
     /* id indicates the head entry of the descriptor chain describing the
        buffer (thismatches an entry placed in the available ring by the guest earlier) */
     /* le32(int) is used here for ids for padding reasons. */

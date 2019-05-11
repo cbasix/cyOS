@@ -19,6 +19,7 @@ import tests.TestRunner;
 public class Kernel {
     public static TaskManager taskManager;
     public static MemoryManager memoryManager;
+    public static InterruptHub interruptHub;
     public static boolean doGC = false;
     public  static int gcRun;
 
@@ -36,7 +37,7 @@ public class Kernel {
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
 
         // -------------- setup interrupts
-        InterruptHub interruptHub = Interrupts.init();
+        interruptHub = Interrupts.init();
 
         //interruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_EXTERNAL);
         interruptHub.addObserver(new AliveIndicator(), Interrupts.TIMER);

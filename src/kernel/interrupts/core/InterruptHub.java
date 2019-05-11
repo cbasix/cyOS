@@ -36,7 +36,7 @@ public class InterruptHub {
         }
         if (!handled) {
             LowlevelOutput.printStr("Interrupt not handled: ", 40, 0, Color.RED);
-            LowlevelOutput.printInt(interruptNo,10,2, 63, 0, Color.RED);
+            LowlevelOutput.printStr(String.from(interruptNo), 63, 0, Color.RED);
             Kernel.wait(2);
         }
     }

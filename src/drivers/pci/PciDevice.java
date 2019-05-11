@@ -2,11 +2,17 @@ package drivers.pci;
 
 import datastructs.ArrayList;
 import io.Color;
+import io.LowlevelLogging;
 import io.LowlevelOutput;
 
 public class PciDevice {
 
     public static final int STATUS_CAPABILITIES_LIST = 0x10;
+    public static final int INTA = 0x01;
+    public static final int INTB = 0x02;
+    public static final int INTC = 0x03;
+    public static final int INTD = 0x04;
+    public static final int INT_NONE = 0x00;
 
     public int busNo;
     public int deviceNo;
@@ -59,7 +65,12 @@ public class PciDevice {
     public void setInterruptLine(int line){
         int reg0F = readConfigSpace(0x0F);
         // take last 4 bits of line, see wiki.osdev.org/PCI
-        writeConfigSpace(0x0F, reg0F | (line & 0xF));
+        LowlevelLogging.debug(String.concat("pci 0f reg: ", String.hexFrom(reg0F)));
+        writeConfigSpace(0x0F, (reg0F & ~0xFF) | (line & 0xFF));
+    }
+
+    public int getInterruptLine() {
+        return readConfigSpace(0x0F) & 0xF;
     }
 
     public void loadBaseAddresses(){
@@ -106,4 +117,6 @@ public class PciDevice {
             LowlevelOutput.printHex(readConfigSpace(i + start), 8, 10+20*(i/24), i%24, Color.RED);
         }
     }
+
+
 }

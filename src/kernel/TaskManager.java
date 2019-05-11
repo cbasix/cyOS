@@ -66,7 +66,7 @@ public class TaskManager {
             }
         }
         if (nothingTodo) {
-            Kernel.sleep();
+            //Kernel.sleep();
         }
 
         // read input into currently focused task

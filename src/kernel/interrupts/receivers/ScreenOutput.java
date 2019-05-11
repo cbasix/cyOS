@@ -15,6 +15,13 @@ public class ScreenOutput extends InterruptReceiver {
             LowlevelOutput.printHex(interruptNo, 2, 76, 0, Color.CYAN << 4 | Color.BLACK);
             //LowlevelOutput.printHex(cnt, 10, 70, 6, Color.GREEN);
         }
+        /*if (interruptNo == 43){
+            // todo remove
+            //virtio testing
+            // todo reset interrupt
+            return true;
+        }*/
+
         //cnt++;
         return false;
     }

@@ -1,9 +1,6 @@
-package drivers.virtio.net;
+package drivers.virtio.first_try;
 
-import drivers.virtio.RawMemoryContainer;
-import drivers.virtio.VirtQueue;
 import io.LowlevelLogging;
-import kernel.Kernel;
 
 public class TransmitQueue extends VirtQueue {
     public static final int NET_HEADER_SIZE = 12;
@@ -30,7 +27,10 @@ public class TransmitQueue extends VirtQueue {
         super(queueIndex, notifierAddr);
 
         setupBuffers();
+        // ask for disabled intterrupts // not a dependable operation
+        availableRing.flags = (short)VIRTQ_AVAIL_F_NO_INTERRUPT;
     }
+
     /** puts data into the transmit queue */
     public void transmit(byte[] data){
         if (((data.length + NET_HEADER_SIZE) / BUFFER_SIZE) != 0){
@@ -40,7 +40,7 @@ public class TransmitQueue extends VirtQueue {
         }
 
         // get the next buffer to use
-        DescriptorTableElement dte = descriptorTable.elements[nextBuffer];
+        DescriptorTableElement dte = descriptorTable.elements[nextBuffer % QUEUE_SIZE];
         // package is preceeded by the header defined above so its longer ;)
         dte.length = data.length + NET_HEADER_SIZE;
 
@@ -57,7 +57,7 @@ public class TransmitQueue extends VirtQueue {
         }
 
         // put into available queue
-        availableRing.ring[availableRing.idx % QUEUE_SIZE] = nextBuffer;
+        availableRing.ring[availableRing.idx % QUEUE_SIZE] = (short)(nextBuffer % QUEUE_SIZE);
         populateAvailable(1);
 
         nextBuffer++;

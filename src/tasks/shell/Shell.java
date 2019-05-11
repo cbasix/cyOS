@@ -96,7 +96,7 @@ public class Shell extends Task {
         }
         draw();
         // todo remove when virtio testing ready
-        execute(">virtio".toChars());
+        // execute(">virtio".toChars());
     }
 
     // todo bug last char not deletable
