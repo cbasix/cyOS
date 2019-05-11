@@ -173,7 +173,7 @@ public class VirtioNic {
                 int cap_offset_within_bar = pciDevice.readConfigSpace(currentPtr+2);
 
                 PciBaseAddr pba = (PciBaseAddr) pciDevice.baseAddresses._get(bar);
-                int notifyBarAddr = pba.address & ~0x3;
+                int notifyBarAddr = pba.address & ~0xF;
 
                 notifyConfig = new NotifyConfig(notifyBarAddr, cap_offset_within_bar, notify_off_multiplier, QUEUE_COUNT);
 
@@ -368,7 +368,7 @@ public class VirtioNic {
         // check if notifications are enabled
         if((transmitQueue.usedRing.flags & UsedRing.VIRTQ_USED_F_NO_NOTIFY)==0){
             //for (int k = -10; k < -5; k++){
-            int k = -10;
+            int k = +2;
                 // notify device see 4.1.4.4
                 MAGIC.wMem16(notifyConfig.getQueueNotifyAddr(TRANSMIT_QUEUE)+k, (short) TRANSMIT_QUEUE);
             //}
