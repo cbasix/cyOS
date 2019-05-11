@@ -65,7 +65,6 @@ public class PciDevice {
     public void setInterruptLine(int line){
         int reg0F = readConfigSpace(0x0F);
         // take last 4 bits of line, see wiki.osdev.org/PCI
-        LowlevelLogging.debug(String.concat("pci 0f reg: ", String.hexFrom(reg0F)));
         writeConfigSpace(0x0F, (reg0F & ~0xFF) | (line & 0xFF));
     }
 

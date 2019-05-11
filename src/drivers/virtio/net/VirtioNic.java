@@ -50,8 +50,6 @@ public class VirtioNic {
     private PciDevice pciDevice;
     private IsrReg isrReg;
 
-    // for debugging
-    GreenScreenOutput out = new GreenScreenOutput();
 
     class VirtioInterruptAdapter extends InterruptReceiver {
         public static final int CONFIG_INT = 1;
@@ -77,9 +75,6 @@ public class VirtioNic {
     }
 
     public VirtioNic(PciDevice pciDevice){
-
-        out.setCursor(0, 1);
-
         this.pciDevice = pciDevice;
         this.pciDevice.setInterruptLine(INTERRUPT_LINE);
 
@@ -116,11 +111,6 @@ public class VirtioNic {
                     String.hexFrom(tqa & ~3)));
             Kernel.wait(3);
         }
-        out.printHex(transmitQueueAddr);out.println();
-        out.printHex(receiveQueueAddr);out.println();
-        out.printHex(bufferAreaAddr);out.println();
-
-        //Kernel.wait(5);
 
         transmitQueue = (Virtqueue) MAGIC.cast2Struct(transmitQueueAddr);
         receiveQueue = (Virtqueue) MAGIC.cast2Struct(receiveQueueAddr);
@@ -304,10 +294,6 @@ public class VirtioNic {
         commonConfig.queue_select = (short) RECEIVE_QUEUE;
         commonConfig.queue_enable = 1;
 
-        LowlevelLogging.debug(String.hexFrom(commonConfig.device_status));
-
-
-
         // push buffers into receive available ring
         AvailableRing avail = receiveQueue.availableRing;
         avail.idx = 0;
@@ -324,13 +310,8 @@ public class VirtioNic {
         if((receiveQueue.usedRing.flags & UsedRing.VIRTQ_USED_F_NO_NOTIFY)==0){
             // notify device see 4.1.4.4
             MAGIC.wMem16(notifyConfig.getQueueNotifyAddr(RECEIVE_QUEUE),(short) RECEIVE_QUEUE);
-            out.print("Notify ADDR: ");
-            out.println(String.hexFrom(notifyConfig.getQueueNotifyAddr(RECEIVE_QUEUE)));
         }
 
-        /*printConf(commonConfig, out);
-        LowlevelLogging.printHexdump(receiveQueueAddr + Virtqueue.AVAILABLE_RING_OFFSET);
-        Kernel.stop();*/
     }
 
     public void send(byte[] data){
@@ -367,11 +348,8 @@ public class VirtioNic {
 
         // check if notifications are enabled
         if((transmitQueue.usedRing.flags & UsedRing.VIRTQ_USED_F_NO_NOTIFY)==0){
-            //for (int k = -10; k < -5; k++){
-            int k = +2;
-                // notify device see 4.1.4.4
-                MAGIC.wMem16(notifyConfig.getQueueNotifyAddr(TRANSMIT_QUEUE)+k, (short) TRANSMIT_QUEUE);
-            //}
+            // notify device see 4.1.4.4
+            MAGIC.wMem16(notifyConfig.getQueueNotifyAddr(TRANSMIT_QUEUE), (short) TRANSMIT_QUEUE);
         }
     }
 
