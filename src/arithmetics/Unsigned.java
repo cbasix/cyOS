@@ -7,7 +7,7 @@ public class Unsigned {
     }
 
     @SJC.Inline
-    public static boolean isGreaterThanUnsigned(int n1, int n2){
+    public static boolean isGreaterThan(int n1, int n2){
         if (n1 == n1){
             return false;
         } else {
@@ -16,6 +16,6 @@ public class Unsigned {
     }
 
     public static void divide(int n1, int n2){
-        // todo implemen
+        // todo implement
     }
 }

@@ -5,7 +5,6 @@ import drivers.pci.PciBaseAddr;
 import drivers.pci.PciDevice;
 import drivers.virtio.RawMemoryContainer;
 import drivers.virtio.VirtIo;
-import drivers.virtio.first_try.TransmitQueue;
 import drivers.virtio.structs.*;
 import io.GreenScreenOutput;
 import io.LowlevelLogging;
@@ -14,13 +13,16 @@ import kernel.interrupts.core.InterruptReceiver;
 
 import drivers.virtio.structs.VirtqueueConstants;
 import kernel.interrupts.core.Interrupts;
-import kernel.memory.MarkAndSweepGarbageCollector;
+import network.MacAddress;
+import network.Nic;
 
-public class VirtioNic {
 
+public class VirtioNic extends Nic{
 
     public static final int VIRTIO_F_VERSION_1 = 32;
     public static final int VIRTIO_F_RING_EVENT_IDX = 29;
+    public static final int VIRTIO_NET_F_MAC = 5;
+    public static final int VIRTIO_NET_F_STATUS = 16;
 
     public static final int INTERRUPT_LINE = 11; // todo verify
     public static final int INTERRUPT_NO = Interrupts.IRQ11; // todo verify
@@ -35,13 +37,15 @@ public class VirtioNic {
 
     private RawMemoryContainer rawMem;
 
-    // addresen nötig da MAGIC.cast2Ref nicht mit STRUCTS umgehen kann...
-    private int transmitQueueAddr;
+
     private Virtqueue transmitQueue;
-    private int receiveQueueAddr;
     private Virtqueue receiveQueue;
-    private int bufferAreaAddr;
     private BufferArea bufferArea;
+    //private boolean[] inUse; todo implement conditional buffer reuse
+
+
+    private short lastSeenUsed = 0;
+    //private short nextBuffer = 0;
 
     private CommonConfig commonConfig;
     private NotifyConfig notifyConfig;
@@ -49,6 +53,7 @@ public class VirtioNic {
     private VirtioInterruptAdapter interruptAdapter;
     private PciDevice pciDevice;
     private IsrReg isrReg;
+    private NetConfig nicConfReg;
 
 
     class VirtioInterruptAdapter extends InterruptReceiver {
@@ -57,7 +62,6 @@ public class VirtioNic {
 
         @Override
         public boolean handleInterrupt(int interruptNo, int param) {
-            LowlevelLogging.debug("GOT AN INTERRUPT");
             // this read resets the interrupt!
             if((isrReg.data & 0x3) != 0){
                 LowlevelLogging.debug("GOT VIRTIO INTERRUPT");
@@ -74,7 +78,7 @@ public class VirtioNic {
         }
     }
 
-    public VirtioNic(PciDevice pciDevice){
+    public VirtioNic(PciDevice pciDevice) {
         this.pciDevice = pciDevice;
         this.pciDevice.setInterruptLine(INTERRUPT_LINE);
 
@@ -96,9 +100,9 @@ public class VirtioNic {
                         + ALIGN_SPACE
         );
 
-        transmitQueueAddr = (rawMem.getRawAddr() + 15) & ~15;
-        receiveQueueAddr = (transmitQueueAddr + Virtqueue.SIZE + 15) & ~15;
-        bufferAreaAddr = (receiveQueueAddr + Virtqueue.SIZE + 3) & ~3;
+        int transmitQueueAddr = (rawMem.getRawAddr() + 15) & ~15;
+        int receiveQueueAddr = (transmitQueueAddr + Virtqueue.SIZE + 15) & ~15;
+        int bufferAreaAddr = (receiveQueueAddr + Virtqueue.SIZE + 3) & ~3;
 
         int tqa = transmitQueueAddr + Virtqueue.USED_RING_OFFSET;
         int tqa2 = transmitQueueAddr + Virtqueue.AVAILABLE_RING_OFFSET;
@@ -116,6 +120,9 @@ public class VirtioNic {
         receiveQueue = (Virtqueue) MAGIC.cast2Struct(receiveQueueAddr);
         bufferArea = (BufferArea) MAGIC.cast2Struct(bufferAreaAddr);
 
+        if (transmitQueueAddr != MAGIC.cast2Ref(transmitQueue)) {
+            LowlevelLogging.debug("cast2ref doesnt work with struct");
+        }
         initDevice();
     }
 
@@ -126,6 +133,7 @@ public class VirtioNic {
         boolean cfgFound = false;
         boolean notifyFound = false;
         boolean isrFound = false;
+        boolean nicConfFound = false;
         do {
             int tmp = pciDevice.readConfigSpace(currentPtr);
             char cap_vndr = (char)(tmp & 0xFF);            /* Generic PCI field: PCI_CAP_ID_VNDR */
@@ -184,7 +192,17 @@ public class VirtioNic {
                 isrReg = (IsrReg) MAGIC.cast2Struct(isrBase);
                 isrFound = true;
             }
-            // todo device specific conf for mac
+
+            // device specific conf for mac
+            if (!nicConfFound && cfg_type == VirtIo.VIRTIO_PCI_CAP_DEVICE_CFG && cap_vndr == 0x09){
+                int offset = pciDevice.readConfigSpace(currentPtr+2);
+
+                PciBaseAddr pba = (PciBaseAddr) pciDevice.baseAddresses._get(bar);
+                int nicConfBase = (pba.address & ~0xF) + offset;
+
+                nicConfReg = (NetConfig) MAGIC.cast2Struct(nicConfBase);
+                nicConfFound = true;
+            }
 
             currentPtr = cap_next / 4;
         } while (currentPtr != 0);
@@ -203,6 +221,11 @@ public class VirtioNic {
             LowlevelLogging.debug("No isr capability found.");
             Kernel.stop();
         }
+
+        if (!nicConfFound){
+            LowlevelLogging.debug("No nic conf capability found.");
+            Kernel.stop();
+        }
     }
 
     private void initDevice() {
@@ -218,69 +241,33 @@ public class VirtioNic {
         // os knows how to drive device
         commonConfig.device_status |= CommonConfig.VIRTIO_CONF_STATUS_DRIVER;
 
-        // simplified negotiation // todo check
-        commonConfig.device_feature_select = 1;
-        if ((commonConfig.device_feature & (1 << (VIRTIO_F_VERSION_1 - 32)))== 0){
-            LowlevelLogging.debug("Virtio device does not support spec 1");
-        }
-
-        commonConfig.driver_feature_select = 1; // select second feature register (bits 32 -> 63)
-        commonConfig.driver_feature = 1 << (VIRTIO_F_VERSION_1 - 32); // -32 because bit 0-31 are in feature reg 0
-
-        commonConfig.device_status |= CommonConfig.VIRTIO_CONF_STATUS_FEATURES_OK;
-
-        if ((commonConfig.device_status & CommonConfig.VIRTIO_CONF_STATUS_FEATURES_OK) == 0){
-            LowlevelLogging.debug("Virtio device does not support selected features");
-        }
+        negotiateFeatures();
 
         // setup descriptors for both qeues // NO CHAINING IMPLEMENTED
         for (int i = 0; i < VirtqueueConstants.QUEUE_SIZE; i++) {
             DescriptorElement descr = transmitQueue.descriptors[i];
-            descr.address = bufferAreaAddr + i * VirtqueueConstants.BUFFER_SIZE;
+            descr.address = MAGIC.cast2Ref(bufferArea) + i * VirtqueueConstants.BUFFER_SIZE;
             descr.length = VirtqueueConstants.BUFFER_SIZE;
             descr.flags = 0;
             descr.next = 0;
         }
+
         for (int i = 0; i < VirtqueueConstants.QUEUE_SIZE; i++) {
             DescriptorElement descr = receiveQueue.descriptors[i];
-            descr.address = bufferAreaAddr + i * VirtqueueConstants.BUFFER_SIZE;
+            descr.address = MAGIC.cast2Ref(bufferArea) + i * VirtqueueConstants.BUFFER_SIZE;
             descr.length = VirtqueueConstants.BUFFER_SIZE;
             // allow device to write to all descriptors
             descr.flags = DescriptorElement.VIRTQ_DESC_F_WRITE;
             descr.next = 0;
         }
 
-        // setup receive queue
-        commonConfig.queue_select = (short)RECEIVE_QUEUE;
-        if(Unsigned.isLessThan(commonConfig.queue_size, VirtqueueConstants.QUEUE_SIZE)){
-            LowlevelLogging.debug("HVs R-Virtqueue size smaller than drivers!");
-            Kernel.stop();
-        }
-        commonConfig.queue_size = (short) VirtqueueConstants.QUEUE_SIZE;
-        commonConfig.queue_msix_vector = (short) CommonConfig.VIRTIO_MSI_NO_VECTOR;
-        notifyConfig.setQueueNotifyOffset(RECEIVE_QUEUE, commonConfig.queue_notify_off);
-        commonConfig.queue_desc = receiveQueueAddr + Virtqueue.DESCRIPTOR_OFFSET;
-        commonConfig.queue_avail = receiveQueueAddr + Virtqueue.AVAILABLE_RING_OFFSET;
-        commonConfig.queue_used = receiveQueueAddr + Virtqueue.USED_RING_OFFSET;
-        commonConfig.queue_enable = 0;
+        setupReceiveQueue();
+        setupTransmitQueue();
 
-        // setup transmit queue
-        commonConfig.queue_select = (short)TRANSMIT_QUEUE;
-        if((commonConfig.queue_size & 0xFFFF) < VirtqueueConstants.QUEUE_SIZE){
-            LowlevelLogging.debug("HVs T-Virtqueue size smaller than drivers!");
-            Kernel.stop();
-        }
-        commonConfig.queue_size = (short)VirtqueueConstants.QUEUE_SIZE;
-        commonConfig.queue_msix_vector = (short) CommonConfig.VIRTIO_MSI_NO_VECTOR;
-        notifyConfig.setQueueNotifyOffset(TRANSMIT_QUEUE, commonConfig.queue_notify_off);
-        commonConfig.queue_desc = transmitQueueAddr + Virtqueue.DESCRIPTOR_OFFSET;
-        commonConfig.queue_avail = transmitQueueAddr + Virtqueue.AVAILABLE_RING_OFFSET;
-        commonConfig.queue_used = transmitQueueAddr + Virtqueue.USED_RING_OFFSET;
-        commonConfig.queue_enable = 0;
-
-        if(commonConfig.queue_desc != transmitQueueAddr + Virtqueue.DESCRIPTOR_OFFSET
-                || commonConfig.queue_avail != transmitQueueAddr + Virtqueue.AVAILABLE_RING_OFFSET
-                || commonConfig.queue_used != transmitQueueAddr + Virtqueue.USED_RING_OFFSET) {
+        // check queue addrss assignments
+        if(commonConfig.queue_desc != MAGIC.cast2Ref(transmitQueue) + Virtqueue.DESCRIPTOR_OFFSET
+                || commonConfig.queue_avail != MAGIC.cast2Ref(transmitQueue) + Virtqueue.AVAILABLE_RING_OFFSET
+                || commonConfig.queue_used != MAGIC.cast2Ref(transmitQueue) + Virtqueue.USED_RING_OFFSET) {
             LowlevelLogging.debug("WRONG QUEUE ADDR ASSIGNMENT");
         }
 
@@ -294,6 +281,14 @@ public class VirtioNic {
         commonConfig.queue_select = (short) RECEIVE_QUEUE;
         commonConfig.queue_enable = 1;
 
+        // disable interrupts for transmit queue
+        transmitQueue.availableRing.flags = (short) AvailableRing.VIRTQ_AVAIL_F_NO_INTERRUPT;
+
+        populateReceiveQueue();
+
+    }
+
+    private void populateReceiveQueue() {
         // push buffers into receive available ring
         AvailableRing avail = receiveQueue.availableRing;
         avail.idx = 0;
@@ -304,19 +299,97 @@ public class VirtioNic {
         }
 
         MAGIC.inline(0x0F,0xAE,0xF0); //mfence Memory Fence
-        avail.idx += VirtqueueConstants.QUEUE_SIZE-5; // todo 5 testing
+        avail.idx += VirtqueueConstants.QUEUE_SIZE;
 
         // check if notifications are enabled
         if((receiveQueue.usedRing.flags & UsedRing.VIRTQ_USED_F_NO_NOTIFY)==0){
             // notify device see 4.1.4.4
             MAGIC.wMem16(notifyConfig.getQueueNotifyAddr(RECEIVE_QUEUE),(short) RECEIVE_QUEUE);
         }
+    }
+
+    private void setupTransmitQueue() {
+        // setup transmit queue
+        commonConfig.queue_select = (short)TRANSMIT_QUEUE;
+        if((commonConfig.queue_size & 0xFFFF) < VirtqueueConstants.QUEUE_SIZE){
+            LowlevelLogging.debug("HVs T-Virtqueue size smaller than drivers!");
+            Kernel.stop();
+        }
+        commonConfig.queue_size = (short)VirtqueueConstants.QUEUE_SIZE;
+        commonConfig.queue_msix_vector = (short) CommonConfig.VIRTIO_MSI_NO_VECTOR;
+        notifyConfig.setQueueNotifyOffset(TRANSMIT_QUEUE, commonConfig.queue_notify_off);
+        commonConfig.queue_desc = MAGIC.cast2Ref(transmitQueue) + Virtqueue.DESCRIPTOR_OFFSET;
+        commonConfig.queue_avail = MAGIC.cast2Ref(transmitQueue) + Virtqueue.AVAILABLE_RING_OFFSET;
+        commonConfig.queue_used = MAGIC.cast2Ref(transmitQueue) + Virtqueue.USED_RING_OFFSET;
+        commonConfig.queue_enable = 0;
+    }
+
+    private void setupReceiveQueue() {
+        // setup receive queue
+        commonConfig.queue_select = (short)RECEIVE_QUEUE;
+        if(Unsigned.isLessThan(commonConfig.queue_size, VirtqueueConstants.QUEUE_SIZE)){
+            LowlevelLogging.debug("HVs R-Virtqueue size smaller than drivers!");
+            Kernel.stop();
+        }
+        commonConfig.queue_size = (short) VirtqueueConstants.QUEUE_SIZE;
+        commonConfig.queue_msix_vector = (short) CommonConfig.VIRTIO_MSI_NO_VECTOR;
+        notifyConfig.setQueueNotifyOffset(RECEIVE_QUEUE, commonConfig.queue_notify_off);
+        commonConfig.queue_desc = MAGIC.cast2Ref(receiveQueue) + Virtqueue.DESCRIPTOR_OFFSET;
+        commonConfig.queue_avail = MAGIC.cast2Ref(receiveQueue) + Virtqueue.AVAILABLE_RING_OFFSET;
+        commonConfig.queue_used = MAGIC.cast2Ref(receiveQueue) + Virtqueue.USED_RING_OFFSET;
+        commonConfig.queue_enable = 0;
+    }
+
+    private void negotiateFeatures() {
+        if (!setFeature(VIRTIO_F_VERSION_1)){
+            LowlevelLogging.debug("Virtio device does not support spec 1");
+        }
+
+        if (!setFeature(VIRTIO_NET_F_MAC)){
+            LowlevelLogging.debug("Virtio device does not support mac feature");
+        }
+
+        if (!setFeature(VIRTIO_NET_F_STATUS)){
+            LowlevelLogging.debug("Virtio device does not support status feature");
+        }
+
+        // set negotiation done
+        commonConfig.device_status |= CommonConfig.VIRTIO_CONF_STATUS_FEATURES_OK;
+
+        // check if device agrees
+        if ((commonConfig.device_status & CommonConfig.VIRTIO_CONF_STATUS_FEATURES_OK) == 0){
+            LowlevelLogging.debug("Virtio device does not support selected features");
+        }
+    }
+
+    private boolean setFeature(int featureId){
+        int featureRegister = featureId / 32;
+        int offsetInRegister = featureId % 32;
+
+        // check if device supports it
+        commonConfig.device_feature_select = featureRegister;
+        if ((commonConfig.device_feature & (1 << offsetInRegister))== 0){
+            LowlevelLogging.debug(String.concat("Wanted feature not offered by device: ", String.from(featureId)));
+            return false;
+        }
+
+        // confirm feature bits
+        commonConfig.driver_feature_select = featureRegister;
+        commonConfig.driver_feature = commonConfig.driver_feature | (1 << offsetInRegister);
+
+        return true;
 
     }
 
+    // todo save state used/unused of entry
+    // for now this works like a ring buffer and may overwrite buffers that are currently in use by the device
     public void send(byte[] data){
-        if(transmitQueue.usedRing.idx != 0){
-            LowlevelLogging.debug("WE MAY HAVE TRANSMITTED A PACKET");
+
+        // check for
+        if(transmitQueue.usedRing.idx != lastSeenUsed){
+            // do nothing
+            lastSeenUsed = transmitQueue.usedRing.idx;
+            //LowlevelLogging.debug("WE TRANSMITTED A PACKET");
         }
 
         if (data.length > VirtqueueConstants.BUFFER_SIZE - VirtioNetHeader.SIZE){
@@ -351,6 +424,28 @@ public class VirtioNic {
             // notify device see 4.1.4.4
             MAGIC.wMem16(notifyConfig.getQueueNotifyAddr(TRANSMIT_QUEUE), (short) TRANSMIT_QUEUE);
         }
+    }
+
+    @Override
+    public byte[] receive() {
+        // todo implement
+        return new byte[0];
+    }
+
+    @Override
+    public MacAddress getMacAddress() {
+        byte[] addr = new byte[MacAddress.MAC_LEN];
+        for (int i = 0; i < MacAddress.MAC_LEN; i++){
+            addr[i] = nicConfReg.mac[i];
+        }
+        // todo bug melden: fehlermeldung wenn versucht wird an den konstruktor ein struct zu übergeben ist nicht sprechend.
+        //  constructor MacAddress(byte[]) not found (has parent an explicit constructor?) in method getMacAddress() in unit VirtioNic
+        return new MacAddress(addr);
+    }
+
+    @Override
+    public boolean hasLink() {
+        return (nicConfReg.status & NetConfig.VIRTIO_NET_S_LINK_UP) != 0;
     }
 
     public void printConf(CommonConfig conf, GreenScreenOutput out){

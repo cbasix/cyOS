@@ -11,6 +11,7 @@ public class RawMemoryContainer {
 
     public int getRawAddr(){
         // todo check
-        return MAGIC.cast2Ref(data) + MAGIC.getInstScalarSize("SArray") ;
+        //return MAGIC.cast2Ref(data) + MAGIC.getInstScalarSize("SArray") ;
+        return MAGIC.addr(data[0]);
     }
 }

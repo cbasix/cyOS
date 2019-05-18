@@ -8,6 +8,9 @@ import drivers.virtio.VirtIo;
 import drivers.virtio.first_try.VirtioNet;
 import drivers.virtio.net.VirtioNic;
 import io.LowlevelLogging;
+import kernel.Kernel;
+import network.PackageBuffer;
+import network.layers.Ethernet;
 import tasks.LogEvent;
 
 
@@ -29,18 +32,37 @@ public class LoadVirtioNetDriver extends Command{
                     p.deviceId == VirtIo.VIRTIO_NETWORK_CARD_ID || p.deviceId == VirtIo.VIRTIO_NETWORK_CARD_ID_2)){
 
                 if(found) {
-                    LowlevelLogging.debug("Multiple devices found");
+                    shellMessageBuffer.push(new LogEvent("Multiple devices found"));
                 }
 
                 byte[] firstMessage = binimp.ByteData.discover;
 
                 //VirtioNetLegacy deviceLegacy = new VirtioNetLegacy(p);
                 //VirtioNet device = VirtioNet.from(p);
+
                 VirtioNic device = new VirtioNic(p);
-                for (int j = 0; j < 512; j++) {
-                    device.send(firstMessage);
+
+                Kernel.networkManager.nic = device;
+                shellMessageBuffer.push(new LogEvent(device.getMacAddress().toString()));
+
+                if(device.hasLink()){
+                    shellMessageBuffer.push(new LogEvent("Link is UP"));
+                } else {
+                    shellMessageBuffer.push(new LogEvent("Link is DOWN"));
                 }
 
+                // send test message
+                for (int j = 0; j < 512; j++) {
+                    Ethernet eth = Kernel.networkManager.stack.ethernetLayer;
+                    PackageBuffer b = eth.getBuffer(firstMessage.length);
+                    int cnt = 0;
+                    for (int k = b.start; k < b.start + b.usableSize; k++){
+                        b.data[k] = firstMessage[cnt++];
+                    }
+
+                    eth.send(Kernel.networkManager.nic.getMacAddress(), Ethernet.TYPE_IP, b);
+                }
+                shellMessageBuffer.push(new LogEvent("Sending messages done"));
                 found = true;
             }
 

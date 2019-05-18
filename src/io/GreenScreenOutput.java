@@ -10,6 +10,19 @@ public class GreenScreenOutput {
     private int color = Color.DEFAULT_COLOR;
     char[] stringBuffer = new char[20];
 
+    public void printIp(int ip) {
+        printHex(((byte)ip >> 24));
+        print(".");
+        printHex(((byte)ip >> 16));
+        print(".");
+        printHex(((byte)ip >> 8));
+        print(".");
+        printHex(((byte)ip));
+    }
+
+    public void printMac(long responseMAC) {
+        printHex(responseMAC);
+    }
 
     public static class VidChar extends STRUCT {
         public byte ascii, color;

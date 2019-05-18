@@ -22,6 +22,7 @@ public class TestRunner {
         check(LinkedListMemoryManagerTest.test());
         check(PooledKeyEventBufferTest.test());
         check(DivesesAndPlaygroundTest.test());
+        check(EndianessTest.test());
 
         check(GarbageCollectorTest.test());
 

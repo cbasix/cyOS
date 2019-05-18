@@ -8,6 +8,7 @@ import kernel.interrupts.core.InterruptHub;
 import kernel.interrupts.core.Interrupts;
 import kernel.interrupts.receivers.AliveIndicator;
 import kernel.interrupts.receivers.ScreenOutput;
+import kernel.interrupts.receivers.TimerCounter;
 import kernel.memory.BasicMemoryManager;
 import kernel.memory.LinkedListMemoryManager;
 import kernel.memory.MemoryManager;
@@ -22,6 +23,7 @@ public class Kernel {
     public static InterruptHub interruptHub;
     public static boolean doGC = false;
     public  static int gcRun;
+    public static NetworkManager networkManager;
 
 
     public static void main() {
@@ -41,6 +43,7 @@ public class Kernel {
 
         //interruptHub.addObserver(new ScreenOutput(), InterruptHub.ALL_EXTERNAL);
         interruptHub.addObserver(new AliveIndicator(), Interrupts.TIMER);
+        interruptHub.addObserver(new TimerCounter(), Interrupts.TIMER);
         interruptHub.addObserver(new KeyboardInterruptReceiver(), Interrupts.KEYBOARD);
 
         Interrupts.enable();
@@ -53,6 +56,9 @@ public class Kernel {
 
         // enable paging
         Paging.enable();
+
+        // create network manager
+        networkManager = new NetworkManager();
 
         // -------------- setup and run task manager
         taskManager = new TaskManager();

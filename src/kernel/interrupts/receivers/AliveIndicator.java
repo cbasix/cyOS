@@ -21,6 +21,6 @@ public class AliveIndicator extends InterruptReceiver {
         }
         cnt++;
         //MAGIC.wMem16(0xB8F9E, (short)(2|0x2F00));
-        return true;
+        return false;
     }
 }
