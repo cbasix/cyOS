@@ -107,7 +107,7 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
         return true;
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     private void toggleModifiers(KeyboardEvent e) {
         for (int i = 0; i < modifierStates.length; i++){
             if ((MODIFIER_KEYS[i] == e.key && (e.modifiers & 0x1) != Keyboard.MODIFIER_EXTENSION)
@@ -127,7 +127,7 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
         }
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     private void applyModifiers(KeyboardEvent e) {
         for (int i = 0; i < modifierStates.length; i++){
             if (modifierStates[i]) {

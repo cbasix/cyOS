@@ -11,12 +11,12 @@ public class String {
 
     private String(){}
 
-    //~@SJC.Inline
+    @SJC.Inline
     public int length() {
         return count;
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public char charAt(int i) {
         return value[i];
     }

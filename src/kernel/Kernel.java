@@ -96,7 +96,7 @@ public class Kernel {
     /*
         Puts the processor to sleep until the next interrupt. (Most likely system timer)
      */
-    //~@SJC.Inline
+    @SJC.Inline
     public static void sleep(){
         MAGIC.inline(0xF4);
     }

@@ -10,7 +10,7 @@ public class Paging {
             entry |= (i + pageTableEntryCount * tableNo) << 12; // page base address
             entry |= 0 << 7; // page size
             entry |= 0 << 4; // cache disable (0) -> cache on
-            entry |= 0 << 3; // writeConfigSpace trough (0) -> writeConfigSpace back
+            entry |= 0 << 3; // write trough (0) -> write back
             entry |= 0 << 2; // user/system (0) -> system
             entry |= 1 << 1; // read/r+w (1) -> r+w
 
@@ -36,7 +36,7 @@ public class Paging {
             entry |= pageTableAddr ; // page table base address
             entry |= 0 << 7; // page size
             entry |= 0 << 4; // cache disable (0) -> cache on
-            entry |= 0 << 3; // writeConfigSpace trough (0) -> writeConfigSpace back
+            entry |= 0 << 3; // write trough (0) -> write back
             entry |= 0 << 2; // user/system (0) -> system
             entry |= 1 << 1; // read/r+w (1) -> r+w
             entry |= 1 << 0; // present (1) -> seite vorhanden
@@ -63,20 +63,20 @@ public class Paging {
         // todo needed?
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static void setCR3(int addr) {
         MAGIC.inline(0x8B, 0x45); MAGIC.inlineOffset(1, addr); //mov eax,[ebp+8]
         MAGIC.inline(0x0F, 0x22, 0xD8); //mov cr3,eax
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static void enableVirtualMemory() {
         MAGIC.inline(0x0F, 0x20, 0xC0); //mov eax,cr0
         MAGIC.inline(0x0D, 0x00, 0x00, 0x01, 0x80); //or eax,0x80010000
         MAGIC.inline(0x0F, 0x22, 0xC0); //mov cr0,eax
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static int getCR2() {
         int cr2=0;
         MAGIC.inline(0x0F, 0x20, 0xD0); //mov e/rax,cr2

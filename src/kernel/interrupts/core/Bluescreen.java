@@ -20,6 +20,7 @@ public class Bluescreen {
 
     public static boolean handleInterrupt(int interruptNo, int param, int interruptEbp) {
         Interrupts.disable();
+
         int titleLine = 1;
         int xStart = 1;
         LowlevelOutput.clearScreen(BLUESCREEN_COLOR);
@@ -109,7 +110,7 @@ public class Bluescreen {
             "EDI", "ESI", "EBP", "ESP", "EBX", "EDX", "ECX", "EAX"
     };
 
-    //@SJC.Inline
+    @SJC.Inline
     public static void printRegisters(int interruptEbp) {
         int ebp = interruptEbp;
         int line = 12;
@@ -130,7 +131,7 @@ public class Bluescreen {
     /* analyze callstack
     *
     * */
-    //@SJC.Inline
+    @SJC.Inline
     public static void printCallStack(int interruptEbp, int interruptNo){
 
         int ebp = interruptEbp;
@@ -139,10 +140,12 @@ public class Bluescreen {
         LowlevelOutput.printStr("---CALL STACK---", xStart, line++, BLUESCREEN_COLOR);
         LowlevelOutput.printStr("EBPs:", xStart, line, BLUESCREEN_COLOR);
         LowlevelOutput.printStr("EIPs:", xStart+11, line++, BLUESCREEN_COLOR);
-        line++;
+        //line++;
 
         int analyzedEbp = 0;
         int analyzedEip = 0;
+
+        int page = 0;
 
         do{
             analyzedEbp = MAGIC.rMem32(ebp);
@@ -166,48 +169,16 @@ public class Bluescreen {
 
             ebp = analyzedEbp;
 
-        } while (analyzedEbp < STACK_START-8 && line < 24);
+            // rudimentary multi page call stacks...
+            if (line == 24){ line = 0; LowlevelLogging.debug(String.concat(String.from(page++), "     "));}
+
+        } while (analyzedEbp != 0 && analyzedEbp < STACK_START-8 && line <= 24);
+
+
     }
 
-    /*
-        find method name of given eip
-        todo do it right does currently not handle invalid EIPs in nirvana very well...
-        its kind of a "dirty" solution.
-     */
-    public static String guessMethod(int eip){
-        // allign
-        eip = (eip + 0x3) & ~0x3;
-
-        int methodBlock = MAGIC.cast2Ref(MAGIC.clssDesc("SMthdBlock"));
-
-        SMthdBlock currentBlock = null;
-
-        boolean found = false;
-        while (!found) {
-
-            // find the type field of the current code block
-            int i = -1;
-            while (MAGIC.rMem32(eip - MAGIC.ptrSize * (++i)) != methodBlock) ;
-            // now we should be on the type field
-
-            int typeAddr = eip - MAGIC.ptrSize * i;
-            int mthAddr = typeAddr + MAGIC.ptrSize;
-
-            currentBlock = (SMthdBlock) MAGIC.cast2Obj(mthAddr);
-
-            // do some validity tests (we may have hit a code pattern that just looks like an type descriptor
-            if (currentBlock._r_relocEntries == MAGIC.getInstRelocEntries("SMthdBlock")
-                    && currentBlock.owner instanceof SClassDesc) {
-
-                found = true;
-            }
-        }
-
-        return String.concat(String.concat(currentBlock.owner.name, "."), currentBlock.namePar);
-    }
 
     public static SMthdBlock getMethodBlockAt(int eip){
-
         BasicMemoryManager.ImageInfo image = (BasicMemoryManager.ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
         Object o = MAGIC.cast2Obj(image.firstObjInImageAddr);
         Object bestMatch = null;

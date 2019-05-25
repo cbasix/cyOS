@@ -93,7 +93,7 @@ public class Interrupts {
 
     private static int state = 0;
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static void enable(){
         state++;
         if (state >= 1) {
@@ -103,14 +103,13 @@ public class Interrupts {
         }
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static void forceEnable(){
         MAGIC.inline(0xFB);
-        MAGIC.inline(0xCC);
         state = 1;
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static void disable(){
         state--;
         // clear interrupt flag
@@ -123,7 +122,7 @@ public class Interrupts {
         programmChip(SLAVE, 0x28, 0x02); //init offset and slave config of slave
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     private static void programmChip(int port, int offset, int icw3) {
         MAGIC.wIOs8(port++, (byte)0x11); // ICW1
         MAGIC.wIOs8(port, (byte)offset); // ICW2
@@ -131,7 +130,7 @@ public class Interrupts {
         MAGIC.wIOs8(port, (byte)0x01); // ICW4
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static void ack(int interruptNo){
         // if interrupt from slave PIC
         if (IRQ8 <= interruptNo && interruptNo <= IRQ15){
@@ -150,12 +149,12 @@ public class Interrupts {
         MAGIC.inline(0x0F, 0x01, 0x5D); MAGIC.inlineOffset(1, tmp); // lidt [ebp-0x08/tmp]
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static void loadProtectedModeIDT(){
         loadIDT(BasicMemoryManager.interruptDescriptorTableAddr, DescriptorTable.entrySize*DescriptorTable.entryCount-1);
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static void loadRealModeIDT(){
         loadIDT(0, 1023);
     }

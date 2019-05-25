@@ -11,7 +11,7 @@ public class JumpTable {
 
             00000000: 53                               PUSH EBX                  ; save ebx
             00000001: bbb3b2b1b0                       MOV EBX, 0xb0b1b2b3
-            00000006: 891da3a2a1a0                     MOV [0xa0a1a2a3], EBX     ; writeConfigSpace current table entry no (=INT no) to mem
+            00000006: 891da3a2a1a0                     MOV [0xa0a1a2a3], EBX     ; write current table entry no (=INT no) to mem
             0000000c: 5b                               POP EBX                   ; restore ebx
             0000000d: eaffffffff0800                   JMP FAR 0x8:0xffffff      ; jump to global handler
          */

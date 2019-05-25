@@ -80,7 +80,7 @@ public class LinkedListMemoryManager extends MemoryManager {
         Interrupts.enable();
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static void insertArea(int start, int size, MemAreaLinkedList.MemAreaIterator iter){
         MemArea expandedOther = null;
 

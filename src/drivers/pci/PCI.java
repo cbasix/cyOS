@@ -11,7 +11,7 @@ public class PCI {
     public static final int BLOCK_DEVICE = 0x2;
 
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static int addr(int busNo, int deviceNo, int functionNo, int reg){
         return FIXED | (busNo << 16) | (deviceNo << 11) | (functionNo << 8) | (reg << 2);
     }
@@ -29,13 +29,13 @@ public class PCI {
         return pciDevices;
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static int readConfigSpace(int busNo, int deviceNo, int functionNo, int reg){
         MAGIC.wIOs32(ADDR_REG, addr(busNo, deviceNo, functionNo, reg));
         return MAGIC.rIOs32(DATA_REG);
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public static void writeConfigSpace(int busNo, int deviceNo, int functionNo, int reg, int value){
         MAGIC.wIOs32(ADDR_REG, addr(busNo, deviceNo, functionNo, reg));
         MAGIC.wIOs32(DATA_REG, value);

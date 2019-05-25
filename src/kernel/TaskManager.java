@@ -65,11 +65,8 @@ public class TaskManager {
                 // doGC is set by the shell command GarbageCollection gc
                 Kernel.memoryManager.gc();
                 Kernel.doGC = false;
-                Kernel.gcRun++;
             }
-            /*if (gcRun == 2){
-                LowlevelLogging.debug("into loop");
-            }*/
+
 
             // check if kernel can put processor to sleep
             boolean nothingTodo = true;
@@ -160,8 +157,6 @@ public class TaskManager {
     ATTENTION THIS DOES BLACK STACK MAGIC !
      */
     public static void killCurrentTask(int intNo){
-        taskbreak = true;
-
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
 
         // remove the killed task from all task lists
@@ -192,8 +187,6 @@ public class TaskManager {
         //Beschreiben der Register aus gespeicherten Variablenwerten
         MAGIC.inline(0x8B, 0x2D); MAGIC.inlineOffset(4, savedEbp); //mov ebp,[addr(v1)]
         MAGIC.inline(0x8B, 0x25); MAGIC.inlineOffset(4, savedEsp); //mov esp,[addr(v1)]
-
-
 
         // reenter main loop
         Interrupts.forceEnable();

@@ -64,7 +64,7 @@ public class GreenScreenOutput {
     }
 
      // ---------- STRING / CHAR ---------------
-    //~@SJC.Inline
+    @SJC.Inline
     public void print(char c) {
         VidChar vidChar = vidMem.chars[virtualCursor];
         vidChar.ascii = (byte) c;
@@ -103,14 +103,14 @@ public class GreenScreenOutput {
 
     // ---------- HEX ---------------
 
-    //~@SJC.Inline
+    @SJC.Inline
     public void printHex(int value, int digits){
         for (int i = digits-1; i >= 0; i--) {
             print(String.alphabet.charAt((int)(value >> i*4) & 0xF));
         }
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public void printHex(long value, int digits){
         for (int i = digits-1; i >= 0; i--) {
             print(String.alphabet.charAt((int)(value >> i*4) & 0xF));
@@ -144,7 +144,7 @@ public class GreenScreenOutput {
     }
 
     // ---------- INT /LONG ---------------
-    //~@SJC.Inline
+    @SJC.Inline
     public void print(int value){
         print(value, 0);
     }
@@ -189,7 +189,7 @@ public class GreenScreenOutput {
         }
     }
 
-    //~@SJC.Inline
+    @SJC.Inline
     public void print(long value){
         print(value, 0);
     }
