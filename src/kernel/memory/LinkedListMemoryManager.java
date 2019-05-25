@@ -17,7 +17,7 @@ public class LinkedListMemoryManager extends MemoryManager {
 
     public LinkedListMemoryManager(){
         areas = SystemMemoryMap.getAvailableGtOneMb();
-        gc = new MarkAndSweepGarbageCollector();
+        gc = new RecursiveGarbageCollector();
         areaIter = areas.iter();
 
         // ---------------------- no new after this line ------------------------

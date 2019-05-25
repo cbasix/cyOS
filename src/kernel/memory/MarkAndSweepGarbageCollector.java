@@ -148,6 +148,9 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
         while(rootObj != null){
             iterativeMarkUsed(rootObj);
 
+            // test mark as used
+            MAGIC.assign(rootObj._s_gcUsedBy, 1);
+
             rootObj = rootObj._r_next;
             rootObjects++;
         }

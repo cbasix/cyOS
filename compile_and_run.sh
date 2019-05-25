@@ -17,7 +17,7 @@ cd compiler/nightly/
 #qemu-system-i386 -no-kvm -monitor stdio -d guest_errors -m 32 -boot a -drive format=raw,if=none,file=BOOT_FLP.IMG -device floppy,drive=none0,drive-type=144
 
 # boot via iso image
-./compile ../../src/ ../../blobs/ -o raw -s 32M -Q -I 6 -t ia32 -T nsop -D code addr.txt -D sym syminfo.txt -u rte  # gc null ptr ;) with rte ->nullptr
+./compile ../../src/ ../../blobs/ -o raw -s 32M -I 6 -t ia32 -T nsop -D code addr.txt -D sym syminfo.txt -u rte  # gc null ptr ;) with rte ->nullptr
 mkisofs -o cyos.iso -N -b bbk_iso.bin -no-emul-boot -boot-load-seg 0x7C0 -boot-load-size 4 -V "cyOS" -A "SJC compiled bootable OS" -graft-points CDBOOT/BOOT_ISO.IMG=raw_out.bin bbk_iso.bin
 
 #qemu-system-i386 -cdrom cyos.iso -no-kvm -monitor stdio -d guest_errors -netdev socket,id=cynet,listen=:1409 -device virtio-net-pci,netdev=cynet

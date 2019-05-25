@@ -194,7 +194,7 @@ public class Bluescreen {
             if (o instanceof SMthdBlock){
 
                 int distance = eip - MAGIC.cast2Ref(o);
-                if (distance > 0 &&
+                if (distance >= 0 &&
                         (bestMatch == null || distance < bestMatchDistance)
                 ){
                     bestMatch = o;
@@ -251,12 +251,12 @@ public class Bluescreen {
         if (currentBlock != null) {
             return String.concat(
                     String.concat(
-                            String.from(getSourceLine(currentBlock, eip)),
+                           String.from(getSourceLine(currentBlock, eip)),
                             String.concat(" ", currentBlock.owner != null ? currentBlock.owner.name : "noOwner")
                     ),
                     String.concat(
                             ".",
-                            currentBlock.namePar
+                            currentBlock.namePar == null || currentBlock.namePar.length() == 0 ? "noName" : currentBlock.namePar
                     )
 
             );
