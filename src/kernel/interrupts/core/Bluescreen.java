@@ -1,8 +1,12 @@
 package kernel.interrupts.core;
 
 import io.Color;
+import io.GreenScreenOutput;
+import io.LowlevelLogging;
 import io.LowlevelOutput;
 import kernel.Kernel;
+import kernel.interrupts.receivers.ScreenOutput;
+import kernel.memory.BasicMemoryManager;
 import kernel.memory.Paging;
 import rte.SClassDesc;
 import rte.SMthdBlock;
@@ -105,7 +109,7 @@ public class Bluescreen {
             "EDI", "ESI", "EBP", "ESP", "EBX", "EDX", "ECX", "EAX"
     };
 
-    @SJC.Inline
+    //@SJC.Inline
     public static void printRegisters(int interruptEbp) {
         int ebp = interruptEbp;
         int line = 12;
@@ -126,7 +130,7 @@ public class Bluescreen {
     /* analyze callstack
     *
     * */
-    @SJC.Inline
+    //@SJC.Inline
     public static void printCallStack(int interruptEbp, int interruptNo){
 
         int ebp = interruptEbp;
@@ -157,7 +161,7 @@ public class Bluescreen {
 
             LowlevelOutput.printHex(analyzedEbp, 10, xStart, line, BLUESCREEN_COLOR);
             LowlevelOutput.printHex(analyzedEip, 10, xStart+11, line, BLUESCREEN_COLOR);
-            //LowlevelOutput.printStr(getMethod(analyzedEip).limit(33),xStart+22, line, BLUESCREEN_COLOR);
+            LowlevelOutput.printStr(getEipMethodInfo(analyzedEip).limit(33),xStart+22, line, BLUESCREEN_COLOR);
             line++;
 
             ebp = analyzedEbp;
@@ -170,7 +174,7 @@ public class Bluescreen {
         todo do it right does currently not handle invalid EIPs in nirvana very well...
         its kind of a "dirty" solution.
      */
-    public static String getMethod(int eip){
+    public static String guessMethod(int eip){
         // allign
         eip = (eip + 0x3) & ~0x3;
 
@@ -200,5 +204,93 @@ public class Bluescreen {
         }
 
         return String.concat(String.concat(currentBlock.owner.name, "."), currentBlock.namePar);
+    }
+
+    public static SMthdBlock getMethodBlockAt(int eip){
+
+        BasicMemoryManager.ImageInfo image = (BasicMemoryManager.ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
+        Object o = MAGIC.cast2Obj(image.firstObjInImageAddr);
+        Object bestMatch = null;
+        int bestMatchDistance = 0;
+
+        // out of image eips are not valid...
+        if (eip < MAGIC.imageBase || eip > MAGIC.imageBase + image.size){
+            return null;
+        }
+
+        while (o._r_next != null) {
+
+            if (o instanceof SMthdBlock){
+
+                int distance = eip - MAGIC.cast2Ref(o);
+                if (distance > 0 &&
+                        (bestMatch == null || distance < bestMatchDistance)
+                ){
+                    bestMatch = o;
+                    bestMatchDistance = distance;
+                }
+            }
+            o = o._r_next;
+        }
+        return (SMthdBlock) bestMatch;
+    }
+
+    // todo this whole method does not work
+    public static int getSourceLine(SMthdBlock mthdBlock, int eip){
+        // todo ask what the ints in the lineIncodeOffset array mean. no documentation found.
+
+        int offset = eip - (MAGIC.cast2Ref(mthdBlock) + MAGIC.getCodeOff()); //MAGIC.getInstScalarSize("SMthdBlock"));
+        //int offset = eip - MAGIC.cast2Ref(mthdBlock);
+
+        if (mthdBlock.lineInCodeOffset == null){
+            return -1;
+        }
+        if (offset < 0){
+            return -3;
+        }
+
+
+        /*GreenScreenOutput out = new GreenScreenOutput();
+        out.setCursor(0, 1);
+        out.print("mthd: "); out.println(mthdBlock.namePar);
+        out.print("len: "); out.println(String.from(mthdBlock.lineInCodeOffset.length));
+        out.print("offset: "); out.println(String.from(offset));
+
+        LowlevelLogging.printHexdump(MAGIC.addr(mthdBlock.lineInCodeOffset[0]));
+        Kernel.wait(10);*/
+
+        // this assumes for each line the amount of generated code bytes is in the array. which seems not to be the case.
+        int line = 0;
+        int sumLength = 0;
+        while (line < mthdBlock.lineInCodeOffset.length){
+            sumLength += mthdBlock.lineInCodeOffset[line];
+            if (sumLength > offset){
+                return line+1; // line no not from 0 to x but from 1 to x+1
+            }
+            line++;
+        }
+
+        return -2;
+    }
+
+
+    public static String getEipMethodInfo(int eip){
+        SMthdBlock currentBlock = getMethodBlockAt(eip);
+
+        if (currentBlock != null) {
+            return String.concat(
+                    String.concat(
+                            String.from(getSourceLine(currentBlock, eip)),
+                            String.concat(" ", currentBlock.owner != null ? currentBlock.owner.name : "noOwner")
+                    ),
+                    String.concat(
+                            ".",
+                            currentBlock.namePar
+                    )
+
+            );
+        } else {
+            return "No method block found";
+        }
     }
 }

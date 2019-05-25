@@ -25,6 +25,8 @@ public class Kernel {
     public  static int gcRun;
     public static NetworkManager networkManager;
 
+    // ATTENTION THE KERNEL CLASS MUST NOT HAVE ANY OBJECT REFERENCE ON STACK! THE GARBAGE COLLECTION
+    // CALLED FROM WITHIN THE TASK MANAGER DOES NOT FIND THIS USAGE AND WILL DELETE THE REFERENCED OBJECT!
 
     public static void main() {
 
@@ -67,18 +69,8 @@ public class Kernel {
 
         TaskManager.saveStackCheckpoint();
 
-        while (true) {
-            if (Kernel.doGC) {
-                // doGC is set by the shell command GarbageCollection gc
-                Kernel.memoryManager.gc();
-                Kernel.doGC = false;
-                gcRun++;
-            }
-            /*if (gcRun == 2){
-                LowlevelLogging.debug("into loop");
-            }*/
-            taskManager.loop();
-        }
+        taskManager.loop();
+
     }
 
 
@@ -104,7 +96,7 @@ public class Kernel {
     /*
         Puts the processor to sleep until the next interrupt. (Most likely system timer)
      */
-    @SJC.Inline
+    //~@SJC.Inline
     public static void sleep(){
         MAGIC.inline(0xF4);
     }

@@ -11,7 +11,7 @@ public class Nullpointer extends Command{
 
     @Override
     public void execute(RingBuffer shellOutput, String[] args) {
-        Echo o = null; //(Echo) MAGIC.cast2Obj(15);
-        String t = o.getCmd();
+        Echo o = null; //(Echo) MAGIC.cast2Obj(15); 23
+        String t = o.getCmd(); //15
     }
 }

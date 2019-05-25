@@ -50,7 +50,10 @@ public class Paging {
     public static void enable(){
         int pageDirAddr = 1024*1024*10; // at 20mb in nirvana just for testing
         // todo find good free place. Is it necessary? or is it copied?  -> not necessary processor keeps cached copy, only if i wanted to change it after the memory has been used i would have to find someplace else
+
+        // todo enable only present pages (smap)
         writePageDirectory(pageDirAddr);
+
         setCR3(pageDirAddr);
         enableVirtualMemory();
 
@@ -60,20 +63,20 @@ public class Paging {
         // todo needed?
     }
 
-    @SJC.Inline
+    //~@SJC.Inline
     public static void setCR3(int addr) {
         MAGIC.inline(0x8B, 0x45); MAGIC.inlineOffset(1, addr); //mov eax,[ebp+8]
         MAGIC.inline(0x0F, 0x22, 0xD8); //mov cr3,eax
     }
 
-    @SJC.Inline
+    //~@SJC.Inline
     public static void enableVirtualMemory() {
         MAGIC.inline(0x0F, 0x20, 0xC0); //mov eax,cr0
         MAGIC.inline(0x0D, 0x00, 0x00, 0x01, 0x80); //or eax,0x80010000
         MAGIC.inline(0x0F, 0x22, 0xC0); //mov cr0,eax
     }
 
-    @SJC.Inline
+    //~@SJC.Inline
     public static int getCR2() {
         int cr2=0;
         MAGIC.inline(0x0F, 0x20, 0xD0); //mov e/rax,cr2

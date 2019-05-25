@@ -11,12 +11,12 @@ public class String {
 
     private String(){}
 
-    @SJC.Inline
+    //~@SJC.Inline
     public int length() {
         return count;
     }
 
-    @SJC.Inline
+    //~@SJC.Inline
     public char charAt(int i) {
         return value[i];
     }
@@ -82,6 +82,10 @@ public class String {
     }
 
     public static String join(String[] parts, String join){
+        if (parts == null || parts.length == 0){
+            return "";
+        }
+
         int newLen = 0;
         for (String part : parts) {
             newLen += part.length();
@@ -158,6 +162,14 @@ public class String {
 
     // dirty
     public static String concat(String first, String second) {
+        if (first == null || second == null){
+            if (second != null){
+                return second;
+            } else if (first != null){
+                return first;
+            }
+            return null;
+        }
         String[] temp = new String[2];
         temp[0] = first;
         temp[1] = second;

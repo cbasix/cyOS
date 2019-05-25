@@ -20,7 +20,7 @@ public class InterruptHub {
         }
     }
 
-    @SJC.Inline
+    //@SJC.Inline
     public void forwardInterrupt(int interruptNo, int param){
         boolean handled = false;
         for (int i = 0; i < observerBindings.size(); i++){

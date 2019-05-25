@@ -59,7 +59,7 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
 
     }
 
-    @SJC.Inline
+    //~@SJC.Inline
     public void deleteUnused(MemoryManager mgr) {
         // recycle all still kill marked objects
         Object currentObj = MemoryManager.firstObj;
@@ -124,7 +124,7 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
         }
     }
 
-    @SJC.Inline
+    //~@SJC.Inline
     public void markAllUnused() {
         Object currentObj = MemoryManager.firstObj;
 
@@ -139,7 +139,7 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
     /**
      * remove mark on used objects (objects accessable from one of the pre created in image objects)
      */
-    @SJC.Inline
+    //~@SJC.Inline
     public void markUsedByImage() {
         BasicMemoryManager.ImageInfo image = (BasicMemoryManager.ImageInfo) MAGIC.cast2Struct(MAGIC.imageBase);
         Object rootObj = MAGIC.cast2Obj(image.firstObjInImageAddr);
@@ -153,7 +153,7 @@ public class MarkAndSweepGarbageCollector extends GarbageCollector{
         }
     }
 
-    @SJC.Inline
+    //~@SJC.Inline
     public void iterativeMarkUsed(Object rootObj){
         int line = 0;
         // root objects are inside image (and not on heap) means: they never get killed anyway.

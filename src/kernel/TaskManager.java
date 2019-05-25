@@ -4,6 +4,7 @@ import drivers.InputDevice;
 import datastructs.subtypes.InputDeviceArrayList;
 import datastructs.subtypes.TaskArrayList;
 import io.Color;
+import io.LowlevelLogging;
 import io.LowlevelOutput;
 import kernel.interrupts.core.Interrupts;
 import tasks.Task;
@@ -22,6 +23,7 @@ public class TaskManager {
 
     private Task focusedTask;
     private Task currentlyRunningTask;
+    public static boolean taskbreak;
 
     TaskManager() {
         runningTasks = new TaskArrayList();
@@ -58,69 +60,81 @@ public class TaskManager {
     }
 
     public void loop() {
-        // check if kernel can put processor to sleep
-        boolean nothingTodo = true;
-        for (int i = 0; i < runningTasks.size(); i++) {
-            if (runningTasks.get(i).stdin.count() > 0) {
-                nothingTodo = false;
+        while (true) {
+            if (Kernel.doGC) {
+                // doGC is set by the shell command GarbageCollection gc
+                Kernel.memoryManager.gc();
+                Kernel.doGC = false;
+                Kernel.gcRun++;
             }
-        }
-        if (nothingTodo) {
-            Kernel.sleep();
-        }
+            /*if (gcRun == 2){
+                LowlevelLogging.debug("into loop");
+            }*/
 
-        // read input into currently focused task
-        if (focusedTask != null) {
-            for (int i = 0; i < inputs.size(); i++) {
-                inputs.get(i).readInto(focusedTask.stdin);
+            // check if kernel can put processor to sleep
+            boolean nothingTodo = true;
+            for (int i = 0; i < runningTasks.size(); i++) {
+                if (runningTasks.get(i).stdin.count() > 0) {
+                    nothingTodo = false;
+                }
+            }
+            if (nothingTodo) {
+                Kernel.sleep();
             }
 
-            // run current task
-            currentlyRunningTask = focusedTask;
-            focusedTask.onTick();
-        }
+            // read input into currently focused task
+            if (focusedTask != null) {
+                for (int i = 0; i < inputs.size(); i++) {
+                    inputs.get(i).readInto(focusedTask.stdin);
+                }
 
-        // run background tasks
-        for (int i = 0; i < runningTasks.size(); i++) {
-            if (runningTasks.get(i) != focusedTask) {
-                currentlyRunningTask = runningTasks.get(i);
-                runningTasks.get(i).onBackgroundTick();
-            }
-        }
-
-        // stop pending toStop Tasks  (backwards to allow deletion ;)
-        for (int i = tasksToStop.size() - 1; i >= 0; i--) {
-            Task t = tasksToStop.get(i);
-            currentlyRunningTask = t;
-            t.onStop();
-
-            // if task had focus return it to the shell
-            if (focusedTask == t) {
-                focusedTask = runningTasks.get(0);
+                // run current task
                 currentlyRunningTask = focusedTask;
-                focusedTask.onFocus();
+                focusedTask.onTick();
             }
 
-            runningTasks.remove(t);
-            tasksToStop.remove(t);
-        }
+            // run background tasks
+            for (int i = 0; i < runningTasks.size(); i++) {
+                if (runningTasks.get(i) != focusedTask) {
+                    currentlyRunningTask = runningTasks.get(i);
+                    runningTasks.get(i).onBackgroundTick();
+                }
+            }
 
-        // start pending new tasks  (backwards to allow deletion ;)
-        for (int i = tasksToStart.size() - 1; i >= 0; i--) {
-            Task t = tasksToStart.get(i);
-            currentlyRunningTask = t;
-            t.onStart();
-            runningTasks.add(t);
-            tasksToStart.remove(t);
-        }
+            // stop pending toStop Tasks  (backwards to allow deletion ;)
+            for (int i = tasksToStop.size() - 1; i >= 0; i--) {
+                Task t = tasksToStop.get(i);
+                currentlyRunningTask = t;
+                t.onStop();
 
-        // focus pending toFocus Tasks  (backwards to allow deletion ;)
-        for (int i = tasksToFocus.size() - 1; i >= 0; i--) {
-            Task t = tasksToFocus.get(i);
-            currentlyRunningTask = t;
-            t.onFocus();
-            focusedTask = t;
-            tasksToFocus.remove(t);
+                // if task had focus return it to the shell
+                if (focusedTask == t) {
+                    focusedTask = runningTasks.get(0);
+                    currentlyRunningTask = focusedTask;
+                    focusedTask.onFocus();
+                }
+
+                runningTasks.remove(t);
+                tasksToStop.remove(t);
+            }
+
+            // start pending new tasks  (backwards to allow deletion ;)
+            for (int i = tasksToStart.size() - 1; i >= 0; i--) {
+                Task t = tasksToStart.get(i);
+                currentlyRunningTask = t;
+                t.onStart();
+                runningTasks.add(t);
+                tasksToStart.remove(t);
+            }
+
+            // focus pending toFocus Tasks  (backwards to allow deletion ;)
+            for (int i = tasksToFocus.size() - 1; i >= 0; i--) {
+                Task t = tasksToFocus.get(i);
+                currentlyRunningTask = t;
+                t.onFocus();
+                focusedTask = t;
+                tasksToFocus.remove(t);
+            }
         }
     }
 
@@ -146,6 +160,8 @@ public class TaskManager {
     ATTENTION THIS DOES BLACK STACK MAGIC !
      */
     public static void killCurrentTask(int intNo){
+        taskbreak = true;
+
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
 
         // remove the killed task from all task lists
@@ -176,6 +192,8 @@ public class TaskManager {
         //Beschreiben der Register aus gespeicherten Variablenwerten
         MAGIC.inline(0x8B, 0x2D); MAGIC.inlineOffset(4, savedEbp); //mov ebp,[addr(v1)]
         MAGIC.inline(0x8B, 0x25); MAGIC.inlineOffset(4, savedEsp); //mov esp,[addr(v1)]
+
+
 
         // reenter main loop
         Interrupts.forceEnable();
