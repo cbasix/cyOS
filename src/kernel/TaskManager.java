@@ -12,6 +12,7 @@ import tasks.Task;
 public class TaskManager {
     static int savedEbp;
     static int savedEsp;
+    static int savedEip;
 
     private TaskArrayList runningTasks;
     private TaskArrayList tasksToStart;
@@ -144,8 +145,24 @@ public class TaskManager {
         int currentEbp=0;
         MAGIC.inline(0x89, 0x6D); MAGIC.inlineOffset(1, currentEbp); //mov [ebp+xx],ebp
 
-        savedEsp = currentEbp+2*MAGIC.ptrSize; // see ab 5a (method has no params, so only eip and epb are there
+        savedEsp = currentEbp-MAGIC.ptrSize; // = currentESP // see ab 5a (method has no params, so only eip and epb are there
         savedEbp = MAGIC.rMem32(currentEbp);
+        savedEip = MAGIC.rMem32(currentEbp+1*MAGIC.ptrSize);
+
+    }
+
+    public static void restoreStackCheckpoint(){
+        int currentEbp=0;
+        MAGIC.inline(0x89, 0x6D); MAGIC.inlineOffset(1, currentEbp); //mov [ebp+xx],ebp
+
+        /*LowlevelLogging.debug(String.concat("esp: ", String.hexFrom(savedEsp)));
+        LowlevelLogging.debug(String.concat("ebp: ", String.hexFrom(savedEbp)));
+        LowlevelLogging.debug(String.concat("eip: ", String.hexFrom(savedEip)));*/
+
+        MAGIC.wMem32(currentEbp, savedEbp);
+        MAGIC.wMem32(currentEbp+1*MAGIC.ptrSize, savedEip); // write eip
+
+        MAGIC.inline(0x8B, 0x25); MAGIC.inlineOffset(4, savedEsp); //mov esp,[addr(v1)]  // 3 = method own stack contains one local var & old_ebp & old_eip
     }
 
     /*
@@ -180,11 +197,16 @@ public class TaskManager {
         Interrupts.ack(intNo);
 
         //Beschreiben der Register aus gespeicherten Variablenwerten
-        MAGIC.inline(0x8B, 0x2D); MAGIC.inlineOffset(4, savedEbp); //mov ebp,[addr(v1)]
-        MAGIC.inline(0x8B, 0x25); MAGIC.inlineOffset(4, savedEsp); //mov esp,[addr(v1)]
+        //MAGIC.inline(0x8B, 0x2D); MAGIC.inlineOffset(4, savedEbp); //mov ebp,[addr(v1)]
+        //MAGIC.inline(0x8B, 0x25); MAGIC.inlineOffset(4, savedEsp); //mov esp,[addr(v1)]
+
+        TaskManager.restoreStackCheckpoint();
+
+        LowlevelLogging.debug("NEVER GET HERE!");
+        Kernel.stop();
 
         // reenter main loop
-        Interrupts.forceEnable();
-        Kernel.taskManager.loop();
+        //Interrupts.forceEnable();
+        //Kernel.taskManager.loop();
     }
 }
