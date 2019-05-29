@@ -60,9 +60,9 @@ public class Bluescreen {
 
                 int cause = Paging.getCR2();
                 LowlevelOutput.printStr("Address: 0x", xStart, titleLine+2, BLUESCREEN_COLOR);
-                LowlevelOutput.printHex(cause, 10, xStart+11, titleLine+2, BLUESCREEN_COLOR);
+                LowlevelOutput.printHex(cause, 8, xStart+11, titleLine+2, BLUESCREEN_COLOR);
                 LowlevelOutput.printStr("Param:   0x", xStart, titleLine+3, BLUESCREEN_COLOR);
-                LowlevelOutput.printHex(param, 10, xStart+11, titleLine+3, BLUESCREEN_COLOR);
+                LowlevelOutput.printHex(param, 8, xStart+11, titleLine+3, BLUESCREEN_COLOR);
 
 
                 // ACHTUNG Bedeutung BIT 0 ist anders als in AB7 beschrieben! 0 -> Page not present;  1 -> Protection violation
@@ -124,7 +124,7 @@ public class Bluescreen {
         int i = 0;
         for (String regname : pushARegNames) {
             LowlevelOutput.printStr(regname, xStart, line, BLUESCREEN_COLOR);
-            LowlevelOutput.printHex(MAGIC.rMem32(pushABaseAddr + (i++ * MAGIC.ptrSize)), 10, 6, line++, BLUESCREEN_COLOR);
+            LowlevelOutput.printHex(MAGIC.rMem32(pushABaseAddr + (i++ * MAGIC.ptrSize)), 8, 6, line++, BLUESCREEN_COLOR);
         }
     }
 
@@ -136,10 +136,10 @@ public class Bluescreen {
 
         int ebp = interruptEbp;
         int line = 1;
-        int xStart = 25;
+        int xStart = 22;
         LowlevelOutput.printStr("---CALL STACK---", xStart, line++, BLUESCREEN_COLOR);
         LowlevelOutput.printStr("EBPs:", xStart, line, BLUESCREEN_COLOR);
-        LowlevelOutput.printStr("EIPs:", xStart+11, line++, BLUESCREEN_COLOR);
+        LowlevelOutput.printStr("EIPs:", xStart+9, line++, BLUESCREEN_COLOR);
         //line++;
 
         int analyzedEbp = 0;
@@ -162,9 +162,9 @@ public class Bluescreen {
                 analyzedEip = MAGIC.rMem32(ebp + (1 + pushARegNames.length)*MAGIC.ptrSize + offsetAddedByParam);
             }
 
-            LowlevelOutput.printHex(analyzedEbp, 10, xStart, line, BLUESCREEN_COLOR);
-            LowlevelOutput.printHex(analyzedEip, 10, xStart+11, line, BLUESCREEN_COLOR);
-            LowlevelOutput.printStr(getEipMethodInfo(analyzedEip).limit(33),xStart+22, line, BLUESCREEN_COLOR);
+            LowlevelOutput.printHex(analyzedEbp, 8, xStart, line, BLUESCREEN_COLOR);
+            LowlevelOutput.printHex(analyzedEip, 8, xStart+9, line, BLUESCREEN_COLOR);
+            LowlevelOutput.printStr(getEipMethodInfo(analyzedEip).limit(39),xStart+18, line, BLUESCREEN_COLOR);
             line++;
 
             ebp = analyzedEbp;
@@ -230,18 +230,15 @@ public class Bluescreen {
         LowlevelLogging.printHexdump(MAGIC.addr(mthdBlock.lineInCodeOffset[0]));
         Kernel.wait(10);*/
 
-        // this assumes for each line the amount of generated code bytes is in the array. which seems not to be the case.
-        int line = 0;
-        int sumLength = 0;
-        while (line < mthdBlock.lineInCodeOffset.length){
-            sumLength += mthdBlock.lineInCodeOffset[line];
-            if (sumLength > offset){
-                return line+1; // line no not from 0 to x but from 1 to x+1
+        // for each code line there are two entries the first is the offset the line begins at
+        // within the opcodes, the second one is the line no within the real code
+        for (int line = 0; line < mthdBlock.lineInCodeOffset.length; line += 2){
+            if (mthdBlock.lineInCodeOffset[line] > offset){
+                return mthdBlock.lineInCodeOffset[line-1]; // we are stepping over the error line, so it should be the last entry
             }
-            line++;
         }
 
-        return -2;
+        return mthdBlock.lineInCodeOffset[mthdBlock.lineInCodeOffset.length-1];
     }
 
 
@@ -252,7 +249,7 @@ public class Bluescreen {
             return String.concat(
                     String.concat(
                            String.from(getSourceLine(currentBlock, eip)),
-                            String.concat(" ", currentBlock.owner != null ? currentBlock.owner.name : "noOwner")
+                            String.concat(":", currentBlock.owner != null ? currentBlock.owner.name : "noOwner")
                     ),
                     String.concat(
                             ".",

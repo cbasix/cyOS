@@ -180,7 +180,7 @@ public class TaskManager {
         Interrupts.ack(intNo);
 
         //Beschreiben der Register aus gespeicherten Variablenwerten
-        MAGIC.inline(0x8B, 0x2D); MAGIC.inlineOffset(4, savedEbp); //mov ebp,[addr(v1)]
+        MAGIC.inline(0x8B, 0x2D); MAGIC.inlineOffset(4, savedEbp); //mov ebp,[addr(v1)] frage zu werten inline offset  //  frage zu zeilennummern array was bedeuten die werte?
         MAGIC.inline(0x8B, 0x25); MAGIC.inlineOffset(4, savedEsp); //mov esp,[addr(v1)]
 
         // reenter main loop

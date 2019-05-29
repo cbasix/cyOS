@@ -6,8 +6,10 @@ import drivers.pci.PciDevice;
 import drivers.virtio.RawMemoryContainer;
 import drivers.virtio.VirtIo;
 import drivers.virtio.structs.*;
+import io.Color;
 import io.GreenScreenOutput;
 import io.LowlevelLogging;
+import io.LowlevelOutput;
 import kernel.Kernel;
 import kernel.interrupts.core.InterruptReceiver;
 
@@ -43,8 +45,9 @@ public class VirtioNic extends Nic{
     private BufferArea bufferArea;
     //private boolean[] inUse; todo implement conditional buffer reuse
 
-
-    private short lastSeenUsed = 0;
+    // todo wraparound with negative indices will most likely be a problem
+    private short transmitNextToUseIdx = 0;
+    private short receiveNextToUseIdx = 0;
     //private short nextBuffer = 0;
 
     private CommonConfig commonConfig;
@@ -60,11 +63,13 @@ public class VirtioNic extends Nic{
         public static final int CONFIG_INT = 1;
         public static final int QUEUE_INT = 2;
 
+        public int interruptCnt = 0;
         @Override
         public boolean handleInterrupt(int interruptNo, int param) {
             // this read resets the interrupt!
             if((isrReg.data & 0x3) != 0){
-                LowlevelLogging.debug("GOT VIRTIO INTERRUPT");
+                LowlevelOutput.printStr("GOT VIRTIO INTERRUPT", 0, 0, Color.PINK);
+                LowlevelOutput.printStr(String.from(++interruptCnt), 22, 0, Color.CYAN);
                 return true;
             }
             return false;
@@ -291,7 +296,7 @@ public class VirtioNic extends Nic{
     private void populateReceiveQueue() {
         // push buffers into receive available ring
         AvailableRing avail = receiveQueue.availableRing;
-        avail.idx = 0;
+        //avail.idx = 0;
         avail.flags = 0;
         avail.used_event = 0;
         for (int i = 0; i < VirtqueueConstants.QUEUE_SIZE; i++){
@@ -385,11 +390,13 @@ public class VirtioNic extends Nic{
     // for now this works like a ring buffer and may overwrite buffers that are currently in use by the device
     public void send(byte[] data){
 
+        // todo set buffer size to data.length and reset on
+
         // check for
-        if(transmitQueue.usedRing.idx != lastSeenUsed){
+        if(transmitQueue.usedRing.idx != transmitNextToUseIdx){
             // do nothing
-            lastSeenUsed = transmitQueue.usedRing.idx;
-            //LowlevelLogging.debug("WE TRANSMITTED A PACKET");
+            transmitNextToUseIdx = transmitQueue.usedRing.idx;
+            //LowlevelLogging.debug("WE TRANSMITTED A PACKET ");
         }
 
         if (data.length > VirtqueueConstants.BUFFER_SIZE - VirtioNetHeader.SIZE){
@@ -399,6 +406,7 @@ public class VirtioNic extends Nic{
         int nextIndex = (transmitQueue.availableRing.idx) % VirtqueueConstants.QUEUE_SIZE;
         DescriptorElement nextDescr = this.transmitQueue.descriptors[nextIndex];
         int nextBufAddr = (int) nextDescr.address;
+        nextDescr.length = VirtioNetHeader.SIZE + data.length; // use only part of the buffer
 
         VirtioNetHeader header = (VirtioNetHeader) MAGIC.cast2Struct(nextBufAddr);
         header.flags = 0;
@@ -426,10 +434,45 @@ public class VirtioNic extends Nic{
         }
     }
 
+    // todo check method
     @Override
     public byte[] receive() {
-        // todo implement
-        return new byte[0];
+        if (receiveQueue.usedRing.idx != receiveNextToUseIdx){
+
+            LowlevelLogging.debug(String.concat("rec q used ring ", String.from(receiveQueue.usedRing.idx)));
+
+
+            int currentAvailIndex = (receiveNextToUseIdx) % VirtqueueConstants.QUEUE_SIZE;
+            UsedRingElement usedElem = receiveQueue.usedRing.ring[currentAvailIndex];
+
+            int buffAddr = (int) receiveQueue.descriptors[usedElem.id].address;
+            DescriptorElement desc = (DescriptorElement) MAGIC.cast2Struct(buffAddr);
+
+            LowlevelLogging.debug(String.concat("WE MAY HAVE RECEIVED SOMETHING", String.from(usedElem.len)));
+
+
+            LowlevelLogging.debug(String.from(usedElem.len));
+            byte[] data = new byte[usedElem.len];
+
+            for (int i = 0; i < usedElem.len - VirtioNetHeader.SIZE; i++){
+                data[i] = MAGIC.rMem8(buffAddr + VirtioNetHeader.SIZE + i);
+            }
+
+            // recycle buffer -> put back into available queue
+            MAGIC.inline(0x0F,0xAE,0xF0); //mfence Memory Fence
+            receiveQueue.availableRing.idx += 1;
+
+            // check if notifications are enabled
+            if((receiveQueue.usedRing.flags & UsedRing.VIRTQ_USED_F_NO_NOTIFY)==0){
+                // notify device see 4.1.4.4
+                MAGIC.wMem16(notifyConfig.getQueueNotifyAddr(RECEIVE_QUEUE),(short) RECEIVE_QUEUE);
+            }
+
+            receiveNextToUseIdx++;
+            return data;
+        }
+
+        return null;
     }
 
     @Override

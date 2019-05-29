@@ -1,6 +1,8 @@
 package network.layers;
 
 import conversions.Endianess;
+import io.LowlevelLogging;
+import io.LowlevelOutput;
 import kernel.Kernel;
 import kernel.interrupts.receivers.TimerCounter;
 import network.IPv4Address;
@@ -12,6 +14,10 @@ import network.structs.EthernetHeader;
 import network.structs.IpHeader;
 
 public class Ip {
+    //public static final int PROTO_UDP = ;
+    //public static final int PROTO_TCP = ;
+    //public static final int PROTO_ICMP = ;
+
     public static int myIp;
 
     public Ip(){
@@ -47,9 +53,19 @@ public class Ip {
         header.len = Endianess.convert((short)(buffer.usableSize + IpHeader.SIZE));
         header.chksum = Endianess.convert((short)OnesComplement.calc(0, (int)MAGIC.addr(header.versionIhl), IpHeader.SIZE, true));
 
-        // todo get mac for given target ip
-        MacAddress targetMac = null;
+        // wait for arp to resolve ip...
+        MacAddress targetMac = Kernel.networkManager.stack.arpLayer.resolveIp(targetIp);
+
+        if (targetMac == null){
+            // simple timeout
+            LowlevelLogging.debug("IP could not be resolved!");
+        }
+
 
         Kernel.networkManager.stack.ethernetLayer.send(targetMac, Ethernet.TYPE_IP, buffer);
+    }
+
+    public void receive(PackageBuffer buffer) {
+        // todo implement
     }
 }

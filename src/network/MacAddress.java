@@ -28,11 +28,12 @@ public class MacAddress {
     }
 
     public byte[] toBytes(){
-        byte[] copy = new byte[MAC_LEN];
+        return addr;
+        /*byte[] copy = new byte[MAC_LEN];
         for(int i = 0; i < MAC_LEN; i++){
             copy[i] = addr[i];
         }
-        return copy;
+        return copy;*/
     }
 
     public long toLong() {
@@ -57,7 +58,7 @@ public class MacAddress {
     }
 
     private static MacAddress broadcastMac;
-    public static MacAddress broadcast(){
+    public static MacAddress getBroadcastAddr(){
         if (broadcastMac == null){
             byte[] data = new byte[MAC_LEN];
 

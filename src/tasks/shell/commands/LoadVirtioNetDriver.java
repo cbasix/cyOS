@@ -52,7 +52,7 @@ public class LoadVirtioNetDriver extends Command{
                 }
 
                 // send test message
-                for (int j = 0; j < 512; j++) {
+                /*for (int j = 0; j < 512; j++) {
                     Ethernet eth = Kernel.networkManager.stack.ethernetLayer;
                     PackageBuffer b = eth.getBuffer(firstMessage.length);
                     int cnt = 0;
@@ -62,7 +62,7 @@ public class LoadVirtioNetDriver extends Command{
 
                     eth.send(Kernel.networkManager.nic.getMacAddress(), Ethernet.TYPE_IP, b);
                 }
-                shellMessageBuffer.push(new LogEvent("Sending messages done"));
+                shellMessageBuffer.push(new LogEvent("Sending messages done"));*/
                 found = true;
             }
 
