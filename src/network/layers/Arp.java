@@ -17,6 +17,16 @@ public class Arp {
         cache = new ArrayList();
     }
 
+    public void anounce() {
+        NetworkStack stack = Kernel.networkManager.stack;
+
+        for (int i = 0; i < stack.ipLayer.myAddresses.size(); i++){
+            IPv4Address curAddr = (IPv4Address) stack.ipLayer.myAddresses._get(i);
+            if ((curAddr.toInt() & 0xFF000000) != Ip.LOKAL_ADDR)
+            sendRequest(curAddr, curAddr);
+        }
+    }
+
     public static class ArpCacheEntry{
         public IPv4Address ip;
         public MacAddress mac;
@@ -40,7 +50,7 @@ public class Arp {
         MacAddress targetMac = null;
         int tries = 5;
         while (targetMac == null && tries-- > 0){
-            sendRequest(ip);
+            sendRequest(stack.ipLayer.myBestMatchingIpFor(ip), ip);
             for (int i = 0; i < 10; i++) {Kernel.sleep();} // short delay untill next system timer
             byte[] data = Kernel.networkManager.nic.receive();
             if (data != null){
@@ -54,12 +64,12 @@ public class Arp {
 
     // todo check endianness
 
-    public void sendRequest(IPv4Address ip){
+    public void sendRequest(IPv4Address senderIp, IPv4Address receiverIp){
 
         ArpCacheEntry entry = new ArpCacheEntry();
-        entry.ip = ip;
+        entry.ip = receiverIp;
         entry.mac = null;
-        if(loadFromCache(ip) == null) {
+        if(loadFromCache(receiverIp) == null) {
             cache._add(entry);
         }
 
@@ -76,18 +86,18 @@ public class Arp {
             a.senderHwAddr[i] = b[i];
         }
 
-        a.senderProtocAddr = Endianess.convert(Ip.myIp);
+        a.senderProtocAddr = Endianess.convert(senderIp.toInt());
 
         for (int i = 0; i < MacAddress.MAC_LEN; i++) {
             a.targetHwAddr[i] = 0;
         }
 
-        a.targetProtocolAddr = Endianess.convert(ip.toInt());
+        a.targetProtocolAddr = Endianess.convert(receiverIp.toInt());
 
         Kernel.networkManager.stack.ethernetLayer.send(MacAddress.getBroadcastAddr(), Ethernet.TYPE_ARP, buffer);
     }
 
-    public void sendReply(IPv4Address ip){
+    public void sendReply(IPv4Address senderIp, IPv4Address receiverIp){
         PackageBuffer buffer = Kernel.networkManager.stack.ethernetLayer.getBuffer(ArpMessage.SIZE);
         ArpMessage a = (ArpMessage) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.start]));
         a.hardwareType = Endianess.convert(ArpMessage.HW_TYPE_ETHERNET);
@@ -101,20 +111,24 @@ public class Arp {
             a.senderHwAddr[i] = b[i];
         }
 
-        a.senderProtocAddr = Endianess.convert(Ip.myIp);
+        a.senderProtocAddr = Endianess.convert(senderIp.toInt());
 
-        b = resolveIp(ip).toBytes();
+        b = resolveIp(receiverIp).toBytes();
         for (int i = 0; i < MacAddress.MAC_LEN; i++) {
             a.targetHwAddr[i] = b[i];
         }
 
-        a.targetProtocolAddr = Endianess.convert(ip.toInt());
+        a.targetProtocolAddr = Endianess.convert(receiverIp.toInt());
 
         Kernel.networkManager.stack.ethernetLayer.send(
                 MacAddress.getBroadcastAddr(), Ethernet.TYPE_ARP, buffer);
     }
 
     public void receive(PackageBuffer buffer){
+        Ip ipLayer = Kernel.networkManager.stack.ipLayer;
+
+
+        LowlevelLogging.debug("got arp package");
         ArpMessage a = (ArpMessage) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.start]));
         // information from both REPLY or REQUEST are saved in cache
 
@@ -133,7 +147,7 @@ public class Arp {
 
         // if no existing entry found
         ArpCacheEntry entry = new ArpCacheEntry();
-        entry.ip = new IPv4Address(a.senderProtocAddr);
+        entry.ip = new IPv4Address(Endianess.convert(a.senderProtocAddr));
 
         byte[] mac = new byte[MacAddress.MAC_LEN];
         for (int i = 0; i < MacAddress.MAC_LEN; i++){
@@ -146,11 +160,16 @@ public class Arp {
         // todo is sending to my own mac a problem ?
 
         // reply to request
-        if (a.operation == ArpMessage.OP_REQUEST
-                && a.targetProtocolAddr == Ip.myIp){
+        int targetIp = Endianess.convert(a.targetProtocolAddr);
+        short operation = Endianess.convert(a.operation);
 
-            sendReply(entry.ip);
+        if (operation == ArpMessage.OP_REQUEST){
+            for (int addrNo = 0; addrNo < ipLayer.myAddresses.size(); addrNo++) {
+                IPv4Address curIp = (IPv4Address) ipLayer.myAddresses._get(addrNo);
+                if(targetIp == curIp.toInt()){
+                    sendReply(curIp, entry.ip);
+                }
+            }
         }
-
     }
 }

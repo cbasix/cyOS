@@ -32,23 +32,24 @@ public class Arp extends Command{
             if (args[1].equals("cache")){
                 for (int i = 0; i < arpLayer.cache.size(); i++){
                     network.layers.Arp.ArpCacheEntry entry = (network.layers.Arp.ArpCacheEntry) arpLayer.cache._get(i);
-                    shellMessageBuffer.push(new LogEvent(String.concat(entry.ip.toString(), entry.mac != null ? entry.mac.toString() : "noMac")));
+                    shellMessageBuffer.push(new LogEvent(String.concat(String.concat(entry.ip.toString(), " "), entry.mac != null ? entry.mac.toString() : "noMac")));
                 }
 
-            } else if (args[1].equals("send")){
+            } else if (args[1].equals("announce")){
                 if(nic == null){
                     shellMessageBuffer.push(new LogEvent("No nic found"));
                     return;
                 }
 
-                MacAddress mac = arpLayer.resolveIp(new IPv4Address(Ip.myIp));
-                shellMessageBuffer.push(new LogEvent(String.concat("my own mac via arp: ", mac != null ? mac.toString() : "Resolve Error")));
+                arpLayer.anounce();
+                shellMessageBuffer.push(new LogEvent("Anouncements send"));
+                //shellMessageBuffer.push(new LogEvent(String.concat("my own mac via arp: ", mac != null ? mac.toString() : "Resolve Error")));
 
             }
 
 
         } else {
-            shellMessageBuffer.push(new LogEvent("Please specify subcommand: cache or send"));
+            shellMessageBuffer.push(new LogEvent("Please specify subcommand: cache or announce"));
         }
 
 

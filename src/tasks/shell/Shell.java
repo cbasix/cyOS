@@ -52,6 +52,7 @@ public class Shell extends Task {
         registeredCommands.add(new PciScan());
         registeredCommands.add(new LoadVirtioNetDriver());
         registeredCommands.add(new Arp());
+        registeredCommands.add(new Network());
 
         inputArea.setColor(Color.BLACK, Color.GREY);
         outputArea.setColorState(COLOR_NORMAL);

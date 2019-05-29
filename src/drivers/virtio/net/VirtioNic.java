@@ -439,19 +439,12 @@ public class VirtioNic extends Nic{
     public byte[] receive() {
         if (receiveQueue.usedRing.idx != receiveNextToUseIdx){
 
-            LowlevelLogging.debug(String.concat("rec q used ring ", String.from(receiveQueue.usedRing.idx)));
-
-
             int currentAvailIndex = (receiveNextToUseIdx) % VirtqueueConstants.QUEUE_SIZE;
             UsedRingElement usedElem = receiveQueue.usedRing.ring[currentAvailIndex];
 
             int buffAddr = (int) receiveQueue.descriptors[usedElem.id].address;
             DescriptorElement desc = (DescriptorElement) MAGIC.cast2Struct(buffAddr);
 
-            LowlevelLogging.debug(String.concat("WE MAY HAVE RECEIVED SOMETHING", String.from(usedElem.len)));
-
-
-            LowlevelLogging.debug(String.from(usedElem.len));
             byte[] data = new byte[usedElem.len];
 
             for (int i = 0; i < usedElem.len - VirtioNetHeader.SIZE; i++){

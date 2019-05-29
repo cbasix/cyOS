@@ -9,6 +9,8 @@ import drivers.virtio.first_try.VirtioNet;
 import drivers.virtio.net.VirtioNic;
 import io.LowlevelLogging;
 import kernel.Kernel;
+import kernel.interrupts.receivers.TimerCounter;
+import network.IPv4Address;
 import network.PackageBuffer;
 import network.layers.Ethernet;
 import tasks.LogEvent;
@@ -50,6 +52,11 @@ public class LoadVirtioNetDriver extends Command{
                 } else {
                     shellMessageBuffer.push(new LogEvent("Link is DOWN"));
                 }
+
+                Kernel.networkManager.stack.ipLayer.addAddress(
+                        new IPv4Address(0xC0A8C800 | (TimerCounter.getCurrent()%125)+1)
+                ); // "random" last part of ip between 1 and 126
+
 
                 // send test message
                 /*for (int j = 0; j < 512; j++) {

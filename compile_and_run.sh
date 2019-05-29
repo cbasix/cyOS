@@ -21,7 +21,9 @@ cd compiler/nightly/
 mkisofs -o cyos.iso -N -b bbk_iso.bin -no-emul-boot -boot-load-seg 0x7C0 -boot-load-size 4 -V "cyOS" -A "SJC compiled bootable OS" -graft-points CDBOOT/BOOT_ISO.IMG=raw_out.bin bbk_iso.bin
 
 #qemu-system-i386 -cdrom cyos.iso -no-kvm -monitor stdio -d guest_errors -netdev socket,id=cynet,listen=:1409 -device virtio-net-pci,netdev=cynet
-qemu-system-i386 -m 32 -cdrom cyos.iso -no-kvm -monitor stdio -d guest_errors -netdev socket,id=cynet,connect=:1409 -device virtio-net-pci,netdev=cynet -object filter-dump,id=id,netdev=cynet,file=cynet.dmp
+#qemu-system-i386 -m 32 -cdrom cyos.iso -no-kvm -monitor stdio -d guest_errors -netdev socket,id=cynet,connect=:1409 -device virtio-net-pci,netdev=cynet,mac=52:54:00:12:34:60
+qemu-system-i386 -m 32 -cdrom cyos.iso -no-kvm -monitor stdio -d guest_errors -netdev socket,id=cynet,listen=:1408 -device virtio-net-pci,netdev=cynet,mac=52:54:00:12:34:60
+# -object filter-dump,id=id,netdev=cynet,file=cynet.dmp dump traffic to file
 #qemu-system-i386 -m 32 -cdrom cyos.iso -no-kvm -monitor stdio -d guest_errors
 
 #-netdev tap,id=mynet0 # needs root

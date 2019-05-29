@@ -2,12 +2,11 @@ package network.layers;
 
 
 import conversions.Endianess;
-import drivers.virtio.structs.Buffer;
 import io.LowlevelLogging;
 import kernel.Kernel;
 import network.MacAddress;
 import network.PackageBuffer;
-import network.checksum.OnesComplement;
+import network.checksum.Crc32;
 import network.structs.EthernetHeader;
 import network.structs.EthernetFooter;
 
@@ -43,9 +42,7 @@ public class Ethernet {
         header.type = Endianess.convert(type);
 
         // calc checksum over ethernet header
-        tail.checksum = Endianess.convert(OnesComplement.calc(0, MAGIC.addr(buffer.data[buffer.start]), EthernetHeader.SIZE, false)); // todo check
-
-        LowlevelLogging.debug(String.hexFrom(tail.checksum));
+        tail.checksum = Endianess.convert(Crc32.calc(0, MAGIC.addr(buffer.data[buffer.start]), EthernetHeader.SIZE, false)); // todo check
 
         Kernel.networkManager.nic.send(buffer.data);
     }
@@ -56,14 +53,17 @@ public class Ethernet {
         EthernetHeader header = (EthernetHeader) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.start]));
         EthernetFooter tail = (EthernetFooter) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.data.length - 1 - EthernetFooter.SIZE]));
 
+        LowlevelLogging.debug(String.concat("ETHERNET ",String.concat(String.hexFrom(Endianess.convert(header.type)),"                       ")));
+
         // define payload area for upper proto
         buffer.start += EthernetHeader.SIZE;
         buffer.usableSize -= EthernetHeader.SIZE + EthernetFooter.SIZE;
 
-        if (header.type == TYPE_ARP) {
+        int type = Endianess.convert(header.type);
+        if (type == TYPE_ARP) {
             Kernel.networkManager.stack.arpLayer.receive(buffer);
 
-        } else if (header.type == TYPE_IP) {
+        } else if (type == TYPE_IP) {
             Kernel.networkManager.stack.ipLayer.receive(buffer);
         }
 
