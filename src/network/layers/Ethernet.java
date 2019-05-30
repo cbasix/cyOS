@@ -53,7 +53,7 @@ public class Ethernet {
         EthernetHeader header = (EthernetHeader) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.start]));
         EthernetFooter tail = (EthernetFooter) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.data.length - 1 - EthernetFooter.SIZE]));
 
-        LowlevelLogging.debug(String.concat("ETHERNET ",String.concat(String.hexFrom(Endianess.convert(header.type)),"                       ")));
+        //LowlevelLogging.debug(String.concat("ETHERNET type: ",String.concat(String.hexFrom(Endianess.convert(header.type)),"                       ")));
 
         // define payload area for upper proto
         buffer.start += EthernetHeader.SIZE;
