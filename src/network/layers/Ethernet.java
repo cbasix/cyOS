@@ -55,6 +55,8 @@ public class Ethernet {
 
         //LowlevelLogging.debug(String.concat("ETHERNET type: ",String.concat(String.hexFrom(Endianess.convert(header.type)),"                       ")));
 
+        // todo check checksum
+
         // define payload area for upper proto
         buffer.start += EthernetHeader.SIZE;
         buffer.usableSize -= EthernetHeader.SIZE + EthernetFooter.SIZE;

@@ -2,6 +2,8 @@ package network;
 
 import io.LowlevelLogging;
 
+// mac is saved in network byte order !!!
+
 public class MacAddress {
     public static final int MAC_LEN = 6;
 

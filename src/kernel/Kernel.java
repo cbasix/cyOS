@@ -24,6 +24,7 @@ public class Kernel {
     public static boolean doGC = false;
     public  static int gcRun;
     public static NetworkManager networkManager;
+    public static GreenScreenOutput out;
 
     // ATTENTION THE KERNEL CLASS MUST NOT HAVE ANY OBJECT REFERENCE ON STACK! THE GARBAGE COLLECTION
     // CALLED FROM WITHIN THE TASK MANAGER DOES NOT FIND THIS USAGE AND WILL DELETE THE REFERENCED OBJECT!
@@ -58,6 +59,8 @@ public class Kernel {
 
         // enable paging
         Paging.enable();
+
+        out = new GreenScreenOutput();
 
         // create network manager
         networkManager = new NetworkManager();

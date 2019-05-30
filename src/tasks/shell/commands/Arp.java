@@ -7,10 +7,7 @@ import drivers.pci.PciDevice;
 import drivers.virtio.VirtIo;
 import drivers.virtio.net.VirtioNic;
 import kernel.Kernel;
-import network.IPv4Address;
-import network.MacAddress;
-import network.Nic;
-import network.PackageBuffer;
+import network.*;
 import network.layers.Ethernet;
 import network.layers.Ip;
 import tasks.LogEvent;
@@ -30,8 +27,9 @@ public class Arp extends Command{
 
         if (args.length > 1){
             if (args[1].equals("cache")){
-                for (int i = 0; i < arpLayer.cache.size(); i++){
-                    network.layers.Arp.ArpCacheEntry entry = (network.layers.Arp.ArpCacheEntry) arpLayer.cache._get(i);
+                ArrayList items = arpLayer.cache.getList();
+                for (int i = 0; i < items.size(); i++){
+                    ArpCache.Entry entry = (ArpCache.Entry) items._get(i);
                     shellMessageBuffer.push(new LogEvent(String.concat(String.concat(entry.ip.toString(), " "), entry.mac != null ? entry.mac.toString() : "noMac")));
                 }
 

@@ -2,6 +2,8 @@ package network.layers;
 
 import conversions.Endianess;
 import datastructs.ArrayList;
+import io.Color;
+import io.GreenScreenOutput;
 import io.LowlevelLogging;
 import kernel.Kernel;
 import network.IPv4Address;
@@ -12,19 +14,22 @@ import network.structs.IpHeader;
 
 public class Ip {
     public static final int LOKAL_ADDR = 0x0E000000;
-    //public static final int PROTO_UDP = ;
-    //public static final int PROTO_TCP = ;
-    //public static final int PROTO_ICMP = ;
+    private static final byte V4 = 0x40;
 
-    public ArrayList myAddresses;
+    private static final byte PROTO_UDP = 0x11;
+    public static final byte PROTO_TCP = 0x06;
+    public static final byte PROTO_ICMP = 0x01;
+    public static final byte PROTO_RAW_TEXT = (byte)0xF2;
+
+    public ArrayList ownAddresses;
 
     public Ip(){
-        myAddresses = new ArrayList();
-        myAddresses._add(new IPv4Address(LOKAL_ADDR | 1)); // link local 127.0.0.1
+        ownAddresses = new ArrayList();
+        ownAddresses._add(new IPv4Address(LOKAL_ADDR | 1)); // link local 127.0.0.1
     }
 
     public void addAddress(IPv4Address ip){
-        myAddresses._add(ip);
+        ownAddresses._add(ip);
     }
 
     public PackageBuffer getBuffer(int payloadSize) {
@@ -51,13 +56,12 @@ public class Ip {
         header.srcIP = Endianess.convert((myBestMatchingIpFor(targetIp).toInt())); // todo netmasks
         header.ttl = (byte)64; //standard ttl is 64 (see RFC 1700)
         header.prot = (byte)protocol;
-        header.chksum = 0;
         header.len = Endianess.convert((short)(buffer.usableSize + IpHeader.SIZE));
         header.chksum = Endianess.convert((short) Crc32.calc(0, (int)MAGIC.addr(header.versionIhl), IpHeader.SIZE, true));
 
         // handle link local
-        for (int addrNo = 0; addrNo < myAddresses.size(); addrNo++){
-            if (targetIp.equals((IPv4Address) myAddresses._get(addrNo))){
+        for (int addrNo = 0; addrNo < ownAddresses.size(); addrNo++){
+            if (targetIp.equals((IPv4Address) ownAddresses._get(addrNo))){
                 this.receive(buffer);
                 return;
             }
@@ -77,13 +81,64 @@ public class Ip {
 
     public void receive(PackageBuffer buffer) {
         // todo implement
+
+        IpHeader header = (IpHeader) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.start]));
+
+        byte version = (byte) (header.versionIhl & 0xF0);
+        header.tos = 0;
+        IPv4Address targetIp = new IPv4Address(Endianess.convert(header.dstIP));
+        IPv4Address sourceIp = new IPv4Address(Endianess.convert(header.srcIP));
+        byte protocol = header.prot;
+        short chksum = Endianess.convert(header.chksum);
+        int len = Endianess.convert(header.len) - IpHeader.SIZE; // todo IPv4 has variable header length!
+
+        // todo check checksum
+        //  Endianess.convert((short) Crc32.calc(0, (int)MAGIC.addr(header.versionIhl), IpHeader.SIZE, true));
+
+        if (!this.hasOwnAddress(targetIp)){
+            return;
+        }
+        
+        if (version != Ip.V4){
+            return;
+        }
+
+        // upper layer protocol usable area restrictions
+        buffer.start += IpHeader.SIZE;
+        buffer.usableSize -= IpHeader.SIZE;
+        
+        if(protocol == PROTO_RAW_TEXT){
+            char[] messageArr = new char[buffer.usableSize/2];
+            for (int i = 0; i < messageArr.length; i++){
+                messageArr[i] = (char)((buffer.data[buffer.start + i] << 8) | buffer.data[buffer.start + i + 1]);
+            }
+            GreenScreenOutput out = new GreenScreenOutput();
+            out.setCursor(30, 15);
+            out.setColor(Color.GREY, Color.PINK);
+            out.print("Got message: ");
+            out.print(new String(messageArr));
+            out.print(" length: ");
+            out.print(messageArr.length);
+            out.print(" from: ");
+            out.print(sourceIp.toString());
+            Kernel.wait(3);
+        }
     }
 
-    // todo for now the last one added is always the best match -> may be replaced by net mask stuff
+    // todo for now the last one added is always the best match -> can be replaced by net mask stuff
     public IPv4Address myBestMatchingIpFor(IPv4Address ip) {
-        return (IPv4Address) myAddresses._get(myAddresses.size()-1);
+        return (IPv4Address) ownAddresses._get(ownAddresses.size()-1);
         /*for (int i = 0; i < myAddresses.size(); i++){
             (IPv4Address) myAddresses._get(i)
         }*/
+    }
+
+    public boolean hasOwnAddress(IPv4Address ip){
+        for (int i = 0; i < ownAddresses.size(); i++){
+            if (ip.toInt() == ((IPv4Address) ownAddresses._get(i)).toInt()){
+                return true;
+            }
+        }
+        return  false;
     }
 }

@@ -1,35 +1,79 @@
+#!/bin/bash
 set -e
 set -o pipefail
 
 cd compiler/nightly/
-#./compile ../../src/ ../../blobs/ -o boot -s 2M -D code addr.txt -Q -I 5
-#./compile ../../src/ ../../blobs/ -o boot -s 2M -Q -I 6 -t ia32 -T nsop -D code addr.txt -D sym syminfo.txt -u raw
-#rte !
-# ./compile ../../src/ ../../blobs/ -o boot -s 2M -Q -I 5 -t ia32 -T nsop -n -b
-#qemu-system-i386 -no-kvm -monitor stdio -d guest_errors -m 32 -boot a -drive format=raw,if=none,file=BOOT_FLP.IMG -device floppy,drive=none0,drive-type=144
-#qemu-system-i386 -monitor stdio -no-reboot -no-kvm -m 32 -boot a -drive format=raw,if=none,file=BOOT_FLP.IMG -device floppy,drive=none0,drive-type=144
-#qemu-system-i386 -monitor stdio -s -S -no-reboot -no-kvm -m 32 -boot a -drive format=raw,if=none,file=BOOT_FLP.IMG -device floppy,drive=none0,drive-type=144
-#qemu-system-i386 -monitor stdio -trace-unassigned -no-kvm -m 32 -boot a -drive format=raw,if=none,file=BOOT_FLP.IMG -device floppy,drive=none0,drive-type=144
-# get method of addr java -cp compiler/nightly/sjc.jar sjc.ui.GetMthd compiler/nightly/addr.txt ADDR
 
-# boot via floppy image
-#./compile ../../src/ ../../blobs/ -o boot -s 2M -Q -I 6 -t ia32 -T nsop -D code addr.txt -D sym syminfo.txt -u raw  # gc works, with rte -> nullptr
-#qemu-system-i386 -no-kvm -monitor stdio -d guest_errors -m 32 -boot a -drive format=raw,if=none,file=BOOT_FLP.IMG -device floppy,drive=none0,drive-type=144
+# compiler options
+compiler="./compile "
+path="../../src/ ../../blobs/ "
 
-# boot via iso image
-./compile ../../src/ ../../blobs/ -o raw -s 32M -Q -g -I 6 -t ia32 -T nsop -D code addr.txt -D sym syminfo.txt -u rte  # gc null ptr ;) with rte ->nullptr -g erzeuge alle klassendeskriptoren
-mkisofs -o cyos.iso -N -b bbk_iso.bin -no-emul-boot -boot-load-seg 0x7C0 -boot-load-size 4 -V "cyOS" -A "SJC compiled bootable OS" -graft-points CDBOOT/BOOT_ISO.IMG=raw_out.bin bbk_iso.bin
+default="-s 32M -Q -g -I 6 -t ia32 -T nsop "
 
-#qemu-system-i386 -cdrom cyos.iso -no-kvm -monitor stdio -d guest_errors -netdev socket,id=cynet,listen=:1409 -device virtio-net-pci,netdev=cynet
-#qemu-system-i386 -m 32 -cdrom cyos.iso -no-kvm -monitor stdio -d guest_errors -netdev socket,id=cynet,connect=:1409 -device virtio-net-pci,netdev=cynet,mac=52:54:00:12:34:60
-qemu-system-i386 -m 32 -cdrom cyos.iso -no-kvm -monitor stdio -d guest_errors -netdev socket,id=cynet,listen=:1408 -device virtio-net-pci,netdev=cynet,mac=52:54:00:12:34:60
-# -object filter-dump,id=id,netdev=cynet,file=cynet.dmp dump traffic to file
-#qemu-system-i386 -m 32 -cdrom cyos.iso -no-kvm -monitor stdio -d guest_errors
+floppy="-o boot "
+iso="-o raw "
 
-#-netdev tap,id=mynet0 # needs root
-#-netdev socket,id=mynet0,listen=:1234
-#-netdev socket,id=mynet0,connect=:1234
-#-netdev user,id=n1 -device virtio-net-pci,netdev=n1
+debug_writer="-D code addr.txt -D sym syminfo.txt "
+
+infos_rte="-u rte "
+infos_raw="-u raw "
+
+# mkisofs
+mkisofs="mkisofs -o cyos.iso -N -b bbk_iso.bin -no-emul-boot -boot-load-seg 0x7C0 -boot-load-size 4 -V \"cyOS\" -A \"SJC compiled bootable OS\" -graft-points CDBOOT/BOOT_ISO.IMG=raw_out.bin bbk_iso.bin"
+
+# qemu options
+qemu="qemu-system-i386 "
+qemu_default="-no-kvm -monitor stdio -d guest_errors -m 32 "
+qemu_debug="-s -S -no-reboot "
+
+boot_floppy="-drive format=raw,if=none,file=BOOT_FLP.IMG -device floppy,drive=none0,drive-type=144"
+boot_iso="-cdrom cyos.iso "
+
+net1="-netdev socket,id=cynet,listen=:1408 -device virtio-net-pci,netdev=cynet,mac=52:54:00:12:34:60 "
+net2="-netdev socket,id=cynet,connect=:1408 -device virtio-net-pci,netdev=cynet,mac=52:54:00:12:34:61 "
+
+net_kali="-netdev socket,id=cynet,connect=:1409 -device virtio-net-pci,netdev=cynet,mac=52:54:00:12:34:62 "
+dump_net="-object filter-dump,id=id,netdev=cynet,file=cynet.dmp"
+
+# variants
+# run one instance which can connect to kali
+if [ $# -eq 0 ]; then
+     cmd="$compiler $path $default $iso $debug_writer $infos_rte"
+    echo $cmd
+    eval $cmd
+
+    echo $mkisofs
+    eval $mkisofs
+
+    cmd="$qemu $qemu_default $boot_iso $net_kali &"
+    echo $cmd
+    eval $cmd
+    exit 0;
+fi
+
+# run two connected instances
+if [[ $1 -eq "net" ]]; then
+    cmd="$compiler $path $default $iso $debug_writer $infos_rte"
+    echo $cmd
+    eval $cmd
+
+    echo $mkisofs
+    eval $mkisofs
+
+    cmd="$qemu $qemu_default $boot_iso $net1 &"
+    echo $cmd
+    eval $cmd
+
+    cmd="$qemu $qemu_default $boot_iso $net2"
+    echo $cmd
+    eval $cmd
+
+    exit 0;
+fi
 
 # test bootable usb stick
 # qemu-system-i386 -hda /dev/sdb
+
+#-netdev tap,id=mynet0 # needs root
+
+# get method of addr java -cp compiler/nightly/sjc.jar sjc.ui.GetMthd compiler/nightly/addr.txt ADDR

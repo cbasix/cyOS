@@ -42,7 +42,8 @@ public class VirtioNic extends Nic{
 
     private Virtqueue transmitQueue;
     private Virtqueue receiveQueue;
-    private BufferArea bufferArea;
+    private BufferArea transmitBufferArea;
+    private BufferArea receiveBufferArea;
     //private boolean[] inUse; todo implement conditional buffer reuse
 
     // todo wraparound with negative indices will most likely be a problem
@@ -68,8 +69,8 @@ public class VirtioNic extends Nic{
         public boolean handleInterrupt(int interruptNo, int param) {
             // this read resets the interrupt!
             if((isrReg.data & 0x3) != 0){
-                LowlevelOutput.printStr("GOT VIRTIO INTERRUPT", 0, 0, Color.PINK);
-                LowlevelOutput.printStr(String.from(++interruptCnt), 22, 0, Color.CYAN);
+                LowlevelOutput.printStr("VIRTIO INT:", 0, 0, Color.PINK);
+                LowlevelOutput.printStr(String.from(++interruptCnt), 12, 0, Color.CYAN);
                 return true;
             }
             return false;
@@ -78,7 +79,7 @@ public class VirtioNic extends Nic{
             //  – If the lower bit is set: look through the used rings of all
             //    virtqueues for the device, to see if anyprogress has been made
             //    by the device which requires servicing.
-            //  – If the second lower bit is set: re-examine the configuration
+            //  – If the second lower bit is  lower bit is set: re-examine the configuration
             //    space to see what changed. Necessary???
         }
     }
@@ -101,7 +102,7 @@ public class VirtioNic extends Nic{
 
         rawMem = new RawMemoryContainer(
                 2*Virtqueue.SIZE
-                        + BufferArea.SIZE
+                        + 2*BufferArea.SIZE
                         + ALIGN_SPACE
         );
 
@@ -123,11 +124,12 @@ public class VirtioNic extends Nic{
 
         transmitQueue = (Virtqueue) MAGIC.cast2Struct(transmitQueueAddr);
         receiveQueue = (Virtqueue) MAGIC.cast2Struct(receiveQueueAddr);
-        bufferArea = (BufferArea) MAGIC.cast2Struct(bufferAreaAddr);
+        transmitBufferArea = (BufferArea) MAGIC.cast2Struct(bufferAreaAddr);
+        receiveBufferArea = (BufferArea) MAGIC.cast2Struct(bufferAreaAddr);
 
-        if (transmitQueueAddr != MAGIC.cast2Ref(transmitQueue)) {
-            LowlevelLogging.debug("cast2ref doesnt work with struct");
-        }
+        Kernel.out.setCursor(0,0);
+        Kernel.out.print("transmit queue: ");
+
         initDevice();
     }
 
@@ -251,7 +253,7 @@ public class VirtioNic extends Nic{
         // setup descriptors for both qeues // NO CHAINING IMPLEMENTED
         for (int i = 0; i < VirtqueueConstants.QUEUE_SIZE; i++) {
             DescriptorElement descr = transmitQueue.descriptors[i];
-            descr.address = MAGIC.cast2Ref(bufferArea) + i * VirtqueueConstants.BUFFER_SIZE;
+            descr.address = MAGIC.cast2Ref(transmitBufferArea) + i * VirtqueueConstants.BUFFER_SIZE;
             descr.length = VirtqueueConstants.BUFFER_SIZE;
             descr.flags = 0;
             descr.next = 0;
@@ -259,7 +261,7 @@ public class VirtioNic extends Nic{
 
         for (int i = 0; i < VirtqueueConstants.QUEUE_SIZE; i++) {
             DescriptorElement descr = receiveQueue.descriptors[i];
-            descr.address = MAGIC.cast2Ref(bufferArea) + i * VirtqueueConstants.BUFFER_SIZE;
+            descr.address = MAGIC.cast2Ref(receiveBufferArea) + i * VirtqueueConstants.BUFFER_SIZE;
             descr.length = VirtqueueConstants.BUFFER_SIZE;
             // allow device to write to all descriptors
             descr.flags = DescriptorElement.VIRTQ_DESC_F_WRITE;

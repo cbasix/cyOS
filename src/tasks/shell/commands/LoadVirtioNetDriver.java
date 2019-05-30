@@ -53,9 +53,10 @@ public class LoadVirtioNetDriver extends Command{
                     shellMessageBuffer.push(new LogEvent("Link is DOWN"));
                 }
 
-                Kernel.networkManager.stack.ipLayer.addAddress(
-                        new IPv4Address(0xC0A8C800 | (TimerCounter.getCurrent()%125)+1)
-                ); // "random" last part of ip between 1 and 126
+                byte[] macBytes = Kernel.networkManager.nic.getMacAddress().toBytes();
+                IPv4Address ip = new IPv4Address(0xC0A8C800 | macBytes[macBytes.length-1]); // use last byte of mac address
+                shellMessageBuffer.push(new LogEvent(ip.toString()));
+                Kernel.networkManager.stack.ipLayer.addAddress(ip); // "random" last part of ip between 1 and 126
 
 
                 // send test message
