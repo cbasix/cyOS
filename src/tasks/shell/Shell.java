@@ -99,6 +99,8 @@ public class Shell extends Task {
         draw();
         // todo remove when virtio testing ready
         execute(">virtio".toChars());
+        execute(">arp announce".toChars());
+        execute(">net receive".toChars());
     }
 
     // todo bug last char not deletable

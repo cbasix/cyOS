@@ -7,10 +7,11 @@ import kernel.Kernel;
 import network.MacAddress;
 import network.PackageBuffer;
 import network.checksum.Crc32;
+import network.layers.abstracts.LinkLayer;
 import network.structs.EthernetHeader;
 import network.structs.EthernetFooter;
 
-public class Ethernet {
+public class Ethernet extends LinkLayer {
     public final static short TYPE_ARP = 0x0806;
     public final static short TYPE_IP = 0x0800;
 

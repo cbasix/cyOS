@@ -2,6 +2,9 @@ package tasks.shell.commands;
 
 import datastructs.ArrayList;
 import datastructs.RingBuffer;
+import io.Color;
+import io.LowlevelLogging;
+import io.LowlevelOutput;
 import kernel.Kernel;
 import network.*;
 import network.layers.Arp;
@@ -31,11 +34,11 @@ public class Network extends Command{
                 doReceive(shellMessageBuffer, stack);
 
             } else if (args[1].equals("send")) {
-                if(args.length < 3) {
-                    shellMessageBuffer.push(new LogEvent("Please provide a message"));
+                if(args.length < 4) {
+                    shellMessageBuffer.push(new LogEvent("Please provide target and a message"));
                     return;
                 }
-                doSend(shellMessageBuffer, stack, args[2]);
+                doSend(shellMessageBuffer, stack, args[3], args[2]);
             }
         } else {
             shellMessageBuffer.push(new LogEvent("Please select subcommand_ receive or send."));
@@ -43,17 +46,23 @@ public class Network extends Command{
     }
 
 
-    public void doSend(RingBuffer shellMessageBuffer, NetworkStack stack, String message) {
+    public void doSend(RingBuffer shellMessageBuffer, NetworkStack stack, String message, String target) {
         IPv4Address sendToIp = null;
-        ArrayList arpCacheEntrys = stack.arpLayer.cache.getList();
-        for (int i = 0; i < arpCacheEntrys.size(); i++){
-            ArpCache.Entry entry = (ArpCache.Entry) arpCacheEntrys._get(i);
-            if (entry.mac != null){
-                sendToIp = entry.ip;
+
+        if (target.equals("250")) {
+            sendToIp = new IPv4Address(0xC0A8C8FA);
+
+        } else if (target.equals("arp")) {
+            ArrayList arpCacheEntrys = stack.arpLayer.cache.getList();
+            for (int i = 0; i < arpCacheEntrys.size(); i++) {
+                ArpCache.Entry entry = (ArpCache.Entry) arpCacheEntrys._get(i);
+                if (entry.mac != null) {
+                    sendToIp = entry.ip;
+                }
             }
         }
 
-        if (sendToIp == null){
+        if (sendToIp == null) {
             shellMessageBuffer.push(new LogEvent("No recipient available."));
             return;
         }
@@ -62,16 +71,19 @@ public class Network extends Command{
         char[] charData = message.toChars();
         PackageBuffer buffer = stack.ipLayer.getBuffer(charData.length * 2);
         for (int i = 0; i < charData.length; i++){
-            buffer.data[buffer.start+i] = (byte) (charData[i] >> 8) ;
-            buffer.data[buffer.start+i+1] = (byte) charData[i];
+            buffer.data[buffer.start+2*i] = (byte) (charData[i] >> 8) ;
+            buffer.data[buffer.start+2*i+1] = (byte) charData[i];
+            LowlevelOutput.printChar(charData[i], i, 1, Color.RED);
         }
-
 
         stack.ipLayer.send(sendToIp, Ip.PROTO_RAW_TEXT, buffer);
         byte[] data = Kernel.networkManager.nic.receive();
         if (data != null) {
             stack.ethernetLayer.receive(data);
         }
+
+        //LowlevelLogging.printHexdump(MAGIC.addr(buffer.data[0]));
+        //Kernel.stop();
     }
 
 

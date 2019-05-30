@@ -4,15 +4,17 @@ import conversions.Endianess;
 import io.LowlevelLogging;
 import kernel.Kernel;
 import network.*;
+import network.layers.abstracts.ResolutionLayer;
 import network.structs.ArpMessage;
 
-public class Arp {
+public class Arp extends ResolutionLayer {
     public ArpCache cache;
 
     public Arp(){
         cache = new ArpCache();
     }
 
+    @Override
     public void anounce() {
         NetworkStack stack = Kernel.networkManager.stack;
 
@@ -23,6 +25,7 @@ public class Arp {
         }
     }
 
+    @Override
     public MacAddress resolveIp(IPv4Address ip){
         NetworkStack stack = Kernel.networkManager.stack;
         MacAddress targetMac = cache.getMac(ip);
@@ -100,6 +103,7 @@ public class Arp {
                 MacAddress.getBroadcastAddr(), Ethernet.TYPE_ARP, buffer);
     }
 
+    @Override
     public void receive(PackageBuffer buffer){
         Ip ipLayer = Kernel.networkManager.stack.ipLayer;
 
