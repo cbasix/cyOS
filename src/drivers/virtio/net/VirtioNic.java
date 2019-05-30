@@ -34,7 +34,7 @@ public class VirtioNic extends Nic{
     public static final int RECEIVE_QUEUE = 0;
     public static final int TRANSMIT_QUEUE = 1;
 
-    public static final int ALIGN_SPACE = 15 * 2 + 3;
+    public static final int ALIGN_SPACE = 15 * 2 + 3 * 2;
 
 
     private RawMemoryContainer rawMem;
@@ -108,7 +108,8 @@ public class VirtioNic extends Nic{
 
         int transmitQueueAddr = (rawMem.getRawAddr() + 15) & ~15;
         int receiveQueueAddr = (transmitQueueAddr + Virtqueue.SIZE + 15) & ~15;
-        int bufferAreaAddr = (receiveQueueAddr + Virtqueue.SIZE + 3) & ~3;
+        int transmitBufferAreaAddr = (receiveQueueAddr + Virtqueue.SIZE + 3) & ~3;
+        int receiveBufferAreaAddr = (transmitBufferAreaAddr + Virtqueue.SIZE + 3) & ~3;
 
         int tqa = transmitQueueAddr + Virtqueue.USED_RING_OFFSET;
         int tqa2 = transmitQueueAddr + Virtqueue.AVAILABLE_RING_OFFSET;
@@ -124,8 +125,8 @@ public class VirtioNic extends Nic{
 
         transmitQueue = (Virtqueue) MAGIC.cast2Struct(transmitQueueAddr);
         receiveQueue = (Virtqueue) MAGIC.cast2Struct(receiveQueueAddr);
-        transmitBufferArea = (BufferArea) MAGIC.cast2Struct(bufferAreaAddr);
-        receiveBufferArea = (BufferArea) MAGIC.cast2Struct(bufferAreaAddr);
+        transmitBufferArea = (BufferArea) MAGIC.cast2Struct(transmitBufferAreaAddr);
+        receiveBufferArea = (BufferArea) MAGIC.cast2Struct(receiveBufferAreaAddr);
 
         Kernel.out.setCursor(0,0);
         Kernel.out.print("transmit queue: ");
