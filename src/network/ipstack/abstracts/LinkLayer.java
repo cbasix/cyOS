@@ -1,6 +1,6 @@
-package network.layers.abstracts;
+package network.ipstack.abstracts;
 
-import network.MacAddress;
+import network.address.MacAddress;
 import network.PackageBuffer;
 
 public abstract class LinkLayer {

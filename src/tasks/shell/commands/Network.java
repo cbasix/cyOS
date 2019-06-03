@@ -3,12 +3,13 @@ package tasks.shell.commands;
 import datastructs.ArrayList;
 import datastructs.RingBuffer;
 import io.Color;
-import io.LowlevelLogging;
 import io.LowlevelOutput;
 import kernel.Kernel;
 import network.*;
-import network.layers.Arp;
-import network.layers.Ip;
+import network.address.IPv4Address;
+import network.ipstack.ArpCache;
+import network.ipstack.Ip;
+import network.ipstack.NetworkStack;
 import tasks.LogEvent;
 
 
@@ -31,7 +32,8 @@ public class Network extends Command{
 
         if (args.length > 1) {
             if (args[1].equals("receive")) {
-                doReceive(shellMessageBuffer, stack);
+                doReceive(stack);
+
 
             } else if (args[1].equals("send")) {
                 if(args.length < 4) {
@@ -39,10 +41,27 @@ public class Network extends Command{
                     return;
                 }
                 doSend(shellMessageBuffer, stack, args[3], args[2]);
+
+
+            }else if (args[1].equals("udp")) {
+                doSendUdp(shellMessageBuffer, stack);
             }
         } else {
             shellMessageBuffer.push(new LogEvent("Please select subcommand_ receive or send."));
         }
+    }
+
+    private void doSendUdp(RingBuffer shellMessageBuffer, NetworkStack stack) {
+
+        byte[] data = new byte[2];
+        data[0] = (byte)'h';
+        data[1] = (byte)'w';
+
+        for (int i = 0; i <= 0xFF ; i++) {
+            IPv4Address sendToIp = new IPv4Address(0xC0A8C800 | i);
+            stack.udpLayer.send(sendToIp, 0, 67, data);
+        }
+        shellMessageBuffer.push(new LogEvent("Udp msg's sent"));
     }
 
 
@@ -87,7 +106,7 @@ public class Network extends Command{
     }
 
 
-    public void doReceive(RingBuffer shellMessageBuffer, NetworkStack stack) {
+    public static void doReceive(NetworkStack stack) {
         byte[] data = null;
         do {
             data = Kernel.networkManager.nic.receive();

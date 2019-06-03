@@ -1,4 +1,4 @@
-package network.structs;
+package network.ipstack.structs;
 
 // only works for ethernet & ip ;)
 public class ArpMessage extends STRUCT {

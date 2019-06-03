@@ -1,6 +1,4 @@
-package network.structs;
-
-import network.PacketNetwork;
+package network.ipstack.structs;
 
 public class UdpHeader extends STRUCT{
     public static final int SIZE = 8;

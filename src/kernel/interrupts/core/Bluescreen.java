@@ -233,7 +233,7 @@ public class Bluescreen {
         // for each code line there are two entries the first is the offset the line begins at
         // within the opcodes, the second one is the line no within the real code
         for (int line = 0; line < mthdBlock.lineInCodeOffset.length; line += 2){
-            if (mthdBlock.lineInCodeOffset[line] > offset){
+            if (mthdBlock.lineInCodeOffset[line] > offset && line > 0){ // todo check
                 return mthdBlock.lineInCodeOffset[line-1]; // we are stepping over the error line, so it should be the last entry
             }
         }

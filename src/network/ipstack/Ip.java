@@ -1,25 +1,27 @@
-package network.layers;
+package network.ipstack;
 
 import conversions.Endianess;
 import datastructs.ArrayList;
 import io.Color;
 import io.GreenScreenOutput;
 import io.LowlevelLogging;
+import io.LowlevelOutput;
 import kernel.Kernel;
-import network.IPv4Address;
-import network.MacAddress;
+import network.address.IPv4Address;
+import network.address.MacAddress;
 import network.PackageBuffer;
 import network.checksum.Crc32;
-import network.layers.abstracts.LinkLayer;
-import network.layers.abstracts.ResolutionLayer;
-import network.layers.abstracts.TransportLayer;
-import network.structs.IpHeader;
+import network.ipstack.abstracts.InternetLayer;
+import network.ipstack.abstracts.LinkLayer;
+import network.ipstack.abstracts.ResolutionLayer;
+import network.ipstack.abstracts.TransportLayer;
+import network.ipstack.structs.IpHeader;
 
 public class Ip extends InternetLayer {
-    public static final int LOKAL_ADDR = 0x0E000000;
+    public static final int LOKAL_ADDR = 0x7F000000;
     private static final byte V4 = 0x40;
 
-    private static final byte PROTO_UDP = 0x11;
+    public static final byte PROTO_UDP = 0x11;
     public static final byte PROTO_TCP = 0x06;
     public static final byte PROTO_ICMP = 0x01;
     public static final byte PROTO_RAW_TEXT = (byte)0xF2;
@@ -49,6 +51,10 @@ public class Ip extends InternetLayer {
 
     public void addAddress(IPv4Address ip){
         ownAddresses._add(ip);
+    }
+
+    public ArrayList getAddresses(){
+        return ownAddresses;
     }
 
     public PackageBuffer getBuffer(int payloadSize) {
@@ -96,7 +102,7 @@ public class Ip extends InternetLayer {
 
         if (targetMac == null){
             // simple timeout
-            LowlevelLogging.debug("IP could not be resolved!");
+            LowlevelOutput.printStr("IP could not be resolved!", 0,0, Color.PINK);
             return;
         }
 
@@ -106,11 +112,6 @@ public class Ip extends InternetLayer {
 
     @Override
     public void receive(PackageBuffer buffer) {
-        // todo implement
-        GreenScreenOutput out = Kernel.out;
-        out.setCursor(30, 15);
-        out.setColor(Color.GREY, Color.PINK);
-
         IpHeader header = (IpHeader) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.start]));
 
         byte version = (byte) (header.versionIhl & 0xF0);
@@ -124,7 +125,7 @@ public class Ip extends InternetLayer {
         // todo check checksum
         //  Endianess.convert((short) Crc32.calc(0, (int)MAGIC.addr(header.versionIhl), IpHeader.SIZE, true));
 
-        if (!this.hasOwnAddress(targetIp)){
+        if (!this.hasOwnAddress(targetIp) && targetIp.toInt() != 0xFFFFFFFF){
             return;
         }
         
@@ -132,26 +133,26 @@ public class Ip extends InternetLayer {
             return;
         }
 
+        if (len > buffer.usableSize) {
+            LowlevelLogging.debug("Dropped invalid package: ip len > package len");
+            return;
+        }
+
         // upper layer protocol usable area restrictions
         buffer.start += IpHeader.SIZE;
         buffer.usableSize -= IpHeader.SIZE;
-        
+
+        // simple net send style "popup message" for debugging
         if(protocol == PROTO_RAW_TEXT){
 
-            // todo condinue here
-            if (len != buffer.usableSize) {
-                out.print("DIFFERING length:\n buffer usable size: ");
-                out.print(String.from(buffer.usableSize));
-                out.print(" ip len: ");
-                out.println(len);
-            }
-
-            Kernel.wait(10);
-
-            char[] messageArr = new char[buffer.usableSize/2];
+            char[] messageArr = new char[len/2];
             for (int i = 0; i < messageArr.length; i++){
-                messageArr[i] = (char)((buffer.data[buffer.start + i] << 8) | buffer.data[buffer.start + i + 1]);
+                messageArr[i] = (char)((buffer.data[buffer.start + 2*i] << 8) | buffer.data[buffer.start + 2*i + 1]);
             }
+
+            GreenScreenOutput out = Kernel.out;
+            out.setCursor(5, 21);
+            out.setColor(Color.GREY, Color.PINK);
 
             out.print("Got message: ");
             out.print(new String(messageArr));
@@ -159,16 +160,23 @@ public class Ip extends InternetLayer {
             out.print(messageArr.length);
             out.print(" from: ");
             out.print(sourceIp.toString());
-            Kernel.wait(10);
+
+        } else if (protocol == PROTO_UDP){
+            udpLayer.receive(sourceIp, buffer);
         }
     }
 
     // todo for now the last one added is always the best match -> can be replaced by net mask stuff
     public IPv4Address myBestMatchingIpFor(IPv4Address ip) {
-        return (IPv4Address) ownAddresses._get(ownAddresses.size()-1);
+        return getDefaultIp();
         /*for (int i = 0; i < myAddresses.size(); i++){
             (IPv4Address) myAddresses._get(i)
         }*/
+    }
+
+    /** last one added is default */
+    public IPv4Address getDefaultIp(){
+        return (IPv4Address) ownAddresses._get(ownAddresses.size()-1);
     }
 
     public boolean hasOwnAddress(IPv4Address ip){

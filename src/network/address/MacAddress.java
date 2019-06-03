@@ -1,4 +1,4 @@
-package network;
+package network.address;
 
 import io.LowlevelLogging;
 

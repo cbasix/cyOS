@@ -1,21 +1,20 @@
 package drivers.virtio.net;
 
+import arithmetics.Modulo;
 import arithmetics.Unsigned;
 import drivers.pci.PciBaseAddr;
 import drivers.pci.PciDevice;
 import drivers.virtio.RawMemoryContainer;
 import drivers.virtio.VirtIo;
 import drivers.virtio.structs.*;
-import io.Color;
 import io.GreenScreenOutput;
 import io.LowlevelLogging;
-import io.LowlevelOutput;
 import kernel.Kernel;
 import kernel.interrupts.core.InterruptReceiver;
 
 import drivers.virtio.structs.VirtqueueConstants;
 import kernel.interrupts.core.Interrupts;
-import network.MacAddress;
+import network.address.MacAddress;
 import network.Nic;
 
 
@@ -25,6 +24,9 @@ public class VirtioNic extends Nic{
     public static final int VIRTIO_F_RING_EVENT_IDX = 29;
     public static final int VIRTIO_NET_F_MAC = 5;
     public static final int VIRTIO_NET_F_STATUS = 16;
+    private static final int VIRTIO_NET_F_CSUM = 0;
+    private static final int VIRTIO_NET_F_HOST_UFO = 14;
+
 
     public static final int INTERRUPT_LINE = 11; // todo verify
     public static final int INTERRUPT_NO = Interrupts.IRQ11; // todo verify
@@ -64,13 +66,13 @@ public class VirtioNic extends Nic{
         public static final int CONFIG_INT = 1;
         public static final int QUEUE_INT = 2;
 
-        public int interruptCnt = 0;
+        //public int interruptCnt = 0;
         @Override
         public boolean handleInterrupt(int interruptNo, int param) {
             // this read resets the interrupt!
             if((isrReg.data & 0x3) != 0){
-                LowlevelOutput.printStr("VIRTIO INT:", 0, 0, Color.PINK);
-                LowlevelOutput.printStr(String.from(++interruptCnt), 12, 0, Color.CYAN);
+                //LowlevelOutput.printStr("VIRTIO INT:", 0, 0, Color.PINK);
+                //LowlevelOutput.printStr(String.from(++interruptCnt), 12, 0, Color.CYAN);
                 return true;
             }
             return false;
@@ -361,12 +363,13 @@ public class VirtioNic extends Nic{
             LowlevelLogging.debug("Virtio device does not support status feature");
         }
 
+
         // set negotiation done
         commonConfig.device_status |= CommonConfig.VIRTIO_CONF_STATUS_FEATURES_OK;
 
         // check if device agrees
         if ((commonConfig.device_status & CommonConfig.VIRTIO_CONF_STATUS_FEATURES_OK) == 0){
-            LowlevelLogging.debug("Virtio device does not support selected features");
+            LowlevelLogging.debug("Virtio device does not support selected feature combination. ");
         }
     }
 
@@ -406,13 +409,13 @@ public class VirtioNic extends Nic{
             LowlevelLogging.debug("Package to big!");
         }
 
-        int nextIndex = (transmitQueue.availableRing.idx) % VirtqueueConstants.QUEUE_SIZE;
+        int nextIndex = Modulo.mod(transmitQueue.availableRing.idx, VirtqueueConstants.QUEUE_SIZE);
         DescriptorElement nextDescr = this.transmitQueue.descriptors[nextIndex];
         int nextBufAddr = (int) nextDescr.address;
         nextDescr.length = VirtioNetHeader.SIZE + data.length; // use only part of the buffer
 
         VirtioNetHeader header = (VirtioNetHeader) MAGIC.cast2Struct(nextBufAddr);
-        header.flags = 0;
+        header.flags = 0; //VirtioNetHeader.VIRTIO_NET_HDR_F_NEEDS_CSUM;
         header.gso_type = (byte)VirtioNetHeader.VIRTIO_NET_HDR_GSO_NONE;
         header.hdr_len = 0;
         header.csum_start = 0;
@@ -442,14 +445,14 @@ public class VirtioNic extends Nic{
     public byte[] receive() {
         if (receiveQueue.usedRing.idx != receiveNextToUseIdx){
 
-            int currentAvailIndex = (receiveNextToUseIdx) % VirtqueueConstants.QUEUE_SIZE;
+            int currentAvailIndex = Modulo.mod(receiveNextToUseIdx, VirtqueueConstants.QUEUE_SIZE);
             UsedRingElement usedElem = receiveQueue.usedRing.ring[currentAvailIndex];
 
             int buffAddr = (int) receiveQueue.descriptors[usedElem.id].address;
             DescriptorElement desc = (DescriptorElement) MAGIC.cast2Struct(buffAddr);
 
-            byte[] data = new byte[usedElem.len];
-
+            // copy to new array but do not copy virtio header at beginning
+            byte[] data = new byte[usedElem.len- VirtioNetHeader.SIZE];
             for (int i = 0; i < usedElem.len - VirtioNetHeader.SIZE; i++){
                 data[i] = MAGIC.rMem8(buffAddr + VirtioNetHeader.SIZE + i);
             }

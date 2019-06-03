@@ -1,6 +1,7 @@
 package tests;
 
 import io.Color;
+import io.GreenScreenOutput;
 import io.LowlevelOutput;
 import io.Screen;
 import kernel.Kernel;
@@ -13,6 +14,7 @@ public class TestRunner {
     public static void run(int seconds) {
         LowlevelOutput.clearScreen(Color.DEFAULT_COLOR);
         check(LowlevelOutputTest.test());
+        check(GreenScreenOutputTest.test());
         check(PagingTest.test());
         check(StringTest.test());
         check(RingBufferTest.test());
@@ -23,6 +25,7 @@ public class TestRunner {
         check(PooledKeyEventBufferTest.test());
         check(DivesesAndPlaygroundTest.test());
         check(EndianessTest.test());
+        //check(IpTest.test());
 
         check(GarbageCollectorTest.test());
 

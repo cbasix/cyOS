@@ -1,11 +1,12 @@
-package network.layers;
+package network.ipstack;
 
 import conversions.Endianess;
-import io.LowlevelLogging;
 import kernel.Kernel;
 import network.*;
-import network.layers.abstracts.ResolutionLayer;
-import network.structs.ArpMessage;
+import network.address.IPv4Address;
+import network.address.MacAddress;
+import network.ipstack.abstracts.ResolutionLayer;
+import network.ipstack.structs.ArpMessage;
 
 public class Arp extends ResolutionLayer {
     public ArpCache cache;
@@ -27,15 +28,19 @@ public class Arp extends ResolutionLayer {
 
     @Override
     public MacAddress resolveIp(IPv4Address ip){
+        if (ip.toInt() == IPv4Address.getBroadcastAddr().toInt()){
+            return MacAddress.getBroadcastAddr();
+        }
+
         NetworkStack stack = Kernel.networkManager.stack;
         MacAddress targetMac = cache.getMac(ip);
 
         // if not in cache target Mac is null here
-        int tries = 5;
+        int tries = 2;
         while (targetMac == null && tries --> 0){
 
             sendRequest(stack.ipLayer.myBestMatchingIpFor(ip), ip);
-            for (int i = 0; i < 10; i++) {Kernel.sleep();} // short delay untill next system timer
+            for (int i = 0; i < 2; i++) {Kernel.sleep();} // short delay untill next system timer
             byte[] data = Kernel.networkManager.nic.receive();
             if (data != null){
                 stack.ethernetLayer.receive(data);
@@ -49,8 +54,8 @@ public class Arp extends ResolutionLayer {
     // todo check endianness
 
     public void sendRequest(IPv4Address fromIp, IPv4Address toIp){
-        LowlevelLogging.debug("requesting mac for ip: ");
-        LowlevelLogging.debug(toIp.toString());
+        //LowlevelLogging.debug("requesting mac for ip: ");
+        //LowlevelLogging.debug(toIp.toString());
 
         PackageBuffer buffer = Kernel.networkManager.stack.ethernetLayer.getBuffer(ArpMessage.SIZE);
         ArpMessage a = (ArpMessage) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.start]));
@@ -92,7 +97,8 @@ public class Arp extends ResolutionLayer {
 
         a.senderProtocAddr = Endianess.convert(fromIp.toInt());
 
-        b = resolveIp(toIp).toBytes();
+        MacAddress sendToMac = resolveIp(toIp);
+        b = sendToMac.toBytes();
         for (int i = 0; i < MacAddress.MAC_LEN; i++) {
             a.targetHwAddr[i] = b[i];
         }
@@ -100,7 +106,7 @@ public class Arp extends ResolutionLayer {
         a.targetProtocolAddr = Endianess.convert(toIp.toInt());
 
         Kernel.networkManager.stack.ethernetLayer.send(
-                MacAddress.getBroadcastAddr(), Ethernet.TYPE_ARP, buffer);
+                sendToMac, Ethernet.TYPE_ARP, buffer);
     }
 
     @Override
@@ -127,8 +133,8 @@ public class Arp extends ResolutionLayer {
             for (int addrNo = 0; addrNo < ipLayer.ownAddresses.size(); addrNo++) {
                 IPv4Address oneOfMyOwnIps = (IPv4Address) ipLayer.ownAddresses._get(addrNo);
                 if(targetIp == oneOfMyOwnIps.toInt()){
-                    LowlevelLogging.debug("someone asked for my ip! replying");
-                    LowlevelLogging.debug(oneOfMyOwnIps.toString());
+                    //LowlevelLogging.debug("someone asked for my ip! replying");
+                    //LowlevelLogging.debug(oneOfMyOwnIps.toString());
                     sendReply(oneOfMyOwnIps, senderIp);
                 }
             }

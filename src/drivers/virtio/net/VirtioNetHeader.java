@@ -1,7 +1,7 @@
 package drivers.virtio.net;
 
 public class VirtioNetHeader extends STRUCT {
-    public static final int SIZE = 1 + 1 + 2 + 2 + 2 + 2 + 2;
+    public static final int SIZE = 1 * 2 + 2 * 5;
 
     public static final int VIRTIO_NET_HDR_F_NEEDS_CSUM = 1;
     public static final int VIRTIO_NET_HDR_GSO_NONE = 0;

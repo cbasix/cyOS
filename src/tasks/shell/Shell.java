@@ -53,6 +53,9 @@ public class Shell extends Task {
         registeredCommands.add(new LoadVirtioNetDriver());
         registeredCommands.add(new Arp());
         registeredCommands.add(new Network());
+        registeredCommands.add(new DhcpServer());
+        registeredCommands.add(new DhcpClient());
+        registeredCommands.add(new Ifconfig());
 
         inputArea.setColor(Color.BLACK, Color.GREY);
         outputArea.setColorState(COLOR_NORMAL);
@@ -100,7 +103,8 @@ public class Shell extends Task {
         // todo remove when virtio testing ready
         execute(">virtio".toChars());
         execute(">arp announce".toChars());
-        execute(">net receive".toChars());
+        execute(">exec net".toChars());
+        //execute(">dhcpserver".toChars());
     }
 
     // todo bug last char not deletable

@@ -5,14 +5,9 @@ import datastructs.RingBuffer;
 import drivers.pci.PCI;
 import drivers.pci.PciDevice;
 import drivers.virtio.VirtIo;
-import drivers.virtio.first_try.VirtioNet;
 import drivers.virtio.net.VirtioNic;
-import io.LowlevelLogging;
 import kernel.Kernel;
-import kernel.interrupts.receivers.TimerCounter;
-import network.IPv4Address;
-import network.PackageBuffer;
-import network.layers.Ethernet;
+import network.address.IPv4Address;
 import tasks.LogEvent;
 
 

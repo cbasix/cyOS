@@ -1,11 +1,14 @@
 package tests.highlevel;
 
-import network.IPv4Address;
-import network.MacAddress;
+import io.Color;
+import io.LowlevelLogging;
+import io.LowlevelOutput;
+import network.address.IPv4Address;
+import network.address.MacAddress;
 import network.PackageBuffer;
-import network.layers.Ip;
-import network.layers.abstracts.LinkLayer;
-import network.layers.abstracts.ResolutionLayer;
+import network.ipstack.Ip;
+import network.ipstack.abstracts.LinkLayer;
+import network.ipstack.abstracts.ResolutionLayer;
 
 public class IpTest {
     private static byte[] ethernetReceived;
@@ -70,6 +73,20 @@ public class IpTest {
         }
         ipLayer.send(new IPv4Address(1), Ip.PROTO_RAW_TEXT, buffer);
 
+
+        IPv4Address a = new IPv4Address(0xFF552287);
+        byte[] aByte = a.toBytes();
+        if (aByte[0] != (byte)0xFF){return 2600;}
+        if (aByte[1] != (byte)0x55){return 2601;}
+        if (aByte[2] != (byte)0x22){return 2602;}
+        if (aByte[3] != (byte)0x87){return 2603;}
+
+        IPv4Address b = new IPv4Address();
+        if (a.toInt() != b.toInt()){
+            LowlevelOutput.printStr(a.toString(), 15, 2, Color.GREEN);
+            LowlevelOutput.printStr(b.toString(), 15, 3, Color.RED);
+            return 2604;
+        }
 
         return 0;
     }

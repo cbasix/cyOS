@@ -1,4 +1,4 @@
-package network.structs;
+package network.ipstack.structs;
 
 public class IpHeader extends STRUCT {
     public static final int SIZE = 20;

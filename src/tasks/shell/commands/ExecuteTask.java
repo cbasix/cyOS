@@ -5,6 +5,7 @@ import datastructs.RingBuffer;
 import tasks.Blocking;
 import tasks.Editor;
 import tasks.LogEvent;
+import tasks.NetThread;
 
 public class ExecuteTask extends Command{
     @Override
@@ -24,8 +25,11 @@ public class ExecuteTask extends Command{
             } else if (args[1].equals("blocking")){
                 Kernel.taskManager.requestStart(new Blocking());
 
+            } else if (args[1].equals("net")){
+                Kernel.taskManager.requestStart(new NetThread());
+
             } else {
-                shellMessageBuffer.push(new LogEvent("Task not found. (Currently there are only 'editor' and 'blocking')"));
+                shellMessageBuffer.push(new LogEvent("Task not found. (Currently there are only 'editor', 'net' and 'blocking')"));
             }
         }
     }

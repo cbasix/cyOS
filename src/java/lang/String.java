@@ -3,6 +3,7 @@ package java.lang;
 import io.Color;
 import io.LowlevelLogging;
 import io.LowlevelOutput;
+import network.PackageBuffer;
 
 public class String {
     public static final String alphabet = "0123456789ABCDEF";
@@ -176,6 +177,14 @@ public class String {
         return String.join(temp, "");
     }
 
+    public static String concat(String first, String second, String third) {
+        return String.concat(first, String.concat(second, third));
+    }
+    public static String concat(String first, String second, String third, String fourth) {
+        return String.concat(String.concat(first, second), String.concat(third, fourth));
+    }
+
+
     public String concat(String other){
         return String.concat(this, other);
     }
@@ -240,6 +249,28 @@ public class String {
 
     public static String hexFrom(byte value){
         return hexFrom(value, 2);
+    }
+
+    public static String from(byte[] bytes){
+        char[] messageArr = new char[bytes.length];
+
+        for (int i = 0; i < messageArr.length; i++){
+            messageArr[i] = (char)bytes[i];
+        }
+
+        return new String(messageArr);
+    }
+
+    public byte[] toBytes(){
+        char[] charData = this.toChars();
+        byte[] buffer = new byte[charData.length * 2];
+
+        for (int i = 0; i < charData.length; i++){
+            buffer[2*i] = (byte) (charData[i] >> 8) ;
+            buffer[2*i+1] = (byte) charData[i];
+        }
+
+        return buffer;
     }
 
 }

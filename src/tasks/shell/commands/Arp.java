@@ -2,14 +2,9 @@ package tasks.shell.commands;
 
 import datastructs.ArrayList;
 import datastructs.RingBuffer;
-import drivers.pci.PCI;
-import drivers.pci.PciDevice;
-import drivers.virtio.VirtIo;
-import drivers.virtio.net.VirtioNic;
 import kernel.Kernel;
 import network.*;
-import network.layers.Ethernet;
-import network.layers.Ip;
+import network.ipstack.ArpCache;
 import tasks.LogEvent;
 
 
@@ -22,7 +17,7 @@ public class Arp extends Command{
 
     @Override
     public void execute(RingBuffer shellMessageBuffer, String[] args) {
-        network.layers.Arp arpLayer = Kernel.networkManager.stack.arpLayer;
+        network.ipstack.Arp arpLayer = Kernel.networkManager.stack.arpLayer;
         Nic nic = Kernel.networkManager.nic;
 
         if (args.length > 1){

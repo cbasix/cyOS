@@ -1,15 +1,15 @@
-package network.layers;
+package network.ipstack;
 
 
 import conversions.Endianess;
-import io.LowlevelLogging;
 import kernel.Kernel;
-import network.MacAddress;
+import network.address.MacAddress;
 import network.PackageBuffer;
 import network.checksum.Crc32;
-import network.layers.abstracts.LinkLayer;
-import network.structs.EthernetHeader;
-import network.structs.EthernetFooter;
+import network.checksum.MyCrc32;
+import network.ipstack.abstracts.LinkLayer;
+import network.ipstack.structs.EthernetHeader;
+import network.ipstack.structs.EthernetFooter;
 
 public class Ethernet extends LinkLayer {
     public final static short TYPE_ARP = 0x0806;
@@ -42,9 +42,10 @@ public class Ethernet extends LinkLayer {
         }
         header.type = Endianess.convert(type);
 
-        // calc checksum over ethernet header
-        tail.checksum = Endianess.convert(Crc32.calc(0, MAGIC.addr(buffer.data[buffer.start]), EthernetHeader.SIZE, false)); // todo check
+        // calc checksum over ethernet package
+        //int checksum = Endianess.convert(Crc32.calc(0, MAGIC.addr(buffer.data[buffer.start]), buffer.usableSize - EthernetFooter.SIZE, true)); // todo check
 
+        tail.checksum = MyCrc32.calc(0, MAGIC.addr(buffer.data[buffer.start]), buffer.usableSize - EthernetFooter.SIZE); // todo check
         Kernel.networkManager.nic.send(buffer.data);
     }
 

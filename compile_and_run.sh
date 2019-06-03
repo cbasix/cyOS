@@ -23,8 +23,9 @@ mkisofs="mkisofs -o cyos.iso -N -b bbk_iso.bin -no-emul-boot -boot-load-seg 0x7C
 
 # qemu options
 qemu="qemu-system-i386 "
-qemu_default="-no-kvm -monitor stdio -d guest_errors -m 32 "
+qemu_default="-no-kvm -d guest_errors -m 32 "
 qemu_debug="-s -S -no-reboot "
+qemu_monitor="-monitor stdio "
 
 boot_floppy="-drive format=raw,if=none,file=BOOT_FLP.IMG -device floppy,drive=none0,drive-type=144"
 boot_iso="-cdrom cyos.iso "
@@ -45,7 +46,7 @@ if [ $# -eq 0 ]; then
     echo $mkisofs
     eval $mkisofs
 
-    cmd="$qemu $qemu_default $boot_iso $net_kali &"
+    cmd="$qemu $qemu_default $boot_iso $net_kali"
     echo $cmd
     eval $cmd
     exit 0;

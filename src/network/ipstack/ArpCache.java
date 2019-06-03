@@ -1,6 +1,8 @@
-package network;
+package network.ipstack;
 
 import datastructs.ArrayList;
+import network.address.IPv4Address;
+import network.address.MacAddress;
 
 public class ArpCache {
     private ArrayList cache;

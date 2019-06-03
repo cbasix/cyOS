@@ -1,6 +1,6 @@
 package drivers.virtio.structs;
 
-import network.MacAddress;
+import network.address.MacAddress;
 
 public class NetConfig extends STRUCT {
     public static final int VIRTIO_NET_S_LINK_UP = 1;

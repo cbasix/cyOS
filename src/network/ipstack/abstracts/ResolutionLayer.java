@@ -1,7 +1,7 @@
-package network.layers.abstracts;
+package network.ipstack.abstracts;
 
-import network.IPv4Address;
-import network.MacAddress;
+import network.address.IPv4Address;
+import network.address.MacAddress;
 import network.PackageBuffer;
 
 public abstract class ResolutionLayer {
