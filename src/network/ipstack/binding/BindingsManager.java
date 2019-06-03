@@ -36,7 +36,9 @@ public class BindingsManager extends PackageReceiver{
             return true;
 
         } else {
-            LowlevelLogging.debug("Port already bound");
+            LowlevelLogging.debug("Port already bound. Canceling the old bind.  ");
+            Binding b = getBindingFor(transport, port);
+            b.receiver = receiver;
             return false;
         }
     }

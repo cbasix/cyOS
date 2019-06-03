@@ -50,6 +50,7 @@ public class DhcpClient extends PackageReceiver {
 
             // todo implement show my ip addr list
             // todo implement save dns server
+
         }
     }
 

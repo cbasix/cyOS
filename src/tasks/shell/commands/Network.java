@@ -92,7 +92,7 @@ public class Network extends Command{
         for (int i = 0; i < charData.length; i++){
             buffer.data[buffer.start+2*i] = (byte) (charData[i] >> 8) ;
             buffer.data[buffer.start+2*i+1] = (byte) charData[i];
-            LowlevelOutput.printChar(charData[i], i, 1, Color.RED);
+            //LowlevelOutput.printChar(charData[i], i, 1, Color.RED);
         }
 
         stack.ipLayer.send(sendToIp, Ip.PROTO_RAW_TEXT, buffer);
