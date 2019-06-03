@@ -68,9 +68,13 @@ public class MyCrc32 {
             0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
     };
 
-    // calculates checksum in network byte order
+    /** calculates checksum in network byte order
+
+     ported from c based on implementations at: https://rosettacode.org/wiki/CRC-32
+     and https://docs.microsoft.com/en-us/openspecs/office_protocols/ms-abs/06966aa2-70da-4bf9-8448-3355f277cd77
+    **/
     public static int calc(int checksum, int addr, int len) {
-        checksum = ~ checksum;
+        checksum = ~checksum;
 
         int end = addr + len;
         for (int cur = addr; cur < end; cur++){
