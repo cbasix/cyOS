@@ -1,6 +1,6 @@
 package network.checksum;
 
-public class Crc32 {
+public class OnesComplement {
     public static int calc(int checksum, int addr, int len, boolean last) {
         /*
          * Calculate the 16 bit one's complement of the one's complement sum of all

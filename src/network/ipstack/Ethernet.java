@@ -5,7 +5,6 @@ import conversions.Endianess;
 import kernel.Kernel;
 import network.address.MacAddress;
 import network.PackageBuffer;
-import network.checksum.Crc32;
 import network.checksum.MyCrc32;
 import network.ipstack.abstracts.LinkLayer;
 import network.ipstack.structs.EthernetHeader;

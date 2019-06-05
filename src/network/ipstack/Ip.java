@@ -11,6 +11,7 @@ import network.address.IPv4Address;
 import network.address.MacAddress;
 import network.PackageBuffer;
 import network.checksum.MyCrc32;
+import network.checksum.OnesComplement;
 import network.ipstack.abstracts.InternetLayer;
 import network.ipstack.abstracts.LinkLayer;
 import network.ipstack.abstracts.ResolutionLayer;
@@ -116,7 +117,7 @@ public class Ip extends InternetLayer {
         header.ttl = (byte)64; //standard ttl is 64 (see RFC 1700)
         header.prot = (byte)protocol;
         header.len = Endianess.convert((short)(buffer.usableSize));
-        header.chksum = MyCrc32.foldTo16bits(MyCrc32.calc(0, (int)MAGIC.addr(header.versionIhl), IpHeader.SIZE));
+        header.chksum = Endianess.convert((short) OnesComplement.calc(0, MAGIC.addr(header.versionIhl), IpHeader.SIZE, true));
 
         // handle link local
         for (int addrNo = 0; addrNo < ownAddresses.size(); addrNo++){
