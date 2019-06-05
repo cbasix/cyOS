@@ -6,6 +6,8 @@ import kernel.interrupts.receivers.TimerCounter;
 
 // copyright ? frenz & co
 
+// UNUSED JUST FOR REFFERENCE
+
 public class PacketNetwork {
     public final static short ETH_TYPE_ARP = 0x0806;
     public final static short ETH_TYPE_IP = 0x0800;

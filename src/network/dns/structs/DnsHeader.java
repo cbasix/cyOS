@@ -4,13 +4,14 @@ package network.dns.structs;
 
 public class DnsHeader extends STRUCT{
 
+    public static final int SIZE = 2*6;
     //HEADER
-    short id;
-    short bits;
-    short questionCount;
-    short answerCount;
-    short nameserverCount;
-    short additionalCount;
+    public short id;
+    public short bits;
+    public short questionCount;
+    public short answerCount;
+    public short nameserverCount;
+    public short additionalCount;
 
     //@SJC(count = 0)
     //Question[] question;

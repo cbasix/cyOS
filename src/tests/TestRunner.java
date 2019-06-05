@@ -25,6 +25,7 @@ public class TestRunner {
         check(PooledKeyEventBufferTest.test());
         check(DivesesAndPlaygroundTest.test());
         check(EndianessTest.test());
+        check(DnsTest.test());
         //check(IpTest.test());
 
         check(GarbageCollectorTest.test());
