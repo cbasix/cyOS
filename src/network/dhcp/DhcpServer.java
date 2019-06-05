@@ -104,7 +104,7 @@ public class DhcpServer extends PackageReceiver {
         } while (cache.getStatus(clientIP) != DhcpCache.AVAILABLE);
 
         byte[] msg = buildMessage(transactionId, myIp, clientIP, clientMac, DhcpOption.MSG_TYPE_OFFER);
-        stack.udpLayer.send(IPv4Address.getBroadcastAddr(), DHCP_SERVER_PORT, DHCP_CLIENT_PORT, msg);
+        stack.udpLayer.send(IPv4Address.getGlobalBreadcastAddr(), DHCP_SERVER_PORT, DHCP_CLIENT_PORT, msg);
         //LowlevelLogging.debug("Discovery answered");
     }
 
@@ -112,8 +112,16 @@ public class DhcpServer extends PackageReceiver {
         //LowlevelLogging.debug("On Request");
         // todo checks...
         IPv4Address serverIp = stack.ipLayer.getDefaultIp();
+
+        if(requestedIp == null){
+            do {
+                requestedIp = new IPv4Address((serverIp.toInt() & ~0xFF) | PseudoRandom.getRandInt() & 0xFE);
+            } while (cache.getStatus(requestedIp) != DhcpCache.AVAILABLE);
+
+        }
+
         byte[] msg = buildMessage(transactionId, serverIp, requestedIp, clientMac, DhcpOption.MSG_TYPE_ACK);
-        stack.udpLayer.send(IPv4Address.getBroadcastAddr(), DHCP_SERVER_PORT, DHCP_CLIENT_PORT, msg);
+        stack.udpLayer.send(IPv4Address.getGlobalBreadcastAddr(), DHCP_SERVER_PORT, DHCP_CLIENT_PORT, msg);
 
         //LowlevelLogging.debug("Request answered");
         //LowlevelLogging.debug(requestedIp.toString());
@@ -148,7 +156,7 @@ public class DhcpServer extends PackageReceiver {
         for (int i = 0; i < MacAddress.MAC_LEN; i++){
             dhcp.clientHwAddr[i] = clientMac.toBytes()[i];
         }
-        dhcp.magicCookie = Endianess.convert(0x63825363); // = fixed value
+        dhcp.magicCookie = Endianess.convert(0x63825363); // = fixed value (DHCP)
 
         //Kernel.out.print((int)dhcp.operation);
         //Kernel.wait(4);
@@ -156,5 +164,9 @@ public class DhcpServer extends PackageReceiver {
         options.writeTo(MAGIC.addr(dhcp.options[0]));
 
         return offer;
+    }
+
+    public void stop() {
+        stack.bindingsManager.unbind(stack.udpLayer, DHCP_SERVER_PORT, this);
     }
 }

@@ -1,5 +1,6 @@
 package tests.highlevel;
 
+import arithmetics.Unsigned;
 import datastructs.ArrayList;
 import drivers.virtio.RawMemoryContainer;
 import io.Color;
@@ -38,6 +39,11 @@ public class DivesesAndPlaygroundTest {
         }
         // unchecked array overwrites following vars...  shouldn't this be an error???
         if (test.wtf != 0x25){return 1808;}
+
+
+        // Unsigned
+        if (!Unsigned.isLessThan(0, 0xF0000000)) {return 1809;}
+        if (!Unsigned.isGreaterThan(0xFF000000, 0)) {return 1810;}
 
 
         return 0;

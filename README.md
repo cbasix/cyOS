@@ -6,26 +6,26 @@ A small monolitic educational Java OS which was created as an exercise for the l
 # Implemented Parts
 - Virtual Memory (1:1 Mapped)
 - Flexible Interrupt Handling
-- Simple Keyboard Driver
+- Keyboard Driver
 - VGA-Mode embedded Picture viewer
 - Debug Screen for Exceptions
-- Simplistic Task Scheduler
+- Task Scheduler
 - Cooperative Multitasking
 - Kill blocking Tasks via keystroke
 - Simple Shell (with buggy scrolling ;)
 - Some test commands 
 - Get memory map from BIOS
-- Garbage collection (manually triggable)
-- Simple Garbage collection statistics
-- Virtio net driver
+- Garbage collection (manually triggerable)
+- Garbage collection statistics
+- Virtio net 1.0 driver
 - Ethernet / ARP / IPv4
-
-And some more small stuff. 
-
-# Planned
-- UDP
+- UDP (without checksum)
 - DHCP Client & Server
-- DNS Client & Server
+
+And some more stuff. 
+
+# In work
+- DNS Client & Server (only ARecords)
 
 # An OS in Java?
-It is compiled using the SJC Java to native compiler, which can be found here: http://www.fam-frenz.de/stefan/compiler.html
+cyOS is compiled using the SJC Java to native compiler, which can be found here: http://www.fam-frenz.de/stefan/compiler.html

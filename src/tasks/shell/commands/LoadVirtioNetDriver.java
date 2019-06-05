@@ -49,9 +49,11 @@ public class LoadVirtioNetDriver extends Command{
                 }
 
                 byte[] macBytes = Kernel.networkManager.nic.getMacAddress().toBytes();
-                IPv4Address ip = new IPv4Address(0xC0A8C800 | macBytes[macBytes.length-1]); // use last byte of mac address
+                IPv4Address ip = new IPv4Address(0xC0A8C800 | macBytes[macBytes.length-1]).setNetmaskCidr(24); // use last byte of mac address
                 shellMessageBuffer.push(new LogEvent(ip.toString()));
                 Kernel.networkManager.stack.ipLayer.addAddress(ip); // "random" last part of ip between 1 and 126
+                //Kernel.networkManager.stack.ipLayer.setDefaultGateway(new IPv4Address(0xC0A8C801));
+                Kernel.networkManager.stack.ipLayer.setDefaultGateway(new IPv4Address(0xC0A8C861));
 
 
                 // send test message

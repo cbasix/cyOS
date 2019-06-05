@@ -10,7 +10,7 @@ import kernel.Kernel;
 import network.address.IPv4Address;
 import network.address.MacAddress;
 import network.PackageBuffer;
-import network.checksum.Crc32;
+import network.checksum.MyCrc32;
 import network.ipstack.abstracts.InternetLayer;
 import network.ipstack.abstracts.LinkLayer;
 import network.ipstack.abstracts.ResolutionLayer;
@@ -19,6 +19,7 @@ import network.ipstack.structs.IpHeader;
 
 public class Ip extends InternetLayer {
     public static final int LOKAL_ADDR = 0x7F000000;
+    public static final int ZERO_ADDR = 0x00000000;
     private static final byte V4 = 0x40;
 
     public static final byte PROTO_UDP = 0x11;
@@ -31,10 +32,13 @@ public class Ip extends InternetLayer {
     private TransportLayer udpLayer = null;
 
     public ArrayList ownAddresses;
+    private IPv4Address defaultGateway;
 
     public Ip(){
         ownAddresses = new ArrayList();
-        ownAddresses._add(new IPv4Address(LOKAL_ADDR | 1)); // link local 127.0.0.1
+        //ownAddresses._add(new IPv4Address(ZERO_ADDR)); // placeholder 0.0.0.0 is used as sender addr in broadcast
+        ownAddresses._add(new IPv4Address(LOKAL_ADDR | 1).setNetmaskCidr(8)); // link local 127.0.0.1
+
     }
 
     public void setArpLayer(ResolutionLayer arpLayer) {
@@ -50,7 +54,15 @@ public class Ip extends InternetLayer {
     }
 
     public void addAddress(IPv4Address ip){
+        if (ip.netmask == 0){
+            LowlevelLogging.debug("trying to add own ip without netmask");
+            return;
+        }
         ownAddresses._add(ip);
+    }
+
+    public void setDefaultGateway(IPv4Address ip){
+        defaultGateway = ip;
     }
 
     public ArrayList getAddresses(){
@@ -75,6 +87,23 @@ public class Ip extends InternetLayer {
         buffer.start -= IpHeader.SIZE;
         buffer.usableSize += IpHeader.SIZE;
 
+        boolean forwardToGateway = false;
+
+        IPv4Address myIp = getMatchingOwnIpFor(targetIp);
+        //LowlevelLogging.debug(String.concat("myIP: ", myIp == null ? "null" : myIp.toString()));
+
+        // if target network is not directly reachable -> send to default gateway
+        if (myIp == null){
+            forwardToGateway = true;
+            myIp = getMatchingOwnIpFor(defaultGateway);
+
+            // default gateway not reachable directly
+            if (myIp == null){
+                LowlevelLogging.debug("Default gateway not in local net! ");
+                return;
+            }
+        }
+
 
         IpHeader header = (IpHeader) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.start]));
 
@@ -83,11 +112,11 @@ public class Ip extends InternetLayer {
         header.tos = 0;
         header.flagsFrag = Endianess.convert((short)0x4000);
         header.dstIP = Endianess.convert(targetIp.toInt());
-        header.srcIP = Endianess.convert((myBestMatchingIpFor(targetIp).toInt())); // todo netmasks
+        header.srcIP = Endianess.convert(myIp.toInt());
         header.ttl = (byte)64; //standard ttl is 64 (see RFC 1700)
         header.prot = (byte)protocol;
         header.len = Endianess.convert((short)(buffer.usableSize));
-        header.chksum = Endianess.convert((short) Crc32.calc(0, (int)MAGIC.addr(header.versionIhl), IpHeader.SIZE, true));
+        header.chksum = MyCrc32.foldTo16bits(MyCrc32.calc(0, (int)MAGIC.addr(header.versionIhl), IpHeader.SIZE));
 
         // handle link local
         for (int addrNo = 0; addrNo < ownAddresses.size(); addrNo++){
@@ -98,7 +127,7 @@ public class Ip extends InternetLayer {
         }
 
         // wait for arp to resolve ip...
-        MacAddress targetMac = arpLayer.resolveIp(targetIp);
+        MacAddress targetMac = arpLayer.resolveIp(forwardToGateway ? defaultGateway : targetIp);
 
         if (targetMac == null){
             // simple timeout
@@ -126,6 +155,7 @@ public class Ip extends InternetLayer {
         //  Endianess.convert((short) Crc32.calc(0, (int)MAGIC.addr(header.versionIhl), IpHeader.SIZE, true));
 
         if (!this.hasOwnAddress(targetIp) && targetIp.toInt() != 0xFFFFFFFF){
+            LowlevelLogging.debug("got package with for other ip");
             return;
         }
         
@@ -167,11 +197,22 @@ public class Ip extends InternetLayer {
     }
 
     // todo for now the last one added is always the best match -> can be replaced by net mask stuff
-    public IPv4Address myBestMatchingIpFor(IPv4Address ip) {
-        return getDefaultIp();
-        /*for (int i = 0; i < myAddresses.size(); i++){
-            (IPv4Address) myAddresses._get(i)
-        }*/
+    public IPv4Address getMatchingOwnIpFor(IPv4Address ip) {
+
+        //return getDefaultIp();
+        for (int i = 0; i < ownAddresses.size(); i++){
+            IPv4Address myAddr = (IPv4Address) ownAddresses._get(i);
+            if (myAddr.isInSameNetwork(ip)){
+                return myAddr;
+            }
+        }
+
+        // no ip found and target is broadcast -> send with "undefined" ip as sender
+        if (IPv4Address.getGlobalBreadcastAddr().equals(ip)){
+            return new IPv4Address(0x00000000);
+        }
+
+        return null;
     }
 
     /** last one added is default */
@@ -186,5 +227,12 @@ public class Ip extends InternetLayer {
             }
         }
         return  false;
+    }
+
+    public void removeAddress(IPv4Address ip) {
+        // we need the object from the ownAdd List for the == comparation in "remove"
+        IPv4Address o = getMatchingOwnIpFor(ip);
+        this.ownAddresses.remove(o);
+
     }
 }

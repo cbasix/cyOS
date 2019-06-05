@@ -28,7 +28,7 @@ public class Arp extends ResolutionLayer {
 
     @Override
     public MacAddress resolveIp(IPv4Address ip){
-        if (ip.toInt() == IPv4Address.getBroadcastAddr().toInt()){
+        if (ip.equals(IPv4Address.getGlobalBreadcastAddr()) ){  // todo network specific broadcasts
             return MacAddress.getBroadcastAddr();
         }
 
@@ -39,7 +39,7 @@ public class Arp extends ResolutionLayer {
         int tries = 2;
         while (targetMac == null && tries --> 0){
 
-            sendRequest(stack.ipLayer.myBestMatchingIpFor(ip), ip);
+            sendRequest(stack.ipLayer.getMatchingOwnIpFor(ip), ip);
             for (int i = 0; i < 2; i++) {Kernel.sleep();} // short delay untill next system timer
             byte[] data = Kernel.networkManager.nic.receive();
             if (data != null){

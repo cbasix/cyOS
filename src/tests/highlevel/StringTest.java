@@ -113,6 +113,9 @@ public class StringTest {
             return 350;
         }
 
+        s = "663625";
+        if (s.toInt() != 663625) {return 352;}
+
         return 0;
     }
 }

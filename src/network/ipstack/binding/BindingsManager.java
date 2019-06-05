@@ -43,6 +43,13 @@ public class BindingsManager extends PackageReceiver{
         }
     }
 
+    public void unbind(TransportLayer transport, int port, PackageReceiver receiver){
+        Binding b  = getBindingFor(transport, port);
+        if (b != null && b.receiver == receiver){
+            bindings.remove(b);
+        }
+    }
+
     private Binding getBindingFor(TransportLayer transport, int port){
         for (int i = 0; i < bindings.size(); i++){
             Binding b = (Binding) bindings._get(i);
@@ -60,7 +67,7 @@ public class BindingsManager extends PackageReceiver{
         if (b != null){
             b.receiver.receive(transport, senderIp, senderPort, receiverPort, data);
         } else {
-            LowlevelLogging.debug(String.concat("Bindings manager got package for not bound port: ", String.from(receiverPort)));
+            LowlevelLogging.debug(String.concat("Bindings manager got package for not bound port: ", String.from(receiverPort), "   "));
         }
     }
 }

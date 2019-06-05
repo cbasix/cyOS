@@ -45,6 +45,11 @@ public class Ethernet extends LinkLayer {
         // calc checksum over ethernet package
         //int checksum = Endianess.convert(Crc32.calc(0, MAGIC.addr(buffer.data[buffer.start]), buffer.usableSize - EthernetFooter.SIZE, true)); // todo check
 
+        // allow linklocal on ehernet level
+        if (targetMac.toLong() == myMac.toLong()){
+            this.receive(buffer.data);
+        }
+
         tail.checksum = MyCrc32.calc(0, MAGIC.addr(buffer.data[buffer.start]), buffer.usableSize - EthernetFooter.SIZE); // todo check
         Kernel.networkManager.nic.send(buffer.data);
     }

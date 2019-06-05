@@ -273,4 +273,24 @@ public class String {
         return buffer;
     }
 
+    public int toInt() {
+        char[] charData = this.toChars();
+
+        int integer = 0;
+
+        for (int i = 0; i < charData.length; i++){
+             int c = (int) charData[i];
+             int offset = c - (int)'0';
+             if ( offset > 9){
+                 LowlevelLogging.debug("INVALID char in String.toInt()");
+                 return -1;
+             } else {
+                 integer *= 10;
+                 integer += offset;
+             }
+
+        }
+
+        return  integer;
+    }
 }

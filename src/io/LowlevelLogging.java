@@ -38,9 +38,18 @@ public class LowlevelLogging {
         }
     }
 
+    public static void debug(String str1, String str2, String str3) {
+        debug(String.concat(str1, str2, str3), ERROR);
+    }
+
+    public static void debug(String str1, String str2) {
+        debug(String.concat(str1, str2), ERROR);
+    }
+
     public static void debug(String str) {
         debug(str, ERROR);
     }
+
     public static void debug(String str, int lvl) {
         if (lvl >= DEBUG_LEVEL) {
             LowlevelOutput.printStr(str, 0, 0, Color.DEFAULT_COLOR);

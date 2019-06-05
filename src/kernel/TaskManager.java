@@ -7,9 +7,12 @@ import io.Color;
 import io.LowlevelLogging;
 import io.LowlevelOutput;
 import kernel.interrupts.core.Interrupts;
+import kernel.interrupts.receivers.TimerCounter;
 import tasks.Task;
 
 public class TaskManager {
+    public static final int GC_INTERVAL = 100; // alle 100 system timer tics
+
     static int savedEbp;
     static int savedEsp;
 
@@ -23,6 +26,7 @@ public class TaskManager {
     private Task focusedTask;
     private Task currentlyRunningTask;
     public static boolean taskbreak;
+    private int lastGc;
 
     TaskManager() {
         runningTasks = new TaskArrayList();
@@ -60,11 +64,14 @@ public class TaskManager {
 
     public void loop() {
         while (true) {
-            if (Kernel.doGC) {
+            //if (Kernel.doGC) {
                 // doGC is set by the shell command GarbageCollection gc
+            if (lastGc + GC_INTERVAL < TimerCounter.getCurrent() || Kernel.doGC) {
+                lastGc = TimerCounter.getCurrent();
                 Kernel.memoryManager.gc();
-                Kernel.doGC = false;
             }
+            //    Kernel.doGC = false;
+            //}
 
 
             // check if kernel can put processor to sleep
