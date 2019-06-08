@@ -1,4 +1,4 @@
-package network.dns.structs;
+package network.dns.msg.structs;
 
 public class ResourceRecordFooter extends STRUCT {
     public static final int SIZE = 10;
@@ -7,5 +7,6 @@ public class ResourceRecordFooter extends STRUCT {
     public short class_;
     public int ttl;
     public short rdlength;
+    @SJC(count = 0)
     public byte[] rdata;
 }

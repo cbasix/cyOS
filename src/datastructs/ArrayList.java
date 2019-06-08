@@ -1,12 +1,15 @@
 package datastructs;
 
+import io.LowlevelLogging;
+import io.LowlevelOutput;
+
 public class ArrayList {
     private static final int GROWTH = 10;
     private Object[] array = new Object[GROWTH];
     private int count = 0;
 
     public void _add(Object o){
-        if (count + 1 > array.length){
+        if (count >= array.length){
             grow();
         }
         array[count] = o;

@@ -10,4 +10,12 @@ public class ARecord {
         this.name = name;
         this.ip = ip;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public IPv4Address getIp() {
+        return ip;
+    }
 }

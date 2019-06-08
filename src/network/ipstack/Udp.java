@@ -52,7 +52,7 @@ public class Udp extends TransportLayer {
 
         // todo check values
         header.dstPort = Endianess.convert((short) dstPort);
-        header.srcPort = 0;
+        header.srcPort = Endianess.convert((short) srcPort);
         header.len = Endianess.convert((short)(data.length + UdpHeader.SIZE));
         header.chk = 0;
 

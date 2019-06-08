@@ -70,7 +70,7 @@ public class IPv4Address {
     public byte[] toBytes(){
         byte[] copy = new byte[IPV4_LEN];
         for(int i = 0; i < IPV4_LEN; i++){
-            copy[i] = (byte)((addr >> IPV4_LEN - 1 -i) & 0xFF);
+            copy[i] = (byte)((addr >> ((IPV4_LEN-1-i)*8)) & 0xFF);
         }
         return copy;
     }

@@ -9,6 +9,10 @@ import kernel.interrupts.core.JumpTable;
 
 public class DynamicRuntime {
 
+    /*public static void arrayDeepCopy(){
+
+    }*/
+
     public static Object newInstance(int scalarSize, int relocEntries, SClassDesc type) {
         return Kernel.memoryManager.allocate(scalarSize, relocEntries, type);
     }

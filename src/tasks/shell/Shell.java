@@ -56,6 +56,8 @@ public class Shell extends Task {
         registeredCommands.add(new DhcpServer());
         registeredCommands.add(new DhcpClient());
         registeredCommands.add(new Ifconfig());
+        registeredCommands.add(new DnsServer());
+        registeredCommands.add(new Dig());
 
         inputArea.setColor(Color.BLACK, Color.GREY);
         outputArea.setColorState(COLOR_NORMAL);
@@ -104,7 +106,17 @@ public class Shell extends Task {
         execute(">virtio".toChars());
         //execute(">arp announce".toChars());
         execute(">exec net".toChars());
-        //execute(">dhcpserver".toChars());
+        //execute(">dhcpserver start".toChars());
+        //execute(">dnsserver start".toChars());
+        /*execute(">net ip 10.0.2.44/24".toChars());
+        execute(">net gateway 10.0.2.2".toChars());
+        execute(">net dnsserver 10.0.2.3".toChars());*/
+        //execute(">net ip 192.168.100.5/24".toChars());
+        execute(">net gateway 192.168.200.1".toChars());
+        //execute(">net dnsserver 8.8.8.8".toChars());
+        execute(">dhcpclient start".toChars());
+        execute(">net dnsserver 8.8.8.8".toChars());
+
     }
 
     // todo bug last char not deletable

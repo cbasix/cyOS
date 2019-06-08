@@ -20,14 +20,13 @@ public class TestRunner {
         check(RingBufferTest.test());
         check(LinkedListIterTest.test());
         check(KeyboardLayoutTest.test());
+        //check(DnsTest.test());
         check(ArrayListTest.test());
         check(LinkedListMemoryManagerTest.test());
         check(PooledKeyEventBufferTest.test());
         check(DivesesAndPlaygroundTest.test());
         check(EndianessTest.test());
-        check(DnsTest.test());
-        //check(IpTest.test());
-
+        check(IpTest.test());
         check(GarbageCollectorTest.test());
 
 

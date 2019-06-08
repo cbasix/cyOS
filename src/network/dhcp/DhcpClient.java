@@ -39,18 +39,34 @@ public class DhcpClient extends PackageReceiver {
         byte type = typeArr[0];
         byte operation = dhcp.operation;
 
+
         if (type == DhcpOption.MSG_TYPE_OFFER) {
             sendRequest(dhcp.transactionId, new IPv4Address(dhcp.yourIp));
+            LowlevelLogging.debug("send offer");
 
         } else if (type == DhcpOption.MSG_TYPE_ACK) {
             byte[] netmask = options.getOptionValue(DhcpOption.OPT_SUBNET_MASK);
             if (netmask == null){
-                LowlevelLogging.debug("invalid netmask! ");
+                LowlevelLogging.debug("no netmask! ");
                 return;
             }
 
+            byte[] gateway = options.getOptionValue(DhcpOption.OPT_ROUTER);
+            if (gateway != null){
+                IPv4Address gw = new IPv4Address(gateway);
+                LowlevelLogging.debug("Got gateway: ", gw.toString());
+                stack.ipLayer.setDefaultGateway(gw);
+            }
+
+            byte[] dnsserver = options.getOptionValue(DhcpOption.OPT_DNS_SERVERS);
+            if (dnsserver != null){
+                IPv4Address dns = new IPv4Address(dnsserver);
+                LowlevelLogging.debug("Got dnsserver: ", dns.toString());
+                stack.setDnsServer(dns);
+            }
+
             // add the new got ip !
-            IPv4Address myNewIp = new IPv4Address(dhcp.yourIp).setNetmask(netmask);
+            IPv4Address myNewIp = new IPv4Address(Endianess.convert(dhcp.yourIp)).setNetmask(netmask);
             stack.ipLayer.addAddress(myNewIp);
 
             LowlevelLogging.debug(String.concat("We got an ip! ", myNewIp.toString()));
@@ -58,7 +74,8 @@ public class DhcpClient extends PackageReceiver {
             stop();
             // todo maybe some kind of timeout?
             // todo implement save dns server
-
+        } else {
+            LowlevelLogging.debug("Got dhcp msg of type: ", String.from(type));
         }
     }
 
@@ -70,7 +87,7 @@ public class DhcpClient extends PackageReceiver {
         int transactionId = PseudoRandom.getRandInt();
         MacAddress myMac = Kernel.networkManager.nic.getMacAddress();
         byte[] msg = DhcpServer.buildMessage(
-                transactionId, new IPv4Address(0), new IPv4Address(0), myMac, DhcpOption.MSG_TYPE_DISCOVER);
+                transactionId, new IPv4Address(0), new IPv4Address(0), new IPv4Address(0), new IPv4Address(0), myMac, DhcpOption.MSG_TYPE_DISCOVER);
         stack.udpLayer.send(IPv4Address.getGlobalBreadcastAddr(), DhcpServer.DHCP_CLIENT_PORT, DhcpServer.DHCP_SERVER_PORT, msg);
 
     }
@@ -79,7 +96,7 @@ public class DhcpClient extends PackageReceiver {
         //LowlevelLogging.debug("sendRequest     ");
         MacAddress myMac = Kernel.networkManager.nic.getMacAddress();
         byte[] msg = DhcpServer.buildMessage(
-                transactionId, new IPv4Address(0), myIp, myMac, DhcpOption.MSG_TYPE_REQUEST);
+                transactionId, new IPv4Address(0), new IPv4Address(0), new IPv4Address(0), myIp, myMac, DhcpOption.MSG_TYPE_REQUEST);
         stack.udpLayer.send(IPv4Address.getGlobalBreadcastAddr(), DhcpServer.DHCP_CLIENT_PORT, DhcpServer.DHCP_SERVER_PORT, msg);
         //LowlevelLogging.debug(" done sendRequest");
     }

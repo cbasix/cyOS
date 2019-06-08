@@ -18,6 +18,7 @@ public class DhcpOption extends STRUCT{
     public static final byte MSG_TYPE_NOT_ACK = 6;
 
     public static final byte OPT_SUBNET_MASK = 1;
+    public static final byte OPT_ROUTER = 3;
     public static final byte OPT_HOSTNAME = 12;
     public static final byte OPT_REQUESTED_IP = 50;
     public static final byte OPT_LEASE_TIME = 51;

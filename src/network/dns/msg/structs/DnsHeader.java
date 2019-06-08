@@ -1,4 +1,4 @@
-package network.dns.structs;
+package network.dns.msg.structs;
 
 // based on https://tools.ietf.org/html/rfc1035
 
@@ -7,7 +7,7 @@ public class DnsHeader extends STRUCT{
     public static final int SIZE = 2*6;
     //HEADER
     public short id;
-    public short bits;
+    public short flags;
     public short questionCount;
     public short answerCount;
     public short nameserverCount;

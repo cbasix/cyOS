@@ -103,7 +103,7 @@ public class DhcpServer extends PackageReceiver {
             clientIP = new IPv4Address((myIp.toInt() & ~0xFF) | PseudoRandom.getRandInt() & 0xFE);
         } while (cache.getStatus(clientIP) != DhcpCache.AVAILABLE);
 
-        byte[] msg = buildMessage(transactionId, myIp, clientIP, clientMac, DhcpOption.MSG_TYPE_OFFER);
+        byte[] msg = buildMessage(transactionId, myIp, stack.getDnsServer(), stack.ipLayer.getDefaultGateway(), clientIP, clientMac, DhcpOption.MSG_TYPE_OFFER);
         stack.udpLayer.send(IPv4Address.getGlobalBreadcastAddr(), DHCP_SERVER_PORT, DHCP_CLIENT_PORT, msg);
         //LowlevelLogging.debug("Discovery answered");
     }
@@ -113,14 +113,14 @@ public class DhcpServer extends PackageReceiver {
         // todo checks...
         IPv4Address serverIp = stack.ipLayer.getDefaultIp();
 
-        if(requestedIp == null){
+        if(requestedIp == null || !requestedIp.isInSameNetwork(serverIp)){
             do {
                 requestedIp = new IPv4Address((serverIp.toInt() & ~0xFF) | PseudoRandom.getRandInt() & 0xFE);
             } while (cache.getStatus(requestedIp) != DhcpCache.AVAILABLE);
 
         }
 
-        byte[] msg = buildMessage(transactionId, serverIp, requestedIp, clientMac, DhcpOption.MSG_TYPE_ACK);
+        byte[] msg = buildMessage(transactionId, serverIp, stack.getDnsServer(), stack.ipLayer.getDefaultGateway(), requestedIp, clientMac, DhcpOption.MSG_TYPE_ACK);
         stack.udpLayer.send(IPv4Address.getGlobalBreadcastAddr(), DHCP_SERVER_PORT, DHCP_CLIENT_PORT, msg);
 
         //LowlevelLogging.debug("Request answered");
@@ -128,14 +128,15 @@ public class DhcpServer extends PackageReceiver {
     }
 
 
-    public static byte[] buildMessage(int transactionId, IPv4Address serverIp, IPv4Address clientIp, MacAddress clientMac, byte msgType){
+    public static byte[] buildMessage(int transactionId, IPv4Address serverIp, IPv4Address dnsserver, IPv4Address gateway, IPv4Address clientIp, MacAddress clientMac, byte msgType){
         OptionsWriter options = new OptionsWriter();
         options.write(DhcpOption.OPT_MSG_TYPE, msgType);
         options.write(DhcpOption.OPT_SUBNET_MASK, 0xFFFFFF00);
         options.write(DhcpOption.OPT_LEASE_TIME, 86400); // = 1d
-        options.write(DhcpOption.OPT_DHCP_SERVER, serverIp.toInt());
-        options.write(DhcpOption.OPT_DNS_SERVERS, serverIp.toInt());
-        options.write(DhcpOption.OPT_REQUESTED_IP, clientIp.toInt());
+        options.writeIp(DhcpOption.OPT_DHCP_SERVER, serverIp.toInt());
+        options.writeIp(DhcpOption.OPT_DNS_SERVERS, dnsserver.toInt());
+        options.writeIp(DhcpOption.OPT_ROUTER, gateway.toInt());
+        options.writeIp(DhcpOption.OPT_REQUESTED_IP, clientIp.toInt());
         options.write(DhcpOption.OPT_END);
 
         byte[] offer = new byte[DhcpHeader.SIZE + options.getSize()];
@@ -150,8 +151,9 @@ public class DhcpServer extends PackageReceiver {
         dhcp.seconds = 0;
         dhcp.flags = 0;
         dhcp.clientIp = 0;
-        dhcp.yourIp = Endianess.convert(clientIp.toInt());
-        dhcp.serverIp = Endianess.convert(serverIp.toInt());
+        // todo check endianness on all ip stuff!
+        dhcp.yourIp = clientIp.toInt();
+        dhcp.serverIp = serverIp.toInt();
         dhcp.gatewayIp = 0;
         for (int i = 0; i < MacAddress.MAC_LEN; i++){
             dhcp.clientHwAddr[i] = clientMac.toBytes()[i];

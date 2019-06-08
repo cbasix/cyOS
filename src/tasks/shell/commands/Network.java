@@ -35,6 +35,30 @@ public class Network extends Command{
                 doReceive(stack);
 
 
+            } if (args[1].equals("gateway")) {
+                if (args.length < 3){
+                    shellMessageBuffer.push(new LogEvent("Please provide gateway ip"));
+                    return;
+                }
+                stack.ipLayer.setDefaultGateway(IPv4Address.fromString(args[2]));
+
+
+            } else if (args[1].equals("dnsserver")) {
+                if (args.length < 3){
+                    shellMessageBuffer.push(new LogEvent("Please provide dnsserver ip"));
+                    return;
+                }
+                stack.setDnsServer(IPv4Address.fromString(args[2]));
+
+
+            } else if (args[1].equals("ip")) {
+                if (args.length < 3){
+                    shellMessageBuffer.push(new LogEvent("Please provide ip to add"));
+                    return;
+                }
+                stack.ipLayer.addAddress(IPv4Address.fromString(args[2]));
+
+
             } else if (args[1].equals("send")) {
                 if(args.length < 4) {
                     shellMessageBuffer.push(new LogEvent("Please provide target and a message"));

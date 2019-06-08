@@ -1,4 +1,4 @@
-package network.dns.structs;
+package network.dns.msg.structs;
 
 public class QuestionFooter extends STRUCT {
     public static final int SIZE = 4;

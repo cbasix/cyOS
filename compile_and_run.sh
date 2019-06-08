@@ -30,11 +30,21 @@ qemu_monitor="-monitor stdio "
 boot_floppy="-drive format=raw,if=none,file=BOOT_FLP.IMG -device floppy,drive=none0,drive-type=144"
 boot_iso="-cdrom cyos.iso "
 
-net1="-netdev socket,id=cynet,listen=:1408 -device virtio-net-pci,netdev=cynet,mac=52:54:00:12:34:60 "
-net2="-netdev socket,id=cynet,connect=:1408 -device virtio-net-pci,netdev=cynet,mac=52:54:00:12:34:61 "
+mac1=",mac=52:54:00:12:34:61 "
+mac2=",mac=52:54:00:12:34:62 "
+macKali1=",mac=52:54:00:12:34:63 "
+macKali2=",mac=52:54:00:12:34:64 "
 
-net_kali="-netdev socket,id=cynet,connect=:1409 -device virtio-net-pci,netdev=cynet,mac=52:54:00:12:34:62 "
-dump_net="-object filter-dump,id=id,netdev=cynet,file=cynet.dmp"
+net1="-netdev socket,id=cynet,listen=:1408 -device virtio-net-pci,netdev=cynet$mac1"
+net2="-netdev socket,id=cynet,connect=:1408 -device virtio-net-pci,netdev=cynet$mac2"
+
+net_user="-netdev user,id=ext -device virtio-net-pci,netdev=ext$mac2"
+#net_kali="-netdev socket,id=cynet,connect=:1409 -device virtio-net-pci,netdev=cynet$mac2"
+
+net_tap1="-netdev tap,ifname=cynet-tap1,script=no,downscript=no,id=cynet -device virtio-net-pci,netdev=cynet,id=cynet$mac1"
+net_tap2="-netdev tap,ifname=cynet-tap2,script=no,downscript=no,id=cynet -device virtio-net-pci,netdev=cynet,id=cynet$mac2"
+
+dump_net="-object filter-dump,id=id,netdev=ext,file=cynet-user.pcap"
 
 # variants
 # run one instance which can connect to kali
@@ -46,14 +56,52 @@ if [ $# -eq 0 ]; then
     echo $mkisofs
     eval $mkisofs
 
-    cmd="$qemu $qemu_default $boot_iso $net_kali"
+    cmd="$qemu $qemu_default $boot_iso $net_tap1"
     echo $cmd
     eval $cmd
     exit 0;
 fi
 
+# one in user net
+if [[ $1 == "user" ]]; then
+    cmd="$compiler $path $default $iso $debug_writer $infos_rte"
+    echo $cmd
+    eval $cmd
+
+    echo $mkisofs
+    eval $mkisofs
+
+    cmd="$qemu $qemu_default $boot_iso $net_user $qemu_monitor $dump_net"
+    echo $cmd
+    eval $cmd
+
+    exit 0;
+fi
+
 # run two connected instances
-if [[ $1 -eq "net" ]]; then
+if [[ $1 == "two" ]]; then
+    cmd="$compiler $path $default $iso $debug_writer $infos_rte"
+    echo $cmd
+    eval $cmd
+
+    echo $mkisofs
+    eval $mkisofs
+
+    cmd="$qemu $qemu_default $boot_iso $net_tap1 &"
+    echo $cmd
+    eval $cmd
+
+    sleep 1
+
+    cmd="$qemu $qemu_default $boot_iso $net_tap2"
+    echo $cmd
+    eval $cmd
+
+    exit 0;
+fi
+
+# run two connected instances
+if [[ $1 == "twosocket" ]]; then
     cmd="$compiler $path $default $iso $debug_writer $infos_rte"
     echo $cmd
     eval $cmd
@@ -64,6 +112,8 @@ if [[ $1 -eq "net" ]]; then
     cmd="$qemu $qemu_default $boot_iso $net1 &"
     echo $cmd
     eval $cmd
+
+    sleep 1
 
     cmd="$qemu $qemu_default $boot_iso $net2"
     echo $cmd
@@ -78,3 +128,42 @@ fi
 #-netdev tap,id=mynet0 # needs root
 
 # get method of addr java -cp compiler/nightly/sjc.jar sjc.ui.GetMthd compiler/nightly/addr.txt ADDR
+
+# call this with sudo !
+if [[ $1 == "setuptap" ]]; then
+    ip link add cynet-br0 type bridge
+    ip tuntap add dev cynet-tap0 mode tap user $(whoami)
+    ip tuntap add dev cynet-tap1 mode tap user $(whoami)
+    ip tuntap add dev cynet-tap2 mode tap user $(whoami)
+    ip tuntap add dev cynet-tap3 mode tap user $(whoami)
+
+    ip link set cynet-tap0 master cynet-br0
+    ip link set cynet-tap1 master cynet-br0
+    ip link set cynet-tap2 master cynet-br0
+    ip link set cynet-tap3 master cynet-br0
+
+    ip link set dev cynet-br0 up
+    ip link set dev cynet-tap0 up
+    ip link set dev cynet-tap1 up
+    ip link set dev cynet-tap2 up
+    ip link set dev cynet-tap3 up
+
+    ufw allow in on cynet-br0
+    ufw allow out on cynet-br0
+fi
+
+if [[ $1 == "runkali" ]]; then
+    # qemu-img create -f qcow2 kali.qcow2 5G
+    qemu="qemu-system-i386 -m 2048 -hda /home/cyberxix/Documents/studium/os-im-eigenbau/kali/kali.qcow2 "
+
+    ext="-netdev user,id=ext -device e1000,netdev=ext "
+
+    cynet="-netdev socket,id=cynet_direct,listen=:1409 -device virtio-net-pci,netdev=cynet_direct,id=cynet_direct "
+
+    cynet_tap="-netdev tap,ifname=cynet-tap0,script=no,downscript=no,id=cynet -device virtio-net-pci,netdev=cynet,id=cynet$macKali1 "
+    cynet_router="-netdev tap,ifname=cynet-tap3,script=no,downscript=no,id=cynet_router -device virtio-net-pci,netdev=cynet_router,id=cynet_router$macKali2 "
+
+    cmd="$qemu $ext $cynet $cynet_tap $cynet_router"
+    echo $cmd
+    eval $cmd
+fi

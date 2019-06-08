@@ -9,6 +9,7 @@ import drivers.virtio.VirtIo;
 import drivers.virtio.structs.*;
 import io.GreenScreenOutput;
 import io.LowlevelLogging;
+import io.LowlevelOutput;
 import kernel.Kernel;
 import kernel.interrupts.core.InterruptReceiver;
 

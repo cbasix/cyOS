@@ -15,7 +15,7 @@ public class Paging {
             entry |= 1 << 1; // read/r+w (1) -> r+w
 
             // let mmu create exceptions on nullpointer (first or last page access
-            if((i == 0 && tableNo == 0) || (i == pageTableEntryCount -1 && tableNo == pageDirEntryCount -1)){
+            if((i == 0 && tableNo == 0) || (i == pageTableEntryCount -1 && pageDirEntryCount - tableNo == 0)){
                 entry |= 0 << 0; // present (0) -> seite nicht da
             } else {
                 entry |= 1 << 0; // present (1) -> seite vorhanden

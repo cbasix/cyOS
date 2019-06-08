@@ -42,10 +42,7 @@ public class Arp extends ResolutionLayer {
 
             sendRequest(stack.ipLayer.getMatchingOwnIpFor(ip), ip);
             for (int i = 0; i < 2; i++) {Kernel.sleep();} // short delay untill next system timer
-            byte[] data = Kernel.networkManager.nic.receive();
-            if (data != null){
-                stack.ethernetLayer.receive(data);
-            }
+            Kernel.networkManager.receive();
             targetMac = cache.getMac(ip);
         }
 

@@ -8,6 +8,17 @@ import network.ipstack.abstracts.TransportLayer;
 public class BindingsManager extends PackageReceiver{
 
     private final ArrayList bindings;
+    private short randomAssignedPort = 1024;
+
+    public int getUnusedPort(TransportLayer t) {
+        if (randomAssignedPort < 1024) {randomAssignedPort = 1024;}
+
+        randomAssignedPort++;
+        while (null != getBindingFor(t, randomAssignedPort)){
+            randomAssignedPort++;
+        }
+        return (int)randomAssignedPort;
+    }
 
     public static class Binding {
         TransportLayer transport;
@@ -65,9 +76,14 @@ public class BindingsManager extends PackageReceiver{
     public void receive(TransportLayer transport, IPv4Address senderIp, int senderPort, int receiverPort,  byte[] data) {
         Binding b = getBindingFor(transport, receiverPort);
         if (b != null){
+
+            LowlevelLogging.debug("Packge data size: ", String.from(data.length));
+
             b.receiver.receive(transport, senderIp, senderPort, receiverPort, data);
+
         } else {
             LowlevelLogging.debug(String.concat("Bindings manager got package for not bound port: ", String.from(receiverPort), "   "));
         }
+
     }
 }

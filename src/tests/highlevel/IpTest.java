@@ -61,7 +61,7 @@ public class IpTest {
     }
 
     public static int test(){
-        Ip ipLayer = new Ip();
+        /*Ip ipLayer = new Ip();
         ipLayer.setEthernetLayer(new MockEthernet());
         ipLayer.setArpLayer(new MockArpLayer());
 
@@ -72,7 +72,7 @@ public class IpTest {
             buffer.data[buffer.start + i] = (byte)i;
         }
         ipLayer.send(new IPv4Address(1), Ip.PROTO_RAW_TEXT, buffer);
-
+        */
 
         IPv4Address a = new IPv4Address(0xFF552287);
         byte[] aByte = a.toBytes();
@@ -81,7 +81,7 @@ public class IpTest {
         if (aByte[2] != (byte)0x22){return 2602;}
         if (aByte[3] != (byte)0x87){return 2603;}
 
-        IPv4Address b = new IPv4Address();
+        IPv4Address b = new IPv4Address(aByte);
         if (a.toInt() != b.toInt()){
             LowlevelOutput.printStr(a.toString(), 15, 2, Color.GREEN);
             LowlevelOutput.printStr(b.toString(), 15, 3, Color.RED);

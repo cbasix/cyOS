@@ -123,6 +123,7 @@ public class Ip extends InternetLayer {
         for (int addrNo = 0; addrNo < ownAddresses.size(); addrNo++){
             if (targetIp.equals((IPv4Address) ownAddresses._get(addrNo))){
                 this.receive(buffer);
+                LowlevelLogging.debug(String.concat("Linklocal for addr: ", targetIp.toString()));
                 return;
             }
         }
@@ -150,18 +151,23 @@ public class Ip extends InternetLayer {
         IPv4Address sourceIp = new IPv4Address(Endianess.convert(header.srcIP));
         byte protocol = header.prot;
         short chksum = Endianess.convert(header.chksum);
-        int len = Endianess.convert(header.len) - IpHeader.SIZE; // todo IPv4 has variable header length!
+        int len = Endianess.convert(header.len); // todo IPv4 has variable header length!
 
         // todo check checksum
         //  Endianess.convert((short) Crc32.calc(0, (int)MAGIC.addr(header.versionIhl), IpHeader.SIZE, true));
 
         if (!this.hasOwnAddress(targetIp) && targetIp.toInt() != 0xFFFFFFFF){
-            LowlevelLogging.debug("got package with for other ip");
+            LowlevelLogging.debug(String.concat("got package with for other ip", targetIp.toString()));
             return;
         }
         
         if (version != Ip.V4){
             return;
+        }
+
+        // handle missing ethernet checksum in some virtual networks... ethernet layer cut it off... add it again
+        if (len > buffer.usableSize && len - buffer.usableSize <= 4) {
+            buffer.usableSize += len - buffer.usableSize;
         }
 
         if (len > buffer.usableSize) {
@@ -235,5 +241,9 @@ public class Ip extends InternetLayer {
         IPv4Address o = getMatchingOwnIpFor(ip);
         this.ownAddresses.remove(o);
 
+    }
+
+    public IPv4Address getDefaultGateway() {
+        return defaultGateway;
     }
 }

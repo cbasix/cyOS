@@ -29,3 +29,22 @@ And some more stuff.
 
 # An OS in Java?
 cyOS is compiled using the SJC Java to native compiler, which can be found here: http://www.fam-frenz.de/stefan/compiler.html
+
+# DHCP
+
+Server and Client implemented, should work with other standard compliant software. IPv4 and UDP only. 
+
+## Server
+Can be started with `dhcpserver start`. Assigns 192.168.100.x/24 addresses and the fixed DNS-Server 192.168.100.1
+`dhcpserver stop` shuts down the dhcpserver.
+
+## Client
+
+`dhcpclient start`
+
+# DNS
+
+Server and Client can read compressed DNS-Messages, but do not use 
+ compression in outgoing messages.
+ 
+ `dnsserver start`

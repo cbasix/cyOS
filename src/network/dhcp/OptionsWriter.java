@@ -47,4 +47,8 @@ public class OptionsWriter {
         MAGIC.wMem8(MAGIC.addr(buffer[bufPos]), singleOpt);
         bufPos += 1;
     }
+
+    public void writeIp(byte someIpOption, int ip) {
+        write(someIpOption, Endianess.convert(ip)); // todo avoid double conversion FIX ALL ENDIANNESS STUFF WITH IPS not only in DHCP!
+    }
 }
