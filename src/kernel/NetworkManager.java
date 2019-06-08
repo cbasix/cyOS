@@ -5,7 +5,7 @@ import network.ipstack.NetworkStack;
 import network.Nic;
 
 public class NetworkManager {
-    public ArrayList nics;
+    public Nic nic;
     public NetworkStack stack = new NetworkStack();
 
    /* public void addInterface(Nic nic){
