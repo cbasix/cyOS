@@ -13,7 +13,7 @@ public class IPv4Address {
     private static IPv4Address globalBroadcast;
 
     public byte[] addr;
-    public byte[] netmask;
+    private byte[] netmask;
 
     private IPv4Address(){}
 
@@ -21,7 +21,6 @@ public class IPv4Address {
     public IPv4Address(byte[] ipBytes) {
         if (ipBytes.length != 4){
             LowlevelLogging.debug("invalid length for ip address");
-            Kernel.stop(); // todo remove
             return;
         }
 
@@ -58,12 +57,14 @@ public class IPv4Address {
 
 
     public IPv4Address setNetmaskCidr(int onesCount){
-        netmask = new byte[IPV4_LEN];
-        int currentPos = 0;
-        for (int i = 0; i < IPV4_LEN; i++) {
-            for (int b = 7; b >= 0; b--) {
-                this.netmask[i] |= ((currentPos < onesCount ? 1 : 0) << (7 - (currentPos % 8)));
-                currentPos++;
+        if (onesCount != 0) {
+            netmask = new byte[IPV4_LEN];
+            int currentPos = 0;
+            for (int i = 0; i < IPV4_LEN; i++) {
+                for (int b = 7; b >= 0; b--) {
+                    this.netmask[i] |= ((currentPos < onesCount ? 1 : 0) << (7 - (currentPos % 8)));
+                    currentPos++;
+                }
             }
         }
 
@@ -194,5 +195,9 @@ public class IPv4Address {
     public IPv4Address copy(){
         byte[] newAddr = ByteArray.copy(this.addr);
         return new IPv4Address(newAddr);
+    }
+
+    public byte[] getNetmask() {
+        return netmask;
     }
 }

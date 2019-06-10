@@ -95,6 +95,7 @@ public class IpTest {
         if(!IPv4Address.fromString("129.168.200.1/16").isInSameNetwork(IPv4Address.fromString("129.168.100.254/16"))){return 2612;}
         if(IPv4Address.fromString("129.168.200.1/1").isInSameNetwork(IPv4Address.fromString("129.168.200.1/2"))){return 2613;}
         if(IPv4Address.fromString("0.0.0.0/24").isInSameNetwork(IPv4Address.fromString("192.168.200.98/24"))){return 2614;}
+        if(!IPv4Address.fromString("192.168.200.98/24").isInSameNetwork(IPv4Address.fromString("192.168.200.98/24"))){return 2615;}
 
         return 0;
     }

@@ -158,7 +158,7 @@ public class Ip extends InternetLayer {
         buffer.usableSize -= IpHeader.SIZE;
 
         if (!Kernel.networkManager.hasLocalIp(targetIp) && !targetIp.equals(IPv4Address.getGlobalBreadcastAddr())){
-            LowlevelLogging.debug(String.concat("got package with for other ip", targetIp.toString()));
+            LowlevelLogging.debug(String.concat("got package for other ip", targetIp.toString()));
 
             // IP FORWARDING
             //this.send(Kernel.networkManager.getInterfaceNoForTarget(targetIp), targetIp, protocol, buffer);
@@ -166,10 +166,14 @@ public class Ip extends InternetLayer {
             return;
         }
 
-        // simple net send style "popup message" for debugging
+        // simple net send style "popup message"
         if(protocol == PROTO_RAW_TEXT){
 
-            char[] messageArr = new char[len/2];
+            /*LowlevelLogging.debug("raw ip header len: ", String.from(len), "   ");
+            LowlevelLogging.debug("raw usableSize len: ", String.from(buffer.usableSize), "   ");
+            Kernel.stop();*/
+
+            char[] messageArr = new char[buffer.usableSize/2];
             for (int i = 0; i < messageArr.length; i++){
                 messageArr[i] = (char)((buffer.data[buffer.start + 2*i] << 8) | buffer.data[buffer.start + 2*i + 1]);
             }

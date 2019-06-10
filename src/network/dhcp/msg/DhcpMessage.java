@@ -80,7 +80,7 @@ public class DhcpMessage {
         OptionsWriter options = new OptionsWriter();
         options.write(DhcpOption.OPT_MSG_TYPE, (byte)type);
         // NETMASK IS contained in yourip!
-        if(yourIp != null && yourIp.netmask != null) { options.write(DhcpOption.OPT_SUBNET_MASK, yourIp.netmask); }
+        if(yourIp != null && yourIp.getNetmask() != null) { options.write(DhcpOption.OPT_SUBNET_MASK, yourIp.getNetmask()); }
         options.write(DhcpOption.OPT_LEASE_TIME, 86400); // = 1d
         if(serverIp != null) { options.write(DhcpOption.OPT_DHCP_SERVER, serverIp.addr); }
         if(dnsserver != null) { options.write(DhcpOption.OPT_DNS_SERVERS, dnsserver.addr); }
