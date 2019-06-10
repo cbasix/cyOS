@@ -68,6 +68,7 @@ Only /24 or bigger networks are correctly handled by the dhcpserver.
 2. `ifconfig`
 3. Resolve local domain `dig first.cyos`
 4. Resolve remote domain `dig google.de`
+5. Try `net send first.cyos thisIsAMessageWithoutSpaces` to test DNS resolving from a "client" program.
 
 The networks are configured to dump all traffic to .pcap files which can be 
 read with Wireshark to observe the sent packages.

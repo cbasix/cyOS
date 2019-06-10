@@ -6,6 +6,7 @@ import kernel.Kernel;
 import kernel.NetworkManager;
 import network.*;
 import network.address.IPv4Address;
+import network.dns.DnsClient;
 import network.ipstack.ArpCache;
 import network.ipstack.Ip;
 import network.ipstack.NetworkStack;
@@ -86,14 +87,19 @@ public class Network extends Command{
                 }
             }
         } else {
-            if (target.countOccurences('.') == 0){
-                target = String.concat("192.168.200.", target);
-            } else if (target.countOccurences('.') == 1){
-                target = String.concat("192.168.", target);
+
+            DnsClient client  = new DnsClient();
+            sendToIp = client.resolve(target);
+
+            if (sendToIp == null) {
+                if (target.countOccurences('.') == 0) {
+                    target = String.concat("192.168.200.", target);
+                } else if (target.countOccurences('.') == 1) {
+                    target = String.concat("192.168.", target);
+                }
+
+                sendToIp = IPv4Address.fromString(target);
             }
-
-
-            sendToIp = IPv4Address.fromString(target);
         }
 
         if (sendToIp == null) {
