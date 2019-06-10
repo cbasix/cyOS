@@ -61,6 +61,7 @@ The other network card is - like the second cyOS instance (called CLIENT) - conn
 Only /24 or bigger networks are correctly handled by the dhcpserver.
 3. Start the dnsserver on the cynet interface 0 by executing `dnss start 0`
 4. Execute `dhcps` to start the dhcp server on interface 0
+5. Test linklocal, nameserver & recursive query `dig test.de`
 
 ## On CLIENT
 1. Run `dhcp` to start the dhcp discovery on interface 0

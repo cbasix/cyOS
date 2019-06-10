@@ -107,7 +107,7 @@ public class Ip extends InternetLayer {
         // handle link local
         if(Kernel.networkManager.hasLocalIp(targetIp)){
             this.receive(interfaceNo, buffer);
-            LowlevelLogging.debug(String.concat("Linklocal for addr: ", targetIp.toString()));
+            //LowlevelLogging.debug(String.concat("Linklocal for addr: ", targetIp.toString()));
             return;
         }
 

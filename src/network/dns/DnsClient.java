@@ -41,9 +41,9 @@ public class DnsClient extends PackageReceiver {
             //LowlevelLogging.debug("rdata len: ", String.from(a.rdata.length));
             result = new IPv4Address(a.rdata);
         } else {
-            LowlevelOutput.printStr("Got non correct dns answer", 0, 0, Color.RED);
+            /*LowlevelOutput.printStr("Got non correct dns answer", 0, 0, Color.RED);
             LowlevelOutput.printStr(String.hexFrom(m.getAnswers().size()), 0, 1, Color.RED);
-            Kernel.wait(4);
+            Kernel.wait(4);*/
         }
 
         gotAnswer = true;
