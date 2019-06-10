@@ -10,7 +10,7 @@ public class OnesComplement {
         while (len > 1) {
             // This is the inner loop
             checksum += ((int) MAGIC.rMem8(addr + 1) & 0xFF)
-                    | ((int) (MAGIC.rMem8(addr) & 0xFF) << 8);
+                    | ((MAGIC.rMem8(addr) & 0xFF) << 8);
             len -= 2;
             addr += 2;
         }

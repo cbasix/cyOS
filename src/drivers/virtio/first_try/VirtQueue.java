@@ -79,7 +79,7 @@ public class VirtQueue {
 
         /* unchecked array */
         @SJC(count = QUEUE_SIZE)
-        public UsedRingElement ring[];
+        public UsedRingElement[] ring;
 
         /* Allows the device to ask for Notification Suppression, if
            VIRTIO_F_EVENT_IDX was negotiated */

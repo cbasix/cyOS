@@ -51,7 +51,7 @@ public class DhcpCache {
     private Entry get (IPv4Address ip){
         for (int i = 0; i < cache.size(); i++){
             Entry e = (Entry) cache._get(i);
-            if (e.ip.toInt() == ip.toInt()){
+            if (e.ip.equals(ip)){
                 return e;
             }
         }

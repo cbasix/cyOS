@@ -44,7 +44,7 @@ public class KeyboardInterruptReceiver extends InterruptReceiver {
     private boolean[] modifierStates = new boolean[MODIFIER_KEYS.length];
     public static PooledKeyboardEventRingBuffer pressedBuffer;
     public static KeyboardEvent keyboardEvent;
-    private int keyPartBuffer[] = new int[3];
+    private int[] keyPartBuffer = new int[3];
     private int byteNo = 0;
 
 

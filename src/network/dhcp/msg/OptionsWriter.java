@@ -1,4 +1,4 @@
-package network.dhcp;
+package network.dhcp.msg;
 
 import conversions.Endianess;
 
@@ -10,6 +10,18 @@ public class OptionsWriter {
 
     public OptionsWriter(){
         this.buffer = new byte[MAX_SIZE];
+    }
+
+    public void write(byte option, byte[] value) {
+        DhcpOption o = (DhcpOption) MAGIC.cast2Struct(MAGIC.addr(buffer[bufPos]));
+
+        o.option = option;
+        o.len = (byte)value.length;
+        for (int i = 0; i < value.length; i++) {
+            o.valueBytes[i] = value[i];
+        }
+
+        bufPos += DhcpOption.FIXED_SIZE + o.len;
     }
 
     public void write(byte option, byte value) {

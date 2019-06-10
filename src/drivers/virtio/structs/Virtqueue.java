@@ -25,7 +25,7 @@ public class Virtqueue extends STRUCT{
 
     public AvailableRing availableRing; // len  6 + 265*8 = 2048+6
     @SJC(count = PADDING) //pad to next 4096 boundary = 2048-6
-    byte pad[];
+            byte[] pad;
 
     public UsedRing usedRing;
 

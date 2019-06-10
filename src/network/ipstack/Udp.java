@@ -1,14 +1,12 @@
 package network.ipstack;
 
 import conversions.Endianess;
-import drivers.virtio.structs.Buffer;
 import io.LowlevelLogging;
 import network.PackageBuffer;
 import network.address.IPv4Address;
 import network.ipstack.abstracts.InternetLayer;
 import network.ipstack.abstracts.TransportLayer;
 import network.ipstack.binding.BindingsManager;
-import network.ipstack.binding.PackageReceiver;
 import network.ipstack.structs.UdpHeader;
 
 public class Udp extends TransportLayer {
@@ -40,8 +38,14 @@ public class Udp extends TransportLayer {
         return buffer;
     }
 
+
+
     @Override
     public void send(IPv4Address targetIp, int srcPort, int dstPort, byte[] data) {
+        send(BindingsManager.UNSET_INTERFACE, targetIp, srcPort, dstPort, data);
+    }
+
+    public void send(int interfaceNo, IPv4Address targetIp, int srcPort, int dstPort, byte[] data) {
         PackageBuffer buffer = getBuffer(data.length);
 
         // remove upper layer protocols restrictions
@@ -60,12 +64,13 @@ public class Udp extends TransportLayer {
             buffer.data[buffer.start + UdpHeader.SIZE + i] = data[i];
         }
 
-        ipLayer.send(targetIp, Ip.PROTO_UDP, buffer);
+
+        ipLayer.send(interfaceNo, targetIp, Ip.PROTO_UDP, buffer);
 
     }
 
     @Override
-    public void receive(IPv4Address senderIp, PackageBuffer buffer) {
+    public void receive(int interfaceNo, IPv4Address senderIp, PackageBuffer buffer) {
         UdpHeader header = (UdpHeader) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.start]));
 
         int senderPort = Endianess.convert(header.srcPort);
@@ -82,6 +87,6 @@ public class Udp extends TransportLayer {
             data[i] = buffer.data[buffer.start + i];
         }
 
-        bindingsManager.receive(this, senderIp, senderPort, receiverPort, data);
+        bindingsManager.receive(interfaceNo,this, senderIp, senderPort, receiverPort, data);
     }
 }

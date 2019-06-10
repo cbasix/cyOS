@@ -9,7 +9,7 @@ import kernel.memory.MemArea;
 public class LinkedListMemoryManagerTest {
     public static int test(){
         MemAreaLinkedList list = new MemAreaLinkedList();
-        MemAreaLinkedList.MemAreaIterator iter = (MemAreaLinkedList.MemAreaIterator) list.iter();
+        MemAreaLinkedList.MemAreaIterator iter = list.iter();
 
         iter.insert(new MemArea(0, 10));
         iter.insert(new MemArea(20, 10));
@@ -24,7 +24,7 @@ public class LinkedListMemoryManagerTest {
         if (size != 3) {
             LowlevelOutput.printInt(size, 10, 10, 45, 15, Color.RED);
             return 700;
-        };
+        }
 
         //3rd elem must start at 50 and have len 80
         iter.gotoStart();
@@ -111,7 +111,7 @@ public class LinkedListMemoryManagerTest {
     }
 
     static void printList(MemAreaLinkedList list){
-        MemAreaLinkedList.MemAreaIterator iter = (MemAreaLinkedList.MemAreaIterator) list.iter();
+        MemAreaLinkedList.MemAreaIterator iter = list.iter();
         int line = 0;
         while(iter.next()){
             MemArea a = iter.get();

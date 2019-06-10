@@ -112,10 +112,10 @@ public class Shell extends Task {
         execute(">net gateway 10.0.2.2".toChars());
         execute(">net dnsserver 10.0.2.3".toChars());*/
         //execute(">net ip 192.168.100.5/24".toChars());
-        execute(">net gateway 192.168.200.1".toChars());
+        //execute(">net gateway 192.168.200.1".toChars());
         //execute(">net dnsserver 8.8.8.8".toChars());
-        execute(">dhcpclient start".toChars());
-        execute(">net dnsserver 8.8.8.8".toChars());
+        //execute(">dhcpclient start".toChars());
+        //execute(">net dnsserver 8.8.8.8".toChars());
 
     }
 

@@ -24,11 +24,8 @@ public class VirtioNet extends VirtIoPciDevice {
     public class InterruptHandler extends InterruptReceiver {
         @Override
         public boolean handleInterrupt(int interruptNo, int param) {
-            if (interruptNo == INTERRUPT_NO){
-                //todo read isr register an check if virtio was the source then
-                return true;
-            }
-            return false;
+            //todo read isr register an check if virtio was the source then
+            return interruptNo == INTERRUPT_NO;
         }
     }
 

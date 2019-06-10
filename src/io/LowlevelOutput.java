@@ -50,7 +50,7 @@ public class LowlevelOutput {
 
         char tmp;
         for (int i = len - 1; i >= 1; i--) {
-            printChar(alphabet.charAt((int) (value % base)), x + i, y, color);
+            printChar(alphabet.charAt(value % base), x + i, y, color);
             value /= base;
         }
 

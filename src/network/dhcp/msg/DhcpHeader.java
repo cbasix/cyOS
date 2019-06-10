@@ -1,10 +1,11 @@
-package network.dhcp.structs;
+package network.dhcp.msg;
 
 public class DhcpHeader extends STRUCT {
     public static final int SIZE = 4*1 + 4 + 2*2 + 4*4 + 16 + 64 + 128 + 4;
 
     public static final int BOOT_REQUEST = 1;
     public static final int BOOT_REPLY = 2;
+    public static final int BROADCAST_BIT = 15;
 
     public byte operation;
     public byte hwType;
@@ -13,10 +14,10 @@ public class DhcpHeader extends STRUCT {
     public int transactionId;
     public short seconds;
     public short flags;
-    public int clientIp;
-    public int yourIp;
-    public int serverIp;
-    public int gatewayIp;
+    public IPv4AddrStruct clientIp;
+    public IPv4AddrStruct yourIp;
+    public IPv4AddrStruct serverIp;
+    public IPv4AddrStruct gatewayIp;
     @SJC(count = 16)
     public byte[] clientHwAddr;
     @SJC(count = 64)

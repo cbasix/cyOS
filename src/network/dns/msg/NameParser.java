@@ -32,12 +32,30 @@ public class NameParser {
         byte labelLenOrPtr;
         int ptrDepth = 0;
         int currentLabelAddr = pos;
+        /*
+        12 5
+        18 2
+        26 192
+        12 5
+        18 2
+        38 165
 
+0000   26 d8 81 80 00 01 00 02 00 00 00 00 T> 05 62 6c 75
+0010   62 62 02 64 65 00 00 01 00 01 L> c0 0c 00 01 00 01
+0020   00 00 19 44 00 04 a5 a0 0f 14 L> c0 0c 00 01 00 01
+0030   00 00 19 44 00 04 a5 a0 0d 14
+
+
+
+
+
+         */
         labelLenOrPtr = data[currentLabelAddr];
 
         while (labelLenOrPtr != 0) {
 
-            //System.out.println("pos: " + currentLabelAddr + " val: "+ (data[currentLabelAddr] & 0xff));
+            //LowlevelLogging.debug(String.concat("pos: ", String.from(currentLabelAddr), " val: ", String.from((data[currentLabelAddr] & 0xff))), "  ");
+            //Kernel.wait(4);
 
             // test if len is a real len or a pointer to another label
             if ((labelLenOrPtr & PTR_MASK) == 0) {

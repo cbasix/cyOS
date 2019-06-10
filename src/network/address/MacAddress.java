@@ -1,6 +1,7 @@
 package network.address;
 
 import io.LowlevelLogging;
+import network.ipstack.structs.MacAddrStruct;
 
 // mac is saved in network byte order !!!
 
@@ -27,6 +28,26 @@ public class MacAddress {
         }
 
         return new MacAddress(copy);
+    }
+
+    public static MacAddress zeroAddr(){
+        byte[] data = new byte[MAC_LEN];
+        return new MacAddress(data);
+    }
+
+    public static MacAddress fromStruct(MacAddrStruct data){
+        byte[] copy = new byte[MAC_LEN];
+        for(int i = 0; i < MAC_LEN; i++){
+            copy[i] = data.mac[i];
+        }
+
+        return new MacAddress(copy);
+    }
+
+    public void writeTo(MacAddrStruct data){
+        for (int i = 0; i < MAC_LEN; i++) {
+            data.mac[i] = addr[i];
+        }
     }
 
     public byte[] toBytes(){

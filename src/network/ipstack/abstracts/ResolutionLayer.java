@@ -9,5 +9,5 @@ public abstract class ResolutionLayer {
 
     public abstract MacAddress resolveIp(IPv4Address ip);
 
-    public abstract void receive(PackageBuffer buffer);
+    public abstract void receive(int interfaceNo, PackageBuffer buffer);
 }

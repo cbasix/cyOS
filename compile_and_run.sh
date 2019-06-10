@@ -32,33 +32,42 @@ boot_iso="-cdrom cyos.iso "
 
 mac1=",mac=52:54:00:12:34:61 "
 mac2=",mac=52:54:00:12:34:62 "
+mac3=",mac=52:54:00:12:34:63 "
 macKali1=",mac=52:54:00:12:34:63 "
 macKali2=",mac=52:54:00:12:34:64 "
 
 net1="-netdev socket,id=cynet,listen=:1408 -device virtio-net-pci,netdev=cynet$mac1"
 net2="-netdev socket,id=cynet,connect=:1408 -device virtio-net-pci,netdev=cynet$mac2"
 
-net_user="-netdev user,id=ext -device virtio-net-pci,netdev=ext$mac2"
+net_user="-netdev user,id=ext -device virtio-net-pci,netdev=ext$mac3"
 #net_kali="-netdev socket,id=cynet,connect=:1409 -device virtio-net-pci,netdev=cynet$mac2"
 
 net_tap1="-netdev tap,ifname=cynet-tap1,script=no,downscript=no,id=cynet -device virtio-net-pci,netdev=cynet,id=cynet$mac1"
 net_tap2="-netdev tap,ifname=cynet-tap2,script=no,downscript=no,id=cynet -device virtio-net-pci,netdev=cynet,id=cynet$mac2"
 
-dump_net="-object filter-dump,id=id,netdev=ext,file=cynet-user.pcap"
+dump_ext="-object filter-dump,id=dump_ext,netdev=ext,file=ext.pcap"
+dump_cynet="-object filter-dump,id=dump_cynet,netdev=cynet,file=cynet.pcap"
 
 # variants
-# run one instance which can connect to kali
+# run two via two seperate user networks connected instances
 if [ $# -eq 0 ]; then
-     cmd="$compiler $path $default $iso $debug_writer $infos_rte"
+ cmd="$compiler $path $default $iso $debug_writer $infos_rte"
     echo $cmd
     eval $cmd
 
     echo $mkisofs
     eval $mkisofs
 
-    cmd="$qemu $qemu_default $boot_iso $net_tap1"
+    cmd="$qemu $qemu_default $boot_iso $net1 $net_user $dump_cynet $dump_ext &"
     echo $cmd
     eval $cmd
+
+    sleep 1
+
+    cmd="$qemu $qemu_default $boot_iso $net2"
+    echo $cmd
+    eval $cmd
+
     exit 0;
 fi
 
@@ -71,14 +80,14 @@ if [[ $1 == "user" ]]; then
     echo $mkisofs
     eval $mkisofs
 
-    cmd="$qemu $qemu_default $boot_iso $net_user $qemu_monitor $dump_net"
+    cmd="$qemu $qemu_default $boot_iso $net_user $qemu_monitor $dump_ext"
     echo $cmd
     eval $cmd
 
     exit 0;
 fi
 
-# run two connected instances
+# run two via tap connected instances
 if [[ $1 == "two" ]]; then
     cmd="$compiler $path $default $iso $debug_writer $infos_rte"
     echo $cmd
@@ -100,25 +109,18 @@ if [[ $1 == "two" ]]; then
     exit 0;
 fi
 
-# run two connected instances
-if [[ $1 == "twosocket" ]]; then
-    cmd="$compiler $path $default $iso $debug_writer $infos_rte"
+# run one instance which can connect to kali
+if [[ $1 == "single" ]]; then
+      cmd="$compiler $path $default $iso $debug_writer $infos_rte"
     echo $cmd
     eval $cmd
 
     echo $mkisofs
     eval $mkisofs
 
-    cmd="$qemu $qemu_default $boot_iso $net1 &"
+    cmd="$qemu $qemu_default $boot_iso $net_tap1"
     echo $cmd
     eval $cmd
-
-    sleep 1
-
-    cmd="$qemu $qemu_default $boot_iso $net2"
-    echo $cmd
-    eval $cmd
-
     exit 0;
 fi
 

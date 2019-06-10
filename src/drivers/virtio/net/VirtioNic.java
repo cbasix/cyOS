@@ -71,12 +71,9 @@ public class VirtioNic extends Nic{
         @Override
         public boolean handleInterrupt(int interruptNo, int param) {
             // this read resets the interrupt!
-            if((isrReg.data & 0x3) != 0){
-                //LowlevelOutput.printStr("VIRTIO INT:", 0, 0, Color.PINK);
-                //LowlevelOutput.printStr(String.from(++interruptCnt), 12, 0, Color.CYAN);
-                return true;
-            }
-            return false;
+            //LowlevelOutput.printStr("VIRTIO INT:", 0, 0, Color.PINK);
+            //LowlevelOutput.printStr(String.from(++interruptCnt), 12, 0, Color.CYAN);
+            return (isrReg.data & 0x3) != 0;
 
             // todo
             //  – If the lower bit is set: look through the used rings of all

@@ -39,7 +39,7 @@ public class LoadVirtioNetDriver extends Command{
 
                 VirtioNic device = new VirtioNic(p);
 
-                Kernel.networkManager.nic = device;
+                int interfaceNo = Kernel.networkManager.addInterfaceFor(device);
                 shellMessageBuffer.push(new LogEvent(device.getMacAddress().toString()));
 
                 if(device.hasLink()){
@@ -48,12 +48,14 @@ public class LoadVirtioNetDriver extends Command{
                     shellMessageBuffer.push(new LogEvent("Link is DOWN"));
                 }
 
-                byte[] macBytes = Kernel.networkManager.nic.getMacAddress().toBytes();
-                IPv4Address ip = new IPv4Address(0xC0A8C800 | macBytes[macBytes.length-1]).setNetmaskCidr(24); // use last byte of mac address
+                byte[] macBytes = device.getMacAddress().toBytes();
+                IPv4Address ip = IPv4Address.fromString("192.168.200.0").setNetmaskCidr(24);
+                ip.addr[3] |= macBytes[macBytes.length-1]; // use last byte of mac address as last byte of ip
+
                 shellMessageBuffer.push(new LogEvent(ip.toString()));
-                Kernel.networkManager.stack.ipLayer.addAddress(ip); // "random" last part of ip between 1 and 126
+                Kernel.networkManager.getInterface(interfaceNo).addAddress(ip); // "random" last part of ip between 1 and 126
                 //Kernel.networkManager.stack.ipLayer.setDefaultGateway(new IPv4Address(0xC0A8C801));
-                Kernel.networkManager.stack.ipLayer.setDefaultGateway(new IPv4Address(0xC0A8C861));
+                Kernel.networkManager.setDefaultGateway(IPv4Address.fromString("192.168.200.1"));
 
 
                 // send test message

@@ -18,7 +18,7 @@ public class Arp extends Command{
     @Override
     public void execute(RingBuffer shellMessageBuffer, String[] args) {
         network.ipstack.Arp arpLayer = Kernel.networkManager.stack.arpLayer;
-        Nic nic = Kernel.networkManager.nic;
+        int interfaceCnt = Kernel.networkManager.getInterfaces().size();
 
         if (args.length > 1){
             if (args[1].equals("cache")){
@@ -29,7 +29,7 @@ public class Arp extends Command{
                 }
 
             } else if (args[1].equals("announce")){
-                if(nic == null){
+                if(interfaceCnt == 0){
                     shellMessageBuffer.push(new LogEvent("No nic found"));
                     return;
                 }

@@ -70,10 +70,10 @@ public class DnsMessage {
         DnsHeader header = (DnsHeader) MAGIC.cast2Struct(MAGIC.addr(data[0]));
         msg.setHeader(header);
 
-        int pos = header.SIZE;
+        int pos = DnsHeader.SIZE;
 
         int questionCount = msg.questionCount; // addQuestion modifies qCount
-        LowlevelLogging.debug( String.from(pos), " Question count: ", String.from(questionCount));
+        //lowlevelLogging.debug( String.from(pos), " Question count: ", String.from(questionCount));
         for (int i = 0; i < questionCount; i++){
             pos = msg.readQuestion(data, pos);
         }
@@ -95,7 +95,7 @@ public class DnsMessage {
         pos = nameParser.getPos();
         String name = nameParser.getName();
 
-        LowlevelLogging.debug(String.from(pos), name, String.from(data.length));
+        //lowlevelLogging.debug(String.from(pos), name, String.from(data.length));
 
         QuestionFooter qf = (QuestionFooter) MAGIC.cast2Struct(MAGIC.addr(data[pos]));
         int qtype = Endianess.convert(qf.qtype);
@@ -117,13 +117,14 @@ public class DnsMessage {
         int qclass = Endianess.convert(rr.class_);
         int ttl = Endianess.convert(rr.ttl);
         int rdlength = Endianess.convert(rr.rdlength);
-        LowlevelLogging.debug("rdlengh inside: ", String.hexFrom(rdlength));
+        //lowlevelLogging.debug("rdlengh inside: ", String.hexFrom(rdlength));
         pos += ResourceRecordFooter.SIZE;
 
         byte[] rdata = new byte[rdlength];
         for(int i = 0; i < rdlength; i++){
             rdata[i] = rr.rdata[i];
         }
+        pos += rdlength;
 
         addAnswer(name, qtype, qclass, ttl, rdata);
 
@@ -150,7 +151,7 @@ public class DnsMessage {
     private void writeHeaderTo(DnsHeader header) {
         //LowlevelLogging.debug("Type: ", String.from(this.type));
 
-        header.id = Endianess.convert((short) this.id);
+        header.id = Endianess.convert(this.id);
         int flags = (this.type & 1) << BIT_QR;
         flags |= (this.opcode & 0xF) << BIT_OPCODE;
         flags |= (this.authoritative ? 1 : 0) << BIT_AA;

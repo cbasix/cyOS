@@ -24,7 +24,7 @@ public class ArpCache {
     public Entry getEntryFromCache(IPv4Address ip){
         for (int entryNo = 0; entryNo < cache.size(); entryNo++){
             Entry entry = (Entry) cache._get(entryNo);
-            if (entry.ip.toInt() == ip.toInt()){
+            if (entry.ip.equals(ip)){
                 // may return null if no arp request completed yet
                 return entry;
             }

@@ -166,10 +166,7 @@ public class String {
         if (first == null || second == null){
             if (second != null){
                 return second;
-            } else if (first != null){
-                return first;
-            }
-            return null;
+            } else return first;
         }
         String[] temp = new String[2];
         temp[0] = first;
@@ -200,7 +197,7 @@ public class String {
             value = ~value;
         }
         int remainder;
-        int pos = tempStringBuffer.length - 1;;
+        int pos = tempStringBuffer.length - 1;
         do {
             remainder = value % 10;
             tempStringBuffer[pos] = alphabet.charAt(remainder);
@@ -216,7 +213,7 @@ public class String {
         }
 
         // avoid unnecessary copy
-        String ret = new String();
+        String ret = "";
         ret.value = tempStringBuffer;
         ret.count = ret.value.length;
         return ret.substring(pos);
@@ -229,11 +226,11 @@ public class String {
     public static String hexFrom(int value, int digits){
         char[] strBuf = new char[digits];
         for (int i = digits-1; i >= 0; i--) {
-            strBuf[digits-1-i] = String.alphabet.charAt((int)(value >> i*4) & 0xF);
+            strBuf[digits-1-i] = String.alphabet.charAt((value >> i*4) & 0xF);
         }
 
         // avoid copy
-        String ret = new String();
+        String ret = "";
         ret.value = strBuf;
         ret.count = ret.value.length;
         return ret;

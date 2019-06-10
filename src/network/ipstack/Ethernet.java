@@ -2,6 +2,7 @@ package network.ipstack;
 
 
 import conversions.Endianess;
+import io.LowlevelLogging;
 import kernel.Kernel;
 import network.address.MacAddress;
 import network.PackageBuffer;
@@ -24,11 +25,11 @@ public class Ethernet extends LinkLayer {
         return new PackageBuffer(data, 0, data.length);
     }
 
-    public void send(MacAddress targetMac, short type, PackageBuffer buffer){
+    public void send(int interfaceNo, MacAddress targetMac, short type, PackageBuffer buffer){
         buffer.start -= EthernetHeader.SIZE; // should equal 0
         buffer.usableSize += EthernetHeader.SIZE + EthernetFooter.SIZE; // should equal buffer.length
 
-        MacAddress myMac = Kernel.networkManager.nic.getMacAddress(); // todo check endianness of mac addr
+        MacAddress myMac = Kernel.networkManager.getInterface(interfaceNo).nic.getMacAddress(); // todo check endianness of mac addr
 
         EthernetHeader header = (EthernetHeader) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.start]));
         EthernetFooter tail = (EthernetFooter) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.data.length - EthernetFooter.SIZE]));
@@ -45,15 +46,16 @@ public class Ethernet extends LinkLayer {
         //int checksum = Endianess.convert(Crc32.calc(0, MAGIC.addr(buffer.data[buffer.start]), buffer.usableSize - EthernetFooter.SIZE, true)); // todo check
 
         // allow linklocal on ehernet level
-        if (targetMac.toLong() == myMac.toLong()){
-            this.receive(buffer.data);
-        }
+        /*if (targetMac.toLong() == myMac.toLong()){
+            this.receive(interfaceNo, buffer.data);
+        }*/
 
         tail.checksum = MyCrc32.calc(0, MAGIC.addr(buffer.data[buffer.start]), buffer.usableSize - EthernetFooter.SIZE); // todo check
-        Kernel.networkManager.nic.send(buffer.data);
+
+        Kernel.networkManager.getInterface(interfaceNo).nic.send(buffer.data);
     }
 
-    public void receive(byte[] data){
+    public void receive(int interfaceNo, byte[] data){
         PackageBuffer buffer = bufferFromBytes(data);
 
         EthernetHeader header = (EthernetHeader) MAGIC.cast2Struct(MAGIC.addr(buffer.data[buffer.start]));
@@ -69,10 +71,10 @@ public class Ethernet extends LinkLayer {
 
         int type = Endianess.convert(header.type);
         if (type == TYPE_ARP) {
-            Kernel.networkManager.stack.arpLayer.receive(buffer);
+            Kernel.networkManager.stack.arpLayer.receive(interfaceNo, buffer);
 
         } else if (type == TYPE_IP) {
-            Kernel.networkManager.stack.ipLayer.receive(buffer);
+            Kernel.networkManager.stack.ipLayer.receive(interfaceNo, buffer);
         }
 
     }

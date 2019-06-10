@@ -1,5 +1,7 @@
 package network.ipstack.structs;
 
+import network.dhcp.msg.IPv4AddrStruct;
+
 // only works for ethernet & ip ;)
 public class ArpMessage extends STRUCT {
     public static final short HW_TYPE_ETHERNET = 1;
@@ -13,10 +15,8 @@ public class ArpMessage extends STRUCT {
     public short protocolType;
     public byte hwAddrLen, protocAddrLen;
     public short operation;
-    @SJC(count = 6)
-    public byte[] senderHwAddr;
-    public int senderProtocAddr;
-    @SJC(count = 6)
-    public byte[] targetHwAddr;
-    public int targetProtocolAddr;
+    public MacAddrStruct senderHwAddr;
+    public IPv4AddrStruct senderProtocAddr;
+    public MacAddrStruct targetHwAddr;
+    public IPv4AddrStruct targetProtocolAddr;
 }

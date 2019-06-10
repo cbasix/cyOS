@@ -1,4 +1,4 @@
-package network.dhcp;
+package network.dhcp.msg;
 
 import conversions.Endianess;
 import io.Color;

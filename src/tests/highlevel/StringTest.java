@@ -71,7 +71,7 @@ public class StringTest {
         s = "blubb78";
         char[] ca = s.toChars();
         for (int i = 0; i < s.length(); i++){
-            if (s.charAt(i) != ca[i]){return 342;};
+            if (s.charAt(i) != ca[i]){return 342;}
         }
 
         // substring

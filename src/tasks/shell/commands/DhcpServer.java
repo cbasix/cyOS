@@ -12,7 +12,7 @@ public class DhcpServer extends Command{
 
     @Override
     public String getCmd() {
-        return "dhcpserver";
+        return "dhcps";
     }
 
     @Override
@@ -20,19 +20,26 @@ public class DhcpServer extends Command{
 
 
         if (args.length < 2){
-            shellOutput.push(new LogEvent("use subcomand start or stop"));
+            shellOutput.push(new LogEvent("assuming start 0"));
+            server = new network.dhcp.DhcpServer();
+            server.startListenOn(Kernel.networkManager.getInterface(0).getDefaultIp());
             return;
         }
 
         if (args[1].equals("start")) {
-            Kernel.networkManager.stack.ipLayer.addAddress(IPv4Address.fromString("192.168.100.1").setNetmaskCidr(24));
+            if (args.length < 3){
+                shellOutput.push(new LogEvent("specify interface to start the server on"));
+                return;
+            }
+            int interfaceNo = args[2].toInt();
+
             server = new network.dhcp.DhcpServer();
+            server.startListenOn(Kernel.networkManager.getInterface(interfaceNo).getDefaultIp());
 
         } else if (args[1].equals("stop")) {
             if (server != null){
                 server.stop();
             }
-            Kernel.networkManager.stack.ipLayer.removeAddress(IPv4Address.fromString("192.168.100.1"));
         }
     }
 }

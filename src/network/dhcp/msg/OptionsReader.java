@@ -1,9 +1,6 @@
-package network.dhcp;
+package network.dhcp.msg;
 
-import conversions.Endianess;
-import io.Color;
 import io.LowlevelLogging;
-import io.LowlevelOutput;
 
 
 public class OptionsReader {

@@ -106,7 +106,7 @@ public class GreenScreenOutput {
     @SJC.Inline
     public void printHex(int value, int digits){
         for (int i = digits-1; i >= 0; i--) {
-            print(String.alphabet.charAt((int)(value >> i*4) & 0xF));
+            print(String.alphabet.charAt((value >> i*4) & 0xF));
         }
     }
 
@@ -169,7 +169,7 @@ public class GreenScreenOutput {
         }
 
         int remainder;
-        int pos = stringBuffer.length - 1;;
+        int pos = stringBuffer.length - 1;
         do {
             remainder = value % 10;
             stringBuffer[pos] = String.alphabet.charAt(remainder);

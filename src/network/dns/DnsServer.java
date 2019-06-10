@@ -8,6 +8,7 @@ import network.dns.msg.DnsMessage;
 import network.dns.msg.Question;
 import network.ipstack.NetworkStack;
 import network.ipstack.abstracts.TransportLayer;
+import network.ipstack.binding.BindingsManager;
 import network.ipstack.binding.PackageReceiver;
 
 public class DnsServer extends PackageReceiver {
@@ -16,10 +17,11 @@ public class DnsServer extends PackageReceiver {
     private final NetworkStack stack;
     private DnsCache cache;
 
-    public DnsServer () {
+    public DnsServer (int interfaceNo) {
         stack = Kernel.networkManager.stack;
         cache = new DnsCache();
-        stack.bindingsManager.bind(stack.udpLayer, DNS_SERVER_PORT, this);
+
+        stack.bindingsManager.bind(interfaceNo, stack.udpLayer, DNS_SERVER_PORT, this);
     }
 
     public void add(ARecord a){
@@ -31,7 +33,7 @@ public class DnsServer extends PackageReceiver {
     }
 
     @Override
-    public void receive(TransportLayer transport, IPv4Address senderIp, int senderPort, int receiverPort, byte[] data) {
+    public void receive(int interfaceNo, TransportLayer transport, IPv4Address senderIp, int senderPort, int receiverPort, byte[] data) {
         DnsMessage msg = DnsMessage.fromBytes(data);
 
 
@@ -42,8 +44,20 @@ public class DnsServer extends PackageReceiver {
                     && q.getqType() == DnsMessage.TYPE_A || q.getqType() == DnsMessage.QTYPE_ALL){
 
                 ARecord r = cache.get(q.getName());
-                if (r != null) {
-                    LowlevelLogging.debug(r.ip.toString());
+                if (r == null) {
+                    // try resolving it via google dns
+                    DnsClient client = new DnsClient();
+                    client.setDnsserver(IPv4Address.fromString("10.0.2.3"));
+                    IPv4Address result = client.resolve(q.getName());
+
+                    if (result != null){
+                        r = new ARecord(q.getName(), result);
+                        cache.add(r);
+                    }
+                }
+
+                if (r != null){
+                    //LowlevelLogging.debug(r.ip.toString());
                     msg.addAnswer(r.name, DEFAULT_TTL, r.ip.toBytes());
                 }
             }
@@ -59,6 +73,6 @@ public class DnsServer extends PackageReceiver {
     }
 
     public void stop() {
-        stack.bindingsManager.unbind(stack.udpLayer, DNS_SERVER_PORT, this);
+        stack.bindingsManager.unbind(BindingsManager.ALL_INTERFACES, stack.udpLayer, DNS_SERVER_PORT, this);
     }
 }

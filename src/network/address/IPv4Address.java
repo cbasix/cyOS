@@ -1,41 +1,72 @@
 package network.address;
 
-import arithmetics.Unsigned;
+import arithmetics.ByteArray;
+import datastructs.ArrayList;
+import io.Color;
 import io.LowlevelLogging;
+import io.LowlevelOutput;
+import kernel.Kernel;
+import network.dhcp.msg.IPv4AddrStruct;
 
 public class IPv4Address {
     public static final int IPV4_LEN = 4;
+    private static IPv4Address globalBroadcast;
 
-    public int addr;
-    public int netmask;
+    public byte[] addr;
+    public byte[] netmask;
 
-    public IPv4Address(){}
+    private IPv4Address(){}
 
-    public IPv4Address(int data){
-        addr = data;
-    }
 
     public IPv4Address(byte[] ipBytes) {
         if (ipBytes.length != 4){
             LowlevelLogging.debug("invalid length for ip address");
+            Kernel.stop(); // todo remove
             return;
         }
-        for (int i = 0; i < IPV4_LEN; i++) {
-            addr |= ((ipBytes[i] & 0xFF) << (8*(IPV4_LEN-1-i)));
+
+        addr = ipBytes;
+    }
+
+    public static IPv4Address fromBytes(byte[] ipBytes){
+        if (ipBytes == null){
+            return null;
+        } else {
+            return new IPv4Address(ipBytes);
         }
-
     }
 
-    public IPv4Address setNetmask(int netmask){
-        this.netmask = netmask;
-        return this;
+    public static IPv4Address fromStruct(IPv4AddrStruct ips){
+        byte[] addr = new byte[IPV4_LEN];
+        for (int i = 0; i < IPV4_LEN; i++) {
+            addr[i] = ips.ip[i];
+        }
+        return new IPv4Address(addr);
     }
+
+    public void writeTo(IPv4AddrStruct ips) {
+        for (int i = 0; i < IPV4_LEN; i++) {
+            ips.ip[i] = this.addr[i];
+        }
+    }
+
+    public void writeNetmaskTo(IPv4AddrStruct ips) {
+        for (int i = 0; i < IPV4_LEN; i++) {
+            ips.ip[i] = this.netmask[i];
+        }
+    }
+
 
     public IPv4Address setNetmaskCidr(int onesCount){
-
-        for (int i = 0; i < IPV4_LEN*8; i++) {
-            this.netmask |= ((i < onesCount ? 1 : 0) << (IPV4_LEN*8 - 1 - i));
+        netmask = new byte[IPV4_LEN];
+        int currentPos = 0;
+        for (int i = 0; i < IPV4_LEN; i++) {
+            for (int b = 7; b >= 0; b--) {
+                this.netmask[i] |= ((currentPos < onesCount ? 1 : 0) << (7 - (currentPos % 8)));
+                currentPos++;
+            }
         }
+
         return this;
     }
 
@@ -45,85 +76,88 @@ public class IPv4Address {
             return null;
         }
 
-        for (int i = 0; i < IPV4_LEN; i++) {
-            this.netmask |= ((netmaskBytes[i] & 0xFF) << (8*(IPV4_LEN-1-i)));
-        }
+        this.netmask = netmaskBytes;
 
         return this;
 
     }
 
     public IPv4Address getBroadcastAddr() {
-        if (netmask == 0){
+        if (netmask == null){
 
             LowlevelLogging.debug("BroadcastAddr calc not possible without netmask");
             return null;
         }
-        return new IPv4Address((addr & netmask) | ~netmask);
+
+        byte[] broadcast = new byte[IPV4_LEN];
+        for(int i = 0; i < IPV4_LEN; i++){
+            broadcast[i] = (byte) (0xff & ((addr[i] & netmask[i]) | ~netmask[i]));
+        }
+
+        return new IPv4Address(broadcast);
     }
 
     public static IPv4Address getGlobalBreadcastAddr(){
-        return new IPv4Address(0xFFFFFFFF);
+        if (globalBroadcast == null) {
+            globalBroadcast = IPv4Address.fromString("255.255.255.255");
+        }
+        return globalBroadcast;
     }
 
     // todo fix
     public byte[] toBytes(){
-        byte[] copy = new byte[IPV4_LEN];
-        for(int i = 0; i < IPV4_LEN; i++){
-            copy[i] = (byte)((addr >> ((IPV4_LEN-1-i)*8)) & 0xFF);
-        }
-        return copy;
-    }
-
-    public int toInt() {
         return addr;
     }
 
     public String toString(){
         String ipStr = "";
 
-        for (int i = 1; i <= IPV4_LEN; i++) {
-            ipStr = String.concat(ipStr, String.from(((addr >>> ((IPV4_LEN*8 - i*8))) & 0xFF)));
+        for (int i = 0; i < IPV4_LEN; i++) {
+            ipStr = String.concat(ipStr, String.from(addr[i] & 0xFF));
 
-            if(i != IPV4_LEN) {
+            if(i != IPV4_LEN - 1) {
                 ipStr = String.concat(ipStr, ".");
             }
         }
 
-        if(netmask != 0){
-            ipStr = String.concat(ipStr, "/", String.from(getNetmaskSlash()));
+        if(netmask != null){
+            ipStr = String.concat(ipStr, "/", String.from(getNetmaskCidr()));
         }
 
         return  ipStr;
     }
 
-    public int getNetmaskSlash(){
-        for (int i = 0; i < IPV4_LEN*8; i++){
-            if((netmask & (1 << IPV4_LEN*8 - 1 - i)) == 0){
-                return i;
-            }
-
+    public int getNetmaskCidr(){
+        if (this.netmask == null){
+            return 0;
         }
-        return IPV4_LEN*8;
+        return ByteArray.countStartOnes(this.netmask);
     }
 
     public boolean equals(IPv4Address other) {
-        return other.toInt() == this.toInt();
+        return ByteArray.equals(this.addr, other.addr);
     }
 
     public boolean isInSameNetwork(IPv4Address other){
-        if (this.netmask != other.netmask && this.netmask != 0 && other.netmask != 0){
+        if (this.netmask != null && other.netmask != null && !ByteArray.equals(this.netmask, other.netmask)){
             return false;
         }
 
         // get the one not zero
-        int mask = Unsigned.isGreaterThan(this.netmask, other.netmask) ? this.netmask : other.netmask;
+        byte[] mask = this.getNetmaskCidr() > other.getNetmaskCidr() ? this.netmask : other.netmask;
 
-        return (this.addr & mask) == (other.addr & mask);
+        /*LowlevelOutput.printStr(String.from(this.getNetmaskCidr()), 2, 2, Color.PINK);
+        LowlevelLogging.debug(IPv4Address.fromBytes(mask).toString(), " mask ", String.concat(
+                String.hexFrom(mask[0]), String.hexFrom(mask[1]), String.hexFrom(mask[2]), String.hexFrom(mask[3])));*/
+
+        return ByteArray.equals(
+                ByteArray.and(this.addr, mask),
+                ByteArray.and(other.addr, mask)
+        );
     }
 
     public boolean isBroadcastAddr() {
-        return addr == getBroadcastAddr().toInt();
+        return ByteArray.equals(addr, getBroadcastAddr().toBytes());
     }
 
     public static IPv4Address fromString(String ipStr){
@@ -153,6 +187,12 @@ public class IPv4Address {
             ipBytes[i] = (byte) val;
         }
 
-        return new IPv4Address(ipBytes).setNetmaskCidr(netmaskCidr);
+        IPv4Address result = new IPv4Address(ipBytes);
+        return result.setNetmaskCidr(netmaskCidr);
+    }
+
+    public IPv4Address copy(){
+        byte[] newAddr = ByteArray.copy(this.addr);
+        return new IPv4Address(newAddr);
     }
 }
