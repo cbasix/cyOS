@@ -11,7 +11,7 @@ import kernel.interrupts.receivers.TimerCounter;
 import tasks.Task;
 
 public class TaskManager {
-    public static final int GC_INTERVAL = 100; // alle 100 system timer tics
+    public static final int GC_INTERVAL = 5000; // alle 5000 system timer tics
 
     static int savedEbp;
     static int savedEsp;

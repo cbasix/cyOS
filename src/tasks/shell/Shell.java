@@ -19,7 +19,7 @@ public class Shell extends Task {
     private static final int OUTPUT_AREA_LINES = 22;
     private static final int COLOR_HIGHLIGHTED =  Color.BLACK << 4 | Color.CYAN;
     private static final int COLOR_NORMAL = Color.BLACK << 4 | Color.GREY;
-    private static final int SCROLL_BUFFER_SIZE = 300;
+    private static final int SCROLL_BUFFER_SIZE = 100;
 
     private RingBuffer outputBuffer = new RingBuffer(SCROLL_BUFFER_SIZE);
     private char[] currentCommand = new char[GreenScreenOutput.WIDTH-1];
