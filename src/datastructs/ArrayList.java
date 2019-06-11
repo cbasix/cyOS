@@ -4,6 +4,7 @@ import io.LowlevelLogging;
 import io.LowlevelOutput;
 
 public class ArrayList {
+    // todo references in invalid entrys prevent garbage collection untill overwritten
     private static final int GROWTH = 10;
     private Object[] array = new Object[GROWTH];
     private int count = 0;
@@ -51,5 +52,10 @@ public class ArrayList {
 
     public int size(){
         return count;
+    }
+
+    public void clear() {
+        // does not clear entrys... (see top of file)
+        count = 0;
     }
 }

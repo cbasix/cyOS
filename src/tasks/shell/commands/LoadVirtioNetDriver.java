@@ -21,6 +21,7 @@ public class LoadVirtioNetDriver extends Command{
     @Override
     public void execute(RingBuffer shellMessageBuffer, String[] args) {
         boolean found = false;
+        Kernel.networkManager.getInterfaces().clear(); // todo remove all interfaces before adding them anew
         ArrayList pciDevices = PCI.scan(0);
         for (int i = 0; i < pciDevices.size(); i++){
             PciDevice p = (PciDevice) pciDevices._get(i);

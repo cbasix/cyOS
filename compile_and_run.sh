@@ -23,8 +23,8 @@ mkisofs="mkisofs -o cyos.iso -N -b bbk_iso.bin -no-emul-boot -boot-load-seg 0x7C
 
 # qemu options
 qemu="qemu-system-i386 "
-qemu_default="-no-kvm -d guest_errors -m 32 "
-qemu_debug="-s -S -no-reboot "
+qemu_default="-no-kvm -d guest_errors -m 32 -no-reboot "
+qemu_debug="-s -S "
 qemu_monitor="-monitor stdio "
 
 boot_floppy="-drive format=raw,if=none,file=BOOT_FLP.IMG -device floppy,drive=none0,drive-type=144"
@@ -58,7 +58,7 @@ if [ $# -eq 0 ]; then
     echo $mkisofs
     eval $mkisofs
 
-    cmd="$qemu $qemu_default $boot_iso $net1 $net_user $dump_cynet $dump_ext &"
+    cmd="$qemu $qemu_default $boot_iso $net1 $net_user $dump_cynet $dump_ext  &"
     echo $cmd
     eval $cmd
 
@@ -80,7 +80,7 @@ if [[ $1 == "user" ]]; then
     echo $mkisofs
     eval $mkisofs
 
-    cmd="$qemu $qemu_default $boot_iso $net_user $qemu_monitor $dump_ext"
+    cmd="$qemu $qemu_default $boot_iso $net_user $qemu_monitor $dump_ext $qemu_monitor"
     echo $cmd
     eval $cmd
 
@@ -118,7 +118,7 @@ if [[ $1 == "single" ]]; then
     echo $mkisofs
     eval $mkisofs
 
-    cmd="$qemu $qemu_default $boot_iso $net_tap1"
+    cmd="$qemu $qemu_default $boot_iso $net_tap1 $qemu_monitor"
     echo $cmd
     eval $cmd
     exit 0;
