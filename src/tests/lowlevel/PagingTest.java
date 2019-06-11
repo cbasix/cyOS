@@ -1,8 +1,6 @@
 package tests.lowlevel;
 
-import datastructs.ArrayList;
 import io.Color;
-import io.LowlevelLogging;
 import io.LowlevelOutput;
 import kernel.memory.Paging;
 
@@ -10,14 +8,14 @@ public class PagingTest {
     public static int test(){
 
 
-        int pageDirAddr = 1024*1024*5; // at 10mb in nirvana  todo just for testing
+        int pageDirAddr = 1024*1024*5; // in nirvana  todo just for testing
         //LowlevelLogging.debug("before writeConfigSpace");
         Paging.writePageDirectory(pageDirAddr);
         //LowlevelLogging.debug("written");
 
 
         // check page directory entry adresses point to page table adresses
-        for (int i = 1; i <= Paging.pageDirEntryCount; i++) {
+        for (int i = 1; i <= Paging.PAGE_DIR_ENTRY_COUNT; i++) {
 
             int dirEntry = MAGIC.rMem32(pageDirAddr+4*(i-1));
             int shouldEntry = pageDirAddr + 4096*i;
@@ -31,7 +29,7 @@ public class PagingTest {
         }
 
         // check first table all entrys
-        for (int i = 0; i < Paging.pageTableEntryCount; i++) {
+        for (int i = 0; i < Paging.PAGE_TABLE_ENTRY_COUNT; i++) {
 
             int dirEntry = MAGIC.rMem32(pageDirAddr+4096+4*i);
             int shouldEntry = 4096*i;

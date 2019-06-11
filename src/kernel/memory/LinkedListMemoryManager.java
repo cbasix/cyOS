@@ -61,7 +61,15 @@ public class LinkedListMemoryManager extends MemoryManager {
         }
 
         Interrupts.enable();
+        if(newObj == null){
+            memoryFull();
+        }
+
         return newObj;
+    }
+
+    public void memoryFull(){
+        MAGIC.inline(0xCC); // breakpoint exception
     }
 
 
@@ -72,9 +80,9 @@ public class LinkedListMemoryManager extends MemoryManager {
         int start = MAGIC.cast2Ref(o) - o._r_relocEntries * MAGIC.ptrSize;
         int size = getAllignedSize(o._r_scalarSize, o._r_relocEntries);
 
-        for (int i = 0; i < size/4; i++) {
+        /*for (int i = 0; i < size/4; i++) {
             MAGIC.wMem32(start + i*4, 0);
-        }
+        }*/
 
         insertArea(start, size, areaIter);
         Interrupts.enable();

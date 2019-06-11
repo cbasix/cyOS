@@ -23,7 +23,7 @@ mkisofs="mkisofs -o cyos.iso -N -b bbk_iso.bin -no-emul-boot -boot-load-seg 0x7C
 
 # qemu options
 qemu="qemu-system-i386 "
-qemu_default="-no-kvm -d guest_errors -m 32 -no-reboot "
+qemu_default="-no-kvm -d guest_errors -m 64 -no-reboot "
 qemu_debug="-s -S "
 qemu_monitor="-monitor stdio "
 

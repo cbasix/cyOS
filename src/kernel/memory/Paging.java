@@ -1,13 +1,19 @@
 package kernel.memory;
 
-public class Paging {
+import drivers.virtio.RawMemoryContainer;
 
-    public static final int pageTableEntryCount = 1024;
+public class Paging {
+    public static final int PAGE_SIZE = 4096;
+    public static final int PAGE_DIR_ENTRY_COUNT = 1024;
+    public static final int PAGE_TABLE_ENTRY_COUNT = 1024;
+    public static final int PAGING_CONFIG_SIZE = PAGE_SIZE + PAGE_SIZE * PAGE_DIR_ENTRY_COUNT + PAGE_SIZE; // last one is allignment
+
+    private static RawMemoryContainer pagingConfig;
 
     static void writePageTable(int pageTableBase, int tableNo){
-        for (int i = 0; i < pageTableEntryCount; i++) {
+        for (int i = 0; i < PAGE_TABLE_ENTRY_COUNT; i++) {
             int entry = 0;
-            entry |= (i + pageTableEntryCount * tableNo) << 12; // page base address
+            entry |= (i + PAGE_TABLE_ENTRY_COUNT * tableNo) << 12; // page base address
             entry |= 0 << 7; // page size
             entry |= 0 << 4; // cache disable (0) -> cache on
             entry |= 0 << 3; // write trough (0) -> write back
@@ -15,7 +21,7 @@ public class Paging {
             entry |= 1 << 1; // read/r+w (1) -> r+w
 
             // let mmu create exceptions on nullpointer (first or last page access
-            if((i == 0 && tableNo == 0) || (i == pageTableEntryCount -1 && pageDirEntryCount - tableNo == 0)){
+            if((i == 0 && tableNo == 0) || (i == PAGE_TABLE_ENTRY_COUNT -1 && PAGE_DIR_ENTRY_COUNT - tableNo == 0)){
                 entry |= 0 << 0; // present (0) -> seite nicht da
             } else {
                 entry |= 1 << 0; // present (1) -> seite vorhanden
@@ -25,12 +31,8 @@ public class Paging {
         }
     }
 
-
-
-    public static final int pageDirEntryCount = 1024;
-
     public static void writePageDirectory(int pageDirectoryBase){
-        for (int pTableNo = 0; pTableNo < pageDirEntryCount; pTableNo++) {
+        for (int pTableNo = 0; pTableNo < PAGE_DIR_ENTRY_COUNT; pTableNo++) {
             int entry = 0;
             int pageTableAddr = ((1+pTableNo) << 12 ) + pageDirectoryBase; // (make space for myself) the page tables follow in ascencing order
             entry |= pageTableAddr ; // page table base address
@@ -48,11 +50,12 @@ public class Paging {
     }
 
     public static void enable(){
-        int pageDirAddr = 1024*1024*10; // at 20mb in nirvana just for testing
-        // todo find good free place. Is it necessary? or is it copied?  -> not necessary processor keeps cached copy, only if i wanted to change it after the memory has been used i would have to find someplace else
+        pagingConfig = new RawMemoryContainer(PAGING_CONFIG_SIZE);
+        int pageDirAddr = (pagingConfig.getRawAddr() + PAGE_SIZE - 1) & ~(PAGE_SIZE-1);
 
         // todo enable only present pages (smap)
-        writePageDirectory(pageDirAddr);
+        //pageDirAddr = 1024*1024*10;
+        writePageDirectory(pageDirAddr); // allign to page boundary
 
         setCR3(pageDirAddr);
         enableVirtualMemory();
