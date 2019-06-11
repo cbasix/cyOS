@@ -21,11 +21,13 @@ A small monolitic educational Java OS which was created as an exercise for the l
 - Ethernet / ARP / IPv4
 - UDP (without checksum)
 - DHCP Client & Server
+- DNS Client & Server (only ARecords)
 
 And some more stuff. 
 
-# In work
-- DNS Client & Server (only ARecords)
+# Negative Points
+- Security and performance *NOT* considered.
+- Bug in Memory-Management / Garbage collection, that leads to crash when memory gets too fragmented.
 
 # An OS in Java?
 cyOS is compiled using the SJC Java to native compiler, which can be found here: http://www.fam-frenz.de/stefan/compiler.html
@@ -35,8 +37,7 @@ cyOS is compiled using the SJC Java to native compiler, which can be found here:
 Server and Client implemented, should work with other standard compliant software. IPv4 and UDP only. 
 
 ## Server
-Can be started with `dhcps start`. Assigns 192.168.100.x/24 addresses and the fixed DNS-Server 192.168.100.1
-`dhcps stop` shuts down the dhcpserver.
+Can be started with `dhcps start 0` on interface 0. `dhcps stop` shuts down the dhcpserver.
 
 ## Client
 
@@ -47,13 +48,15 @@ Can be started with `dhcps start`. Assigns 192.168.100.x/24 addresses and the fi
 Server and Client can read compressed DNS-Messages, but do not use 
  compression in outgoing messages.
  
- `dnss start`
+ `dnss start <interface no>`
  
  # Default test case
  
 Two QEMU networks one "user" type network called "ext" and one "socket" type network called "cynet". 
 One cyOs instance (called SERVER) with two network cards is connected to both of them. 
-The other network card is - like the second cyOS instance (called CLIENT) - connected to the "cyos" network.
+The other network card is - like the second cyOS instance (called CLIENT) - connected to the "cyos" network. 
+
+Start the described environment via `./compile_and_run.sh`
 
 ### On SERVER 
 1. Run `dhcp start 1` to obtain an dhcp information from the ext nets dhcp server.
